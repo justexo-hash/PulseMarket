@@ -1,0 +1,145 @@
+Create a semi-functional React application called PulseMarket, inspired by prediction markets like Polymarket. The app will be a single-page application (SPA) that uses react-router-dom for navigation. It will display a list of markets, allow users to click for details, and simulate creating a new market.
+
+🛠️ Tech Stack & Setup
+Framework: React (using Hooks: useState, useEffect)
+
+Routing: react-router-dom
+
+You will need to install this in the Replit shell: npm install react-router-dom
+
+Styling: A single App.css file.
+
+Database: No backend needed. We will use a mock data file (src/mockData.js) to act as our database.
+
+📋 Feature Requirements & Component Structure
+1. Mock Data (src/mockData.js)
+Create this file first. It will export an array of market objects.
+
+JavaScript
+
+// src/mockData.js
+export const mockMarkets = [
+  {
+    id: 1,
+    question: "Will Ethereum reach $5,000 by 2026?",
+    category: "Crypto",
+    probability: 65,
+  },
+  {
+    id: 2,
+    question: "Will 'Dune: Part Two' win Best Picture?",
+    category: "Entertainment",
+    probability: 22,
+  },
+  {
+    id: 3,
+    question: "Will AI surpass human intelligence by 2030?",
+    category: "Technology",
+    probability: 40,
+  },
+];
+2. Main App Component (src/App.jsx)
+This component will be the "brain" of your app.
+
+Import mockMarkets and store them in state: const [markets, setMarkets] = useState(mockMarkets);
+
+Set up react-router-dom (BrowserRouter, Routes, Route).
+
+Include the Header component on all pages.
+
+Define a function handleCreateMarket that takes a newMarket object and adds it to the markets state (e.g., setMarkets([...markets, newMarket]);).
+
+3. Routing (src/App.jsx)
+Set up the following routes:
+
+/: Renders the MarketList component.
+
+/market/:id: Renders the MarketDetail component.
+
+/create: Renders the CreateMarket component.
+
+4. Components (src/components/)
+Create a components folder in src.
+
+Header.jsx
+
+A simple navigation bar.
+
+Shows the name "PulseMarket".
+
+Uses the Link component from react-router-dom to link to:
+
+"Markets" (/)
+
+"Create Market" (/create)
+
+MarketList.jsx (Homepage)
+
+Receives the markets array as a prop.
+
+Maps over the array and renders a MarketCard component for each market.
+
+MarketCard.jsx
+
+A presentational component that receives a single market object as a prop.
+
+Displays the question, category, and probability (e.g., "65%").
+
+The entire card should be wrapped in a Link component that navigates to /market/${market.id}.
+
+MarketDetail.jsx
+
+Uses the useParams hook from react-router-dom to get the id from the URL.
+
+Receives the full markets array as a prop.
+
+Finds the correct market: const market = markets.find(m => m.id === parseInt(id));
+
+Displays the full market question.
+
+Semi-functional: Shows two buttons: "Bet Yes" and "Bet No".
+
+On click, these buttons just trigger a JavaScript alert('Your mock trade has been placed!');.
+
+CreateMarket.jsx
+
+Receives the handleCreateMarket function as a prop.
+
+Uses useState to control a simple form with inputs for "Question" and "Category".
+
+Uses the useNavigate hook from react-router-dom.
+
+On form submit:
+
+Prevents the default form action.
+
+Creates a new market object (don't forget a new id!).
+
+Calls the handleCreateMarket prop with the new object.
+
+Uses Maps('/') to redirect the user back to the homepage.
+
+🎨 Styling (src/App.css)
+Theme: Modern dark mode.
+
+body: background-color #1A1B2D, color white.
+
+Font: Import "Inter" from Google Fonts at the top of your CSS file.
+
+Accent Color: Use an electric purple/blue (e.g., #4A4AFF) for buttons, links, and highlights.
+
+Header: Make it sticky at the top with a slight background color (e.g., #25263B).
+
+Market Cards:
+
+background-color: #25263B
+
+border-radius: 8px
+
+padding: 16px
+
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1)
+
+Hover Effect: transform: scale(1.02); and transition: all 0.2s ease;
+
+Use CSS Grid or Flexbox for the MarketList to create a responsive card layout.
