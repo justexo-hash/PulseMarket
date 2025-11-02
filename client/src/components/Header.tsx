@@ -1,8 +1,26 @@
 import { Link, useLocation } from "wouter";
-import { TrendingUp, Wallet } from "lucide-react";
+import { TrendingUp, Wallet, LogOut, LogIn } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 
 export function Header() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const { user, logout } = useAuth();
+  const { toast } = useToast();
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logged Out",
+      description: "You have been logged out successfully.",
+    });
+    setLocation("/login");
+  };
+
+  const truncateAddress = (address: string) => {
+    return `${address.slice(0, 4)}...${address.slice(-4)}`;
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card shadow-lg">
@@ -50,6 +68,38 @@ export function Header() {
                 Create Market
               </div>
             </Link>
+
+            {user ? (
+              <div className="flex items-center gap-2 ml-4 border-l border-border pl-4">
+                <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
+                  <Wallet className="h-4 w-4 text-primary" />
+                  <span className="font-mono text-sm" data-testid="text-wallet-address">
+                    {truncateAddress(user.walletAddress)}
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  data-testid="button-logout"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <div className="ml-4 border-l border-border pl-4">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setLocation("/login")}
+                  data-testid="button-login"
+                >
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Login
+                </Button>
+              </div>
+            )}
           </nav>
         </div>
       </div>
