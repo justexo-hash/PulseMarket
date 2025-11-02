@@ -1,5 +1,4 @@
 import { useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LogIn, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/lib/auth";
+import { useState } from "react";
 
 const loginSchema = z.object({
   walletAddress: z.string().min(32, "Invalid wallet address"),
@@ -22,6 +22,8 @@ type LoginForm = z.infer<typeof loginSchema>;
 export function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { login } = useAuth();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -31,30 +33,25 @@ export function Login() {
     },
   });
 
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginForm) => {
-      return await apiRequest("POST", "/api/auth/login", data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+  const onSubmit = async (data: LoginForm) => {
+    setIsLoggingIn(true);
+    try {
+      await login(data.walletAddress, data.password);
       toast({
         title: "Login Successful!",
         description: "Welcome to PulseMarket.",
       });
       setLocation("/");
-    },
-    onError: (error: any) => {
+    } catch (error: any) {
       const errorMessage = error.message || "Login failed. Please check your credentials.";
       toast({
         title: "Login Failed",
         description: errorMessage,
         variant: "destructive",
       });
-    },
-  });
-
-  const onSubmit = (data: LoginForm) => {
-    loginMutation.mutate(data);
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
   return (
@@ -136,10 +133,10 @@ export function Login() {
                   <Button 
                     type="submit" 
                     className="w-full" 
-                    disabled={loginMutation.isPending}
+                    disabled={isLoggingIn}
                     data-testid="button-login"
                   >
-                    {loginMutation.isPending ? "Logging in..." : "Log In"}
+                    {isLoggingIn ? "Logging in..." : "Log In"}
                   </Button>
                 </form>
               </Form>
@@ -149,7 +146,7 @@ export function Login() {
                   Don't have a wallet yet?{" "}
                   <span
                     className="text-primary cursor-pointer hover:underline"
-                    onClick={() => setLocation("/wallet/generate")}
+                    onClick={() => setLocation("/generate-wallet")}
                     data-testid="link-generate-wallet"
                   >
                     Generate Wallet

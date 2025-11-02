@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { UserPlus, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/lib/auth";
 
 const registerSchema = z.object({
   walletAddress: z.string().min(32, "Invalid wallet address"),
@@ -27,6 +28,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 export function Register() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { login } = useAuth();
   const [walletAddress, setWalletAddress] = useState("");
 
   useEffect(() => {
@@ -39,7 +41,7 @@ export function Register() {
         description: "Please generate a wallet first.",
         variant: "destructive",
       });
-      setLocation("/wallet/generate");
+      setLocation("/generate-wallet");
     }
   }, [setLocation, toast]);
 
@@ -63,13 +65,23 @@ export function Register() {
     mutationFn: async (data: { walletAddress: string; password: string }) => {
       return await apiRequest("POST", "/api/auth/register", data);
     },
-    onSuccess: () => {
+    onSuccess: async (_, variables) => {
       sessionStorage.removeItem("walletAddress");
-      toast({
-        title: "Registration Successful!",
-        description: "You can now log in with your wallet address and password.",
-      });
-      setLocation("/login");
+      
+      try {
+        await login(variables.walletAddress, variables.password);
+        toast({
+          title: "Welcome to PulseMarket!",
+          description: "Your account has been created successfully.",
+        });
+        setLocation("/");
+      } catch (error) {
+        toast({
+          title: "Registration Successful!",
+          description: "Please log in with your credentials.",
+        });
+        setLocation("/login");
+      }
     },
     onError: (error: any) => {
       const errorMessage = error.message || "Registration failed. Please try again.";

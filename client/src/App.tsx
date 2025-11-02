@@ -23,7 +23,7 @@ function Router() {
         <Route path="/market/:id" component={MarketDetail} />
         <Route path="/create" component={CreateMarket} />
         <Route path="/portfolio" component={Portfolio} />
-        <Route path="/wallet/generate" component={WalletGenerate} />
+        <Route path="/generate-wallet" component={WalletGenerate} />
         <Route path="/register" component={Register} />
         <Route path="/login" component={Login} />
         <Route component={NotFound} />
