@@ -36,7 +36,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return await apiRequest("POST", "/api/auth/login", data);
     },
     onSuccess: (data) => {
+      console.log("[AuthContext] Login response data:", data);
       queryClient.setQueryData(["/api/auth/me"], data);
+      console.log("[AuthContext] Query cache after setQueryData:", queryClient.getQueryData(["/api/auth/me"]));
     },
   });
 

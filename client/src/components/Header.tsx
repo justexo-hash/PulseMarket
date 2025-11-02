@@ -9,6 +9,9 @@ export function Header() {
   const { user, logout } = useAuth();
   const { toast } = useToast();
 
+  console.log("[Header] User object:", user);
+  console.log("[Header] User walletAddress:", user?.walletAddress);
+
   const handleLogout = () => {
     logout();
     toast({
