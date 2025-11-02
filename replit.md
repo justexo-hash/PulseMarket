@@ -2,7 +2,9 @@
 
 ## Overview
 
-PulseMarket is a fully functional prediction market application inspired by platforms like Polymarket, Kalshi, and Robinhood. The application allows users to:
+PulseMarket is a fully functional prediction market application with Solana wallet-based authentication, inspired by platforms like Polymarket, Kalshi, and Robinhood. The application allows users to:
+- Generate Solana wallets on-site and register accounts using wallet address + password
+- Authenticate with wallet-based login and secure session management
 - Browse prediction markets across categories (Crypto, Entertainment, Technology, etc.)
 - View probability forecasts and market details
 - Create new markets with custom questions and categories
@@ -10,7 +12,7 @@ PulseMarket is a fully functional prediction market application inspired by plat
 - Resolve markets with final outcomes
 - Filter and search markets in real-time
 
-Built as a single-page application (SPA) with PostgreSQL database persistence, it emphasizes data clarity, professional aesthetics, and trust through clean, fintech-inspired design.
+Built as a single-page application (SPA) with PostgreSQL database persistence, it emphasizes data clarity, professional aesthetics, and trust through clean, fintech-inspired design with secure Solana wallet integration.
 
 ## User Preferences
 
@@ -45,11 +47,14 @@ Preferred communication style: Simple, everyday language.
 - Responsive grid layout: 3 columns (desktop) → 2 columns (tablet) → 1 column (mobile)
 
 **Key Pages & Components:**
+- WalletGenerate: Solana wallet generation with keypair display and private key confirmation
+- Register: Account creation with wallet address and password
+- Login: Wallet-based authentication with session management
 - MarketList: Grid display of markets with category filtering and search functionality
 - MarketDetail: Individual market view with betting interface and resolution controls
 - CreateMarket: Form-based market creation with validation
 - Portfolio: Betting history and portfolio value summary with profit/loss tracking
-- Header: Persistent navigation with brand identity and route links
+- Header: Persistent navigation with brand identity, route links, and wallet address display (when authenticated)
 - MarketCard: Reusable card component displaying market question, category, probability, and resolved status
 
 ### Backend Architecture
@@ -61,12 +66,19 @@ Preferred communication style: Simple, everyday language.
 
 **API Structure:**
 - RESTful API pattern with `/api` prefix for all endpoints
-- GET /api/markets - Fetch all markets
-- GET /api/markets/:id - Fetch single market by ID
-- POST /api/markets - Create new market
-- POST /api/markets/:id/resolve - Resolve market with outcome (yes/no)
-- Comprehensive error handling with proper HTTP status codes (400, 404, 500)
+- **Authentication Endpoints:**
+  - POST /api/auth/register - Create new user with wallet address and hashed password
+  - POST /api/auth/login - Authenticate user with wallet address and password
+  - POST /api/auth/logout - Destroy session and log out user
+  - GET /api/auth/me - Get current authenticated user
+- **Market Endpoints:**
+  - GET /api/markets - Fetch all markets
+  - GET /api/markets/:id - Fetch single market by ID
+  - POST /api/markets - Create new market
+  - POST /api/markets/:id/resolve - Resolve market with outcome (yes/no)
+- Comprehensive error handling with proper HTTP status codes (400, 401, 404, 500)
 - Request validation using Zod schemas
+- Session-based authentication with express-session and PostgreSQL store
 
 **Data Layer:**
 - Storage interface pattern (IStorage) for abstraction and maintainability
@@ -97,8 +109,10 @@ Preferred communication style: Simple, everyday language.
 
 **Shared Schema (shared/schema.ts):**
 - Drizzle ORM schema with PostgreSQL table definitions
-- Market model: id (serial), question (text), category (text), probability (integer), status (text), resolvedOutcome (text, nullable)
+- **Users Model**: id (serial), walletAddress (text, unique), hashedPassword (text), createdAt (timestamp)
+- **Markets Model**: id (serial), question (text), category (text), probability (integer), status (text), resolvedOutcome (text, nullable)
 - Zod schemas for runtime validation and TypeScript type inference
+- InsertUser type: excludes auto-generated fields (id, createdAt)
 - InsertMarket type: excludes auto-generated fields (id, probability, status, resolvedOutcome)
 - Type-safe database operations with full TypeScript support
 
@@ -119,9 +133,14 @@ Preferred communication style: Simple, everyday language.
 - Tailwind CSS for styling
 - React Hook Form + Zod for forms and validation
 - date-fns for date manipulation
+- @solana/web3.js for Solana wallet generation and management
+- buffer polyfill for browser compatibility with Solana SDK
 
 **Backend Libraries:**
 - Express.js for HTTP server
+- express-session for session management
+- connect-pg-simple for PostgreSQL session store
+- bcrypt for password hashing (salt rounds: 10)
 - Vite for development and bundling
 - tsx for TypeScript execution in development
 
@@ -185,8 +204,33 @@ Preferred communication style: Simple, everyday language.
 - **Database Persistence**: Resolution status persists across sessions
 - **Error Handling**: Proper 404 response when resolving non-existent markets
 
+### Authentication System
+- **Solana Wallet Generation**: On-site generation of Solana Ed25519 keypairs using @solana/web3.js
+  - Users receive both public key (wallet address) and private key (base58-encoded)
+  - Private key displayed with warning to save securely
+  - Confirmation checkbox required before proceeding to registration
+- **Account Registration**: Wallet address + password authentication model
+  - Wallet address serves as username (public key from generated keypair)
+  - Password hashed with bcrypt (salt rounds: 10) before storage
+  - Automatic login after successful registration
+  - Unique wallet address constraint (one account per wallet)
+- **Session Management**: Secure server-side sessions with express-session
+  - Sessions stored in PostgreSQL database via connect-pg-simple
+  - HttpOnly cookies for session storage
+  - Automatic session persistence across page refreshes
+- **Authentication Context**: React context (AuthProvider) for global auth state
+  - Exposes: user, isLoading, login(), logout()
+  - Fetches current user on app mount via GET /api/auth/me
+  - Updates query cache after login/logout
+  - Memoized context value to prevent unnecessary re-renders
+- **Protected Routes**: Session-based access control
+  - Header displays truncated wallet address when authenticated
+  - Logout button destroys session and redirects to login page
+  - All features accessible after authentication
+
 ### Data Persistence
 - All market data stored in PostgreSQL database
+- User accounts and sessions stored in PostgreSQL
 - Real-time updates using TanStack Query cache invalidation
 - Betting history persists in browser localStorage
 - Automatic workflow restart after package changes
@@ -194,12 +238,15 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes (November 2, 2025)
 
 ### Completed Implementation
-1. **Database Persistence** - Migrated from mock data to full PostgreSQL backend with Drizzle ORM
-2. **Category Filtering & Search** - Added dynamic filtering and real-time search functionality
-3. **Betting & Portfolio** - Implemented simulated betting system with portfolio tracking
-4. **Market Resolution** - Added resolution system with database schema updates and UI controls
+1. **Solana Wallet Authentication** - Complete authentication system with wallet generation, registration, and login/logout functionality
+2. **Database Persistence** - Migrated from mock data to full PostgreSQL backend with Drizzle ORM
+3. **Category Filtering & Search** - Added dynamic filtering and real-time search functionality
+4. **Betting & Portfolio** - Implemented simulated betting system with portfolio tracking
+5. **Market Resolution** - Added resolution system with database schema updates and UI controls
 
 ### Bug Fixes
 - Fixed division-by-zero in portfolio calculations by clamping probabilities (0.1-99.9%)
 - Fixed 404 error handling in market detail page for non-existent markets
 - Fixed resolution API to return 404 instead of empty 200 for invalid market IDs
+- Fixed Buffer polyfill for Solana SDK browser compatibility
+- Fixed missing login function in AuthContext (critical bug preventing auto-login after registration)
