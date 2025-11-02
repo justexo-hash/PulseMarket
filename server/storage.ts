@@ -1,38 +1,36 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { type Market, type InsertMarket, markets } from "@shared/schema";
+import { db } from "../db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getAllMarkets(): Promise<Market[]>;
+  getMarketById(id: number): Promise<Market | undefined>;
+  createMarket(market: InsertMarket): Promise<Market>;
+  deleteMarket(id: number): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+export class DbStorage implements IStorage {
+  async getAllMarkets(): Promise<Market[]> {
+    return await db.select().from(markets);
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getMarketById(id: number): Promise<Market | undefined> {
+    const result = await db.select().from(markets).where(eq(markets.id, id));
+    return result[0];
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async createMarket(insertMarket: InsertMarket): Promise<Market> {
+    const probability = Math.floor(Math.random() * 80) + 10;
+    const result = await db
+      .insert(markets)
+      .values({ ...insertMarket, probability })
+      .returning();
+    return result[0];
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async deleteMarket(id: number): Promise<void> {
+    await db.delete(markets).where(eq(markets.id, id));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DbStorage();

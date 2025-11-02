@@ -1,20 +1,45 @@
 import { useParams, Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { type Market } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, ThumbsUp, ThumbsDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface MarketDetailProps {
-  markets: Market[];
-}
-
-export function MarketDetail({ markets }: MarketDetailProps) {
+export function MarketDetail() {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
-  const market = markets.find((m) => m.id === parseInt(id || "0"));
+  
+  const { data: market, isLoading, error } = useQuery<Market>({
+    queryKey: ["/api/markets", id],
+    enabled: !!id,
+  });
 
-  if (!market) {
+  const handleBet = (type: "yes" | "no") => {
+    toast({
+      title: `${type === "yes" ? "Yes" : "No"} Bet Placed!`,
+      description: "Your mock trade has been placed successfully.",
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-card border border-card-border rounded-lg p-8 shadow-xl animate-pulse">
+            <div className="h-8 w-32 bg-muted rounded mb-4" />
+            <div className="h-12 bg-muted rounded mb-8" />
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="h-48 bg-muted rounded" />
+              <div className="h-48 bg-muted rounded" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !market) {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center py-20">
@@ -32,13 +57,6 @@ export function MarketDetail({ markets }: MarketDetailProps) {
       </div>
     );
   }
-
-  const handleBet = (type: "yes" | "no") => {
-    toast({
-      title: `${type === "yes" ? "Yes" : "No"} Bet Placed!`,
-      description: "Your mock trade has been placed successfully.",
-    });
-  };
 
   const noProbability = 100 - market.probability;
 

@@ -1,6 +1,7 @@
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,12 +17,9 @@ import { insertMarketSchema, type InsertMarket } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus } from "lucide-react";
 import { Link } from "wouter";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 
-interface CreateMarketProps {
-  onCreateMarket: (question: string, category: string) => void;
-}
-
-export function CreateMarket({ onCreateMarket }: CreateMarketProps) {
+export function CreateMarket() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -33,13 +31,29 @@ export function CreateMarket({ onCreateMarket }: CreateMarketProps) {
     },
   });
 
+  const createMarket = useMutation({
+    mutationFn: async (data: InsertMarket) => {
+      return await apiRequest("POST", "/api/markets", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/markets"] });
+      toast({
+        title: "Market Created!",
+        description: "Your new market has been added successfully.",
+      });
+      setLocation("/");
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create market. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: InsertMarket) => {
-    onCreateMarket(data.question, data.category);
-    toast({
-      title: "Market Created!",
-      description: "Your new market has been added successfully.",
-    });
-    setLocation("/");
+    createMarket.mutate(data);
   };
 
   return (
@@ -111,10 +125,11 @@ export function CreateMarket({ onCreateMarket }: CreateMarketProps) {
                   type="submit"
                   size="lg"
                   className="w-full text-lg font-semibold h-auto py-4"
+                  disabled={createMarket.isPending}
                   data-testid="button-submit"
                 >
                   <Plus className="mr-2 h-5 w-5" />
-                  Create Market
+                  {createMarket.isPending ? "Creating..." : "Create Market"}
                 </Button>
               </div>
             </div>
