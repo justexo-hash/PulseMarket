@@ -7,6 +7,7 @@ export interface IStorage {
   getMarketById(id: number): Promise<Market | undefined>;
   createMarket(market: InsertMarket): Promise<Market>;
   deleteMarket(id: number): Promise<void>;
+  resolveMarket(id: number, outcome: "yes" | "no"): Promise<Market | undefined>;
 }
 
 export class DbStorage implements IStorage {
@@ -30,6 +31,19 @@ export class DbStorage implements IStorage {
 
   async deleteMarket(id: number): Promise<void> {
     await db.delete(markets).where(eq(markets.id, id));
+  }
+
+  async resolveMarket(id: number, outcome: "yes" | "no"): Promise<Market | undefined> {
+    const result = await db
+      .update(markets)
+      .set({ 
+        status: "resolved", 
+        resolvedOutcome: outcome,
+        probability: outcome === "yes" ? 100 : 0
+      })
+      .where(eq(markets.id, id))
+      .returning();
+    return result[0];
   }
 }
 

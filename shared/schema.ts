@@ -7,14 +7,22 @@ export const markets = pgTable("markets", {
   question: text("question").notNull(),
   category: text("category").notNull(),
   probability: integer("probability").notNull().default(50),
+  status: text("status").notNull().default("active"),
+  resolvedOutcome: text("resolved_outcome"),
 });
 
 export const insertMarketSchema = createInsertSchema(markets).omit({
   id: true,
   probability: true,
+  status: true,
+  resolvedOutcome: true,
 }).extend({
   question: z.string().min(10, "Question must be at least 10 characters"),
   category: z.string().min(1, "Category is required"),
+});
+
+export const resolveMarketSchema = z.object({
+  outcome: z.enum(["yes", "no"]),
 });
 
 export type Market = typeof markets.$inferSelect;

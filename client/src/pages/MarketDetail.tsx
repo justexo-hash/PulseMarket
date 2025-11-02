@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { type Market } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { ArrowLeft, ThumbsUp, ThumbsDown, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { addBet } from "@/lib/bets";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 
 export function MarketDetail() {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +20,27 @@ export function MarketDetail() {
   const { data: market, isLoading, error } = useQuery<Market>({
     queryKey: ["/api/markets", id],
     enabled: !!id,
+  });
+
+  const resolveMarket = useMutation({
+    mutationFn: async (outcome: "yes" | "no") => {
+      return await apiRequest("POST", `/api/markets/${id}/resolve`, { outcome });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/markets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/markets", id] });
+      toast({
+        title: "Market Resolved!",
+        description: "The market has been resolved successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to resolve market. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleBet = (position: "yes" | "no") => {
@@ -45,6 +68,10 @@ export function MarketDetail() {
       title: `${position === "yes" ? "Yes" : "No"} Bet Placed!`,
       description: `You bet $${amount.toFixed(2)} at ${position === "yes" ? market.probability : 100 - market.probability}% probability.`,
     });
+  };
+
+  const handleResolve = (outcome: "yes" | "no") => {
+    resolveMarket.mutate(outcome);
   };
 
   if (isLoading) {
@@ -193,6 +220,61 @@ export function MarketDetail() {
               This is a simulated trading interface. Bets are tracked in your browser.
             </p>
           </div>
+
+          {/* Market Resolution Section */}
+          {market.status === "resolved" ? (
+            <div className="border-t border-border pt-8">
+              <Card className="p-6 bg-muted/30">
+                <div className="flex items-center justify-center gap-3">
+                  <CheckCircle2 className="h-6 w-6 text-primary" />
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground font-medium mb-1">
+                      Market Resolved
+                    </p>
+                    <p className="text-2xl font-bold text-foreground" data-testid="text-resolved-outcome">
+                      Outcome: <span className={market.resolvedOutcome === "yes" ? "text-primary" : "text-destructive"}>
+                        {market.resolvedOutcome?.toUpperCase()}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          ) : (
+            <div className="border-t border-border pt-8">
+              <h2 className="text-2xl font-bold text-foreground mb-6">Resolve Market</h2>
+              <p className="text-muted-foreground mb-6">
+                Once the event has concluded, you can resolve this market with the actual outcome.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Button
+                  size="lg"
+                  variant="default"
+                  className="h-auto py-6 text-lg font-semibold"
+                  onClick={() => handleResolve("yes")}
+                  disabled={resolveMarket.isPending}
+                  data-testid="button-resolve-yes"
+                >
+                  <CheckCircle2 className="mr-2 h-5 w-5" />
+                  {resolveMarket.isPending ? "Resolving..." : "Resolve YES"}
+                </Button>
+                <Button
+                  size="lg"
+                  variant="destructive"
+                  className="h-auto py-6 text-lg font-semibold"
+                  onClick={() => handleResolve("no")}
+                  disabled={resolveMarket.isPending}
+                  data-testid="button-resolve-no"
+                >
+                  <CheckCircle2 className="mr-2 h-5 w-5" />
+                  {resolveMarket.isPending ? "Resolving..." : "Resolve NO"}
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground text-center mt-4">
+                Resolving a market is permanent and cannot be undone.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

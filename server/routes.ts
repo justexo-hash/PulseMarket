@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertMarketSchema } from "@shared/schema";
+import { insertMarketSchema, resolveMarketSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all markets
@@ -64,6 +64,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: "Failed to delete market" });
+    }
+  });
+
+  // Resolve market
+  app.post("/api/markets/:id/resolve", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid market ID" });
+      }
+
+      const result = resolveMarketSchema.safeParse(req.body);
+      
+      if (!result.success) {
+        return res.status(400).json({ error: result.error.errors });
+      }
+
+      const market = await storage.resolveMarket(id, result.data.outcome);
+      
+      if (!market) {
+        return res.status(404).json({ error: "Market not found" });
+      }
+      
+      res.json(market);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to resolve market" });
     }
   });
 
