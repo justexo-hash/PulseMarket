@@ -2,7 +2,15 @@
 
 ## Overview
 
-PulseMarket is a prediction market application inspired by platforms like Polymarket, Kalshi, and Robinhood. The application allows users to browse prediction markets across various categories (Crypto, Entertainment, Technology), view probability forecasts, and create new markets. Built as a single-page application (SPA), it emphasizes data clarity, professional aesthetics, and trust through clean, fintech-inspired design.
+PulseMarket is a fully functional prediction market application inspired by platforms like Polymarket, Kalshi, and Robinhood. The application allows users to:
+- Browse prediction markets across categories (Crypto, Entertainment, Technology, etc.)
+- View probability forecasts and market details
+- Create new markets with custom questions and categories
+- Place simulated bets with portfolio tracking
+- Resolve markets with final outcomes
+- Filter and search markets in real-time
+
+Built as a single-page application (SPA) with PostgreSQL database persistence, it emphasizes data clarity, professional aesthetics, and trust through clean, fintech-inspired design.
 
 ## User Preferences
 
@@ -19,8 +27,9 @@ Preferred communication style: Simple, everyday language.
 
 **State Management:**
 - Local component state using React hooks
-- TanStack Query (React Query) for server state management and data fetching
-- Mock data stored in shared schema for development/demo purposes
+- TanStack Query (React Query) for server state management, data fetching, and cache invalidation
+- Betting history tracked in browser localStorage for demo purposes
+- All market data persisted in PostgreSQL database
 
 **UI Component System:**
 - Shadcn/ui component library with Radix UI primitives
@@ -36,11 +45,12 @@ Preferred communication style: Simple, everyday language.
 - Responsive grid layout: 3 columns (desktop) → 2 columns (tablet) → 1 column (mobile)
 
 **Key Pages & Components:**
-- MarketList: Grid display of all active markets with filtering/browsing
-- MarketDetail: Individual market view with betting interface (mock functionality)
+- MarketList: Grid display of markets with category filtering and search functionality
+- MarketDetail: Individual market view with betting interface and resolution controls
 - CreateMarket: Form-based market creation with validation
-- Header: Persistent navigation with brand identity
-- MarketCard: Reusable card component displaying market question, category, and probability
+- Portfolio: Betting history and portfolio value summary with profit/loss tracking
+- Header: Persistent navigation with brand identity and route links
+- MarketCard: Reusable card component displaying market question, category, probability, and resolved status
 
 ### Backend Architecture
 
@@ -51,13 +61,19 @@ Preferred communication style: Simple, everyday language.
 
 **API Structure:**
 - RESTful API pattern with `/api` prefix for all endpoints
-- Currently configured for future expansion (routes.ts placeholder)
-- Request/response logging middleware for debugging
+- GET /api/markets - Fetch all markets
+- GET /api/markets/:id - Fetch single market by ID
+- POST /api/markets - Create new market
+- POST /api/markets/:id/resolve - Resolve market with outcome (yes/no)
+- Comprehensive error handling with proper HTTP status codes (400, 404, 500)
+- Request validation using Zod schemas
 
 **Data Layer:**
-- Storage interface pattern (IStorage) for abstraction
-- In-memory storage implementation (MemStorage) for development
-- Designed for future database integration via storage interface
+- Storage interface pattern (IStorage) for abstraction and maintainability
+- PostgreSQL database with Drizzle ORM
+- Database connection using Neon serverless driver
+- Full CRUD operations with proper error handling
+- Schema migrations via `npm run db:push`
 
 **Build System:**
 - Vite for frontend bundling and development server
@@ -80,10 +96,11 @@ Preferred communication style: Simple, everyday language.
 ### Type System & Shared Code
 
 **Shared Schema (shared/schema.ts):**
+- Drizzle ORM schema with PostgreSQL table definitions
+- Market model: id (serial), question (text), category (text), probability (integer), status (text), resolvedOutcome (text, nullable)
 - Zod schemas for runtime validation and TypeScript type inference
-- Market type: id, question, category, probability
-- InsertMarket type: excludes id and probability (user input only)
-- Mock data exported from shared schema for consistency
+- InsertMarket type: excludes auto-generated fields (id, probability, status, resolvedOutcome)
+- Type-safe database operations with full TypeScript support
 
 **Type Safety:**
 - Strict TypeScript configuration across client, server, and shared code
@@ -112,12 +129,12 @@ Preferred communication style: Simple, everyday language.
 - Complete suite of headless UI primitives: accordion, alert-dialog, avatar, checkbox, dialog, dropdown-menu, form controls, navigation-menu, popover, select, slider, switch, tabs, toast, tooltip
 - All components accessible and customizable via Tailwind
 
-**Database Configuration (Prepared but Not Implemented):**
-- Drizzle ORM configured for PostgreSQL
-- Neon Database serverless driver (@neondatabase/serverless)
-- Database schema: shared/schema.ts
-- Migrations: configured to output to ./migrations directory
-- Note: Database connection currently not utilized; application uses in-memory storage
+**Database Implementation:**
+- Drizzle ORM with PostgreSQL via Neon serverless driver
+- Database schema: shared/schema.ts with markets table
+- Migrations: Use `npm run db:push` to sync schema (never manual SQL migrations)
+- Connection: PostgreSQL database via DATABASE_URL environment variable
+- Full persistence across page refreshes and server restarts
 
 **Development Tools:**
 - Replit-specific plugins: runtime error overlay, cartographer, dev banner
@@ -141,8 +158,48 @@ Preferred communication style: Simple, everyday language.
 - class-variance-authority for component variants
 - Custom utility classes: hover-elevate, active-elevate-2
 
-### Session & State Management (Configured but Not Implemented)
+## Application Features
 
-**Prepared Dependencies:**
-- connect-pg-simple for PostgreSQL session storage
-- Session management infrastructure ready for authentication features
+### Market Management
+- **Browse Markets**: Grid view of all markets with responsive layout (3 → 2 → 1 columns)
+- **Category Filtering**: Dynamic category buttons generated from available markets
+- **Search**: Real-time search by market question with combined filter logic
+- **Create Markets**: Form-based creation with validation (min 10 characters for question)
+- **Market Resolution**: Resolve markets with YES/NO outcomes, updates probability to 100%/0%
+
+### Betting System
+- **Simulated Betting**: Place YES/NO bets on any market (active or resolved)
+- **Bet Tracking**: LocalStorage-based bet history with market details
+- **Portfolio Page**: Summary showing total bets, amount invested, portfolio value, profit/loss
+- **Portfolio Calculation**: 
+  - YES bets valued at: amount × (100 / probability)
+  - NO bets valued at: amount × (100 / (100 - probability))
+  - Probabilities clamped to 0.1-99.9% to prevent division by zero
+  - Multiplier clamped to 0-100 range for stability
+
+### Market Resolution System
+- **Status Tracking**: Markets have "active" or "resolved" status
+- **Resolution Controls**: Buttons to resolve markets with YES/NO outcome
+- **Visual Indicators**: Resolved markets show badges (green for YES, red for NO)
+- **Probability Updates**: Resolved markets show 100% (YES) or 0% (NO)
+- **Database Persistence**: Resolution status persists across sessions
+- **Error Handling**: Proper 404 response when resolving non-existent markets
+
+### Data Persistence
+- All market data stored in PostgreSQL database
+- Real-time updates using TanStack Query cache invalidation
+- Betting history persists in browser localStorage
+- Automatic workflow restart after package changes
+
+## Recent Changes (November 2, 2025)
+
+### Completed Implementation
+1. **Database Persistence** - Migrated from mock data to full PostgreSQL backend with Drizzle ORM
+2. **Category Filtering & Search** - Added dynamic filtering and real-time search functionality
+3. **Betting & Portfolio** - Implemented simulated betting system with portfolio tracking
+4. **Market Resolution** - Added resolution system with database schema updates and UI controls
+
+### Bug Fixes
+- Fixed division-by-zero in portfolio calculations by clamping probabilities (0.1-99.9%)
+- Fixed 404 error handling in market detail page for non-existent markets
+- Fixed resolution API to return 404 instead of empty 200 for invalid market IDs
