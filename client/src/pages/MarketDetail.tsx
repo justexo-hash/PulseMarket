@@ -1,24 +1,49 @@
+import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { type Market } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ArrowLeft, ThumbsUp, ThumbsDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { addBet } from "@/lib/bets";
 
 export function MarketDetail() {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
+  const [betAmount, setBetAmount] = useState("10");
   
   const { data: market, isLoading, error } = useQuery<Market>({
     queryKey: ["/api/markets", id],
     enabled: !!id,
   });
 
-  const handleBet = (type: "yes" | "no") => {
+  const handleBet = (position: "yes" | "no") => {
+    if (!market) return;
+    
+    const amount = parseFloat(betAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid bet amount greater than 0.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    addBet({
+      marketId: market.id,
+      marketQuestion: market.question,
+      position,
+      amount,
+      probability: market.probability,
+    });
+
     toast({
-      title: `${type === "yes" ? "Yes" : "No"} Bet Placed!`,
-      description: "Your mock trade has been placed successfully.",
+      title: `${position === "yes" ? "Yes" : "No"} Bet Placed!`,
+      description: `You bet $${amount.toFixed(2)} at ${position === "yes" ? market.probability : 100 - market.probability}% probability.`,
     });
   };
 
@@ -122,6 +147,26 @@ export function MarketDetail() {
 
           <div className="border-t border-border pt-8">
             <h2 className="text-2xl font-bold text-foreground mb-6">Place Your Bet</h2>
+            
+            <div className="mb-6">
+              <Label htmlFor="bet-amount" className="text-base font-semibold mb-2 block">
+                Bet Amount
+              </Label>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl text-muted-foreground">$</span>
+                <Input
+                  id="bet-amount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={betAmount}
+                  onChange={(e) => setBetAmount(e.target.value)}
+                  className="text-lg"
+                  data-testid="input-bet-amount"
+                />
+              </div>
+            </div>
+
             <div className="grid sm:grid-cols-2 gap-4">
               <Button
                 size="lg"
@@ -145,7 +190,7 @@ export function MarketDetail() {
               </Button>
             </div>
             <p className="text-sm text-muted-foreground text-center mt-4">
-              This is a simulated trading interface. No real bets are placed.
+              This is a simulated trading interface. Bets are tracked in your browser.
             </p>
           </div>
         </div>

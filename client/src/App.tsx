@@ -7,6 +7,7 @@ import { Header } from "@/components/Header";
 import { MarketList } from "@/pages/MarketList";
 import { MarketDetail } from "@/pages/MarketDetail";
 import { CreateMarket } from "@/pages/CreateMarket";
+import { Portfolio } from "@/pages/Portfolio";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -17,6 +18,7 @@ function Router() {
         <Route path="/" component={MarketList} />
         <Route path="/market/:id" component={MarketDetail} />
         <Route path="/create" component={CreateMarket} />
+        <Route path="/portfolio" component={Portfolio} />
         <Route component={NotFound} />
       </Switch>
     </>

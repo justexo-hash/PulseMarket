@@ -20,6 +20,19 @@ export const insertMarketSchema = createInsertSchema(markets).omit({
 export type Market = typeof markets.$inferSelect;
 export type InsertMarket = z.infer<typeof insertMarketSchema>;
 
+// Bet type for local storage (not persisted to database)
+export const betSchema = z.object({
+  id: z.string(),
+  marketId: z.number(),
+  marketQuestion: z.string(),
+  position: z.enum(["yes", "no"]),
+  amount: z.number(),
+  probability: z.number(),
+  timestamp: z.number(),
+});
+
+export type Bet = z.infer<typeof betSchema>;
+
 export const mockMarkets: Omit<Market, "id">[] = [
   {
     question: "Will Ethereum reach $5,000 by 2026?",

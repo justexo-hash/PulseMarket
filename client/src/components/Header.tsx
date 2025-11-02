@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Wallet } from "lucide-react";
 
 export function Header() {
   const [location] = useLocation();
@@ -25,6 +25,18 @@ export function Header() {
                 }`}
               >
                 Markets
+              </div>
+            </Link>
+            <Link href="/portfolio" data-testid="link-portfolio">
+              <div
+                className={`px-4 py-2 rounded-lg font-semibold transition-all hover-elevate flex items-center gap-2 ${
+                  location === "/portfolio"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground"
+                }`}
+              >
+                <Wallet className="h-4 w-4" />
+                Portfolio
               </div>
             </Link>
             <Link href="/create" data-testid="link-create-market">
