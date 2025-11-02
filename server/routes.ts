@@ -30,6 +30,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Don't send password back
       const { password, ...userWithoutPassword } = user;
+      console.log("[Register] User from DB:", user);
+      console.log("[Register] User without password:", userWithoutPassword);
       res.status(201).json(userWithoutPassword);
     } catch (error) {
       res.status(500).json({ error: "Failed to register user" });
@@ -64,6 +66,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Don't send password back
       const { password, ...userWithoutPassword } = user;
+      console.log("[Login] User from DB:", user);
+      console.log("[Login] User without password:", userWithoutPassword);
       res.json(userWithoutPassword);
     } catch (error) {
       res.status(500).json({ error: "Failed to login" });
