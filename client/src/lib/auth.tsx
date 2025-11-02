@@ -33,7 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: async (data: { walletAddress: string; password: string }) => {
-      return await apiRequest("POST", "/api/auth/login", data);
+      const response = await apiRequest("POST", "/api/auth/login", data);
+      return await response.json();
     },
     onSuccess: (data) => {
       console.log("[AuthContext] Login response data:", data);
