@@ -178,17 +178,19 @@ export async function verifyDepositTransaction(
       };
     }
 
-    // Verify amount if provided
+    // Verify amount if provided — compare in lamports to avoid float precision
     if (expectedAmount !== undefined) {
-      const tolerance = 0.000001; // Allow small floating point differences
-      if (Math.abs(transferAmount - expectedAmount) > tolerance) {
+      const transferLamports = Math.round(transferAmount * LAMPORTS_PER_SOL);
+      const expectedLamports = Math.round(expectedAmount * LAMPORTS_PER_SOL);
+      const lamportTolerance = 5; // allow tiny drift from wallet/SDK rounding
+      if (Math.abs(transferLamports - expectedLamports) > lamportTolerance) {
         return {
           amountSOL: transferAmount,
           fromAddress: fromPubkey.toBase58(),
           toAddress: toPubkey.toBase58(),
           signature,
           isValid: false,
-          error: `Amount mismatch: expected ${expectedAmount}, got ${transferAmount}`,
+          error: `Amount mismatch: expected ${expectedAmount}, got ${transferAmount} (lamports expected=${expectedLamports}, got=${transferLamports})`,
         };
       }
     }
