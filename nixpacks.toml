@@ -1,8 +1,8 @@
 [phases.setup]
-nixPkgs = ["nodejs_20"]
+nixPkgs = ["nodejs_20", "python3"]
 
 [phases.install]
-cmds = ["npm ci --legacy-peer-deps --ignore-optional || npm install --legacy-peer-deps --ignore-optional"]
+cmds = ["npm ci --legacy-peer-deps || npm install --legacy-peer-deps"]
 
 [phases.build]
 cmds = ["npm run build"]
