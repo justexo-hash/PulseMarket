@@ -22,7 +22,8 @@ export function log(message: string, source = "express") {
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
     middlewareMode: true,
-    hmr: { server },
+    // TEMPORARILY DISABLE HMR - it's causing reload loops
+    hmr: false,
     allowedHosts: true as const,
   };
 
@@ -32,8 +33,9 @@ export async function setupVite(app: Express, server: Server) {
     customLogger: {
       ...viteLogger,
       error: (msg, options) => {
+        // Don't exit on error - just log it to prevent server crashes
         viteLogger.error(msg, options);
-        process.exit(1);
+        // Don't call process.exit(1) here - it causes reload loops
       },
     },
     server: serverOptions,
@@ -68,7 +70,7 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+  const distPath = path.resolve(import.meta.dirname, "..", "dist", "public");
 
   if (!fs.existsSync(distPath)) {
     throw new Error(

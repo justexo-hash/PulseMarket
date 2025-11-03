@@ -1,15 +1,77 @@
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { type Market } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, CheckCircle2 } from "lucide-react";
+import { TrendingUp, CheckCircle2, Clock } from "lucide-react";
 
 interface MarketCardProps {
   market: Market;
 }
 
+function CountdownTimer({ expiresAt }: { expiresAt: Date | string | null }) {
+  const [timeRemaining, setTimeRemaining] = useState<string>("");
+
+  useEffect(() => {
+    if (!expiresAt) {
+      setTimeRemaining("");
+      return;
+    }
+
+    const updateTimer = () => {
+      const now = new Date().getTime();
+      const expiration = new Date(expiresAt).getTime();
+      const diff = expiration - now;
+
+      if (diff <= 0) {
+        setTimeRemaining("Expired");
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      if (days > 0) {
+        setTimeRemaining(`${days}d ${hours}h`);
+      } else if (hours > 0) {
+        setTimeRemaining(`${hours}h ${minutes}m`);
+      } else if (minutes > 0) {
+        setTimeRemaining(`${minutes}m ${seconds}s`);
+      } else {
+        setTimeRemaining(`${seconds}s`);
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  if (!expiresAt || !timeRemaining) return null;
+
+  const isUrgent = new Date(expiresAt).getTime() - Date.now() < 24 * 60 * 60 * 1000; // Less than 24 hours
+
+  return (
+    <Badge
+      variant="outline"
+      className={`text-xs flex items-center gap-1 ${
+        isUrgent 
+          ? "bg-destructive/20 text-destructive border-destructive/30" 
+          : "bg-primary/20 text-primary border-primary/30"
+      }`}
+    >
+      <Clock className="h-3 w-3" />
+      {timeRemaining}
+    </Badge>
+  );
+}
+
 export function MarketCard({ market }: MarketCardProps) {
   const isResolved = market.status === "resolved";
   const resolvedOutcome = market.resolvedOutcome;
+  const volume = parseFloat(market.yesPool) + parseFloat(market.noPool);
 
   return (
     <Link href={`/market/${market.id}`} data-testid={`card-market-${market.id}`}>
@@ -33,6 +95,9 @@ export function MarketCard({ market }: MarketCardProps) {
                 {resolvedOutcome}
               </Badge>
             )}
+            {!isResolved && market.expiresAt && (
+              <CountdownTimer expiresAt={market.expiresAt} />
+            )}
           </div>
           {!isResolved && market.probability > 50 && (
             <TrendingUp className="h-4 w-4 text-primary" />
@@ -43,7 +108,10 @@ export function MarketCard({ market }: MarketCardProps) {
           {market.question}
         </h3>
 
-        <div className="mt-auto">
+        <div className="mt-auto space-y-3">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Volume: {volume.toFixed(2)} SOL</span>
+          </div>
           <div className="flex items-end justify-between mb-3">
             <div className="flex flex-col">
               <span className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">

@@ -4,11 +4,21 @@ import { type Market } from "@shared/schema";
 import { MarketCard } from "@/components/MarketCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, ArrowUpDown } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+type SortOption = "newest" | "oldest" | "volume" | "probability" | "ending-soon";
 
 export function MarketList() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
   
   const { data: markets = [], isLoading, error } = useQuery<Market[]>({
     queryKey: ["/api/markets"],
@@ -20,15 +30,49 @@ export function MarketList() {
     return ["All", ...Array.from(unique).sort()];
   }, [markets]);
 
-  // Filter markets based on category and search
+  // Filter and sort markets
   const filteredMarkets = useMemo(() => {
-    return markets.filter(market => {
+    let filtered = markets.filter(market => {
       const matchesCategory = selectedCategory === "All" || market.category === selectedCategory;
       const matchesSearch = searchQuery === "" || 
         market.question.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [markets, selectedCategory, searchQuery]);
+
+    // Sort markets
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          const aCreated = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const bCreated = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return bCreated - aCreated;
+        case "oldest":
+          const aCreatedOld = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const bCreatedOld = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return aCreatedOld - bCreatedOld;
+        case "volume": {
+          const aVolume = parseFloat(a.yesPool) + parseFloat(a.noPool);
+          const bVolume = parseFloat(b.yesPool) + parseFloat(b.noPool);
+          return bVolume - aVolume;
+        }
+        case "probability":
+          return b.probability - a.probability;
+        case "ending-soon": {
+          const aExpires = a.expiresAt ? new Date(a.expiresAt).getTime() : Infinity;
+          const bExpires = b.expiresAt ? new Date(b.expiresAt).getTime() : Infinity;
+          // Markets without expiration go to the end
+          if (aExpires === Infinity && bExpires === Infinity) return 0;
+          if (aExpires === Infinity) return 1;
+          if (bExpires === Infinity) return -1;
+          return aExpires - bExpires;
+        }
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [markets, selectedCategory, searchQuery, sortBy]);
 
   if (isLoading) {
     return (
@@ -120,17 +164,36 @@ export function MarketList() {
 
         {/* Search and Filters */}
         <div className="mb-8 space-y-4">
-          {/* Search Input */}
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search markets..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50"
-              data-testid="input-search"
-            />
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            {/* Search Input */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search markets..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50"
+                data-testid="input-search"
+              />
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="h-4 w-4 text-white/70" />
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+                <SelectTrigger className="w-[180px] bg-black/30 backdrop-blur-sm border-white/20 text-white">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="oldest">Oldest First</SelectItem>
+                  <SelectItem value="volume">Highest Volume</SelectItem>
+                  <SelectItem value="probability">Highest Probability</SelectItem>
+                  <SelectItem value="ending-soon">Ending Soon</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Category Filters */}

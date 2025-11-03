@@ -36,5 +36,11 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
+    // TEMPORARILY DISABLE HMR - causing reload loops
+    hmr: false,
+    watch: {
+      // Reduce file watching to prevent excessive reloads
+      ignored: ['**/node_modules/**', '**/.git/**'],
+    },
   },
 });

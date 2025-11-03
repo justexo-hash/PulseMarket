@@ -1,16 +1,41 @@
 import { Link, useLocation } from "wouter";
-import { TrendingUp, Wallet, LogOut, LogIn } from "lucide-react";
+import { TrendingUp, Wallet, LogOut, Activity, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useSolanaConnection, getSOLBalance } from "@/lib/solana";
 
 export function Header() {
-  const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
   const { toast } = useToast();
+  const wallet = useWallet();
+  const connection = useSolanaConnection();
+  const [location] = useLocation();
 
-  console.log("[Header] User object:", user);
-  console.log("[Header] User walletAddress:", user?.walletAddress);
+  // Get on-chain SOL balance if wallet is connected
+  const { data: onChainBalance } = useQuery({
+    queryKey: ["wallet-balance", wallet.publicKey?.toBase58()],
+    queryFn: async () => {
+      if (!wallet.publicKey || !connection) return 0;
+      return await getSOLBalance(connection, wallet.publicKey);
+    },
+    enabled: !!wallet.publicKey && !!connection,
+    refetchInterval: 10000, // Refetch every 10 seconds
+  });
+
+  // Get database balance (deposited balance for betting)
+  const { data: balanceData } = useQuery<{ balance: string }>({
+    queryKey: ["/api/wallet/balance"],
+    enabled: !!user,
+    retry: false,
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
+  const databaseBalance = balanceData?.balance || user?.balance || "0";
+  const depositedBalance = parseFloat(databaseBalance);
 
   const handleLogout = () => {
     logout();
@@ -18,7 +43,6 @@ export function Header() {
       title: "Logged Out",
       description: "You have been logged out successfully.",
     });
-    setLocation("/login");
   };
 
   const truncateAddress = (address?: string) => {
@@ -49,6 +73,30 @@ export function Header() {
                 Markets
               </div>
             </Link>
+            <Link href="/activity" data-testid="link-activity">
+              <div
+                className={`px-4 py-2 rounded-lg font-semibold transition-all hover-elevate flex items-center gap-2 ${
+                  location === "/activity"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground"
+                }`}
+              >
+                <Activity className="h-4 w-4" />
+                Activity
+              </div>
+            </Link>
+            <Link href="/transparency" data-testid="link-transparency">
+              <div
+                className={`px-4 py-2 rounded-lg font-semibold transition-all hover-elevate flex items-center gap-2 ${
+                  location === "/transparency"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground"
+                }`}
+              >
+                <Shield className="h-4 w-4" />
+                Transparency
+              </div>
+            </Link>
             <Link href="/portfolio" data-testid="link-portfolio">
               <div
                 className={`px-4 py-2 rounded-lg font-semibold transition-all hover-elevate flex items-center gap-2 ${
@@ -72,38 +120,84 @@ export function Header() {
                 Create Market
               </div>
             </Link>
-
-            {user ? (
-              <div className="flex items-center gap-2 ml-4 border-l border-border pl-4">
-                <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
-                  <Wallet className="h-4 w-4 text-primary" />
-                  <span className="font-mono text-sm" data-testid="text-wallet-address">
-                    {truncateAddress(user.walletAddress)}
-                  </span>
+            {user?.isAdmin && (
+              <Link href="/admin" data-testid="link-admin">
+                <div
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all hover-elevate flex items-center gap-2 ${
+                    location === "/admin"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-foreground"
+                  }`}
+                >
+                  <Shield className="h-4 w-4" />
+                  Admin
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleLogout}
-                  data-testid="button-logout"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
-              </div>
-            ) : (
-              <div className="ml-4 border-l border-border pl-4">
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => setLocation("/login")}
-                  data-testid="button-login"
-                >
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Login
-                </Button>
-              </div>
+              </Link>
             )}
+
+            <div className="flex items-center gap-2 ml-4 border-l border-border pl-4">
+              {/* Solana Wallet Connection Button */}
+              <WalletMultiButton className="!h-9 !rounded-lg" />
+              
+              {/* Show connected wallet info and balances */}
+              {wallet.connected && wallet.publicKey && (
+                <>
+                  <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
+                    <Wallet className="h-4 w-4 text-primary" />
+                    <span className="font-mono text-sm" data-testid="text-wallet-address">
+                      {truncateAddress(wallet.publicKey.toBase58())}
+                    </span>
+                  </div>
+                  {/* On-chain wallet balance */}
+                  <div className="px-3 py-2 bg-muted rounded-lg border border-border">
+                    <div className="flex flex-col items-end">
+                      <span className="text-xs text-muted-foreground">Wallet</span>
+                      <span className="text-sm font-semibold text-foreground" data-testid="text-onchain-balance">
+                        {onChainBalance !== undefined ? onChainBalance.toFixed(4) : "0.0000"} SOL
+                      </span>
+                    </div>
+                  </div>
+                  {/* Deposited balance (for betting) */}
+                  <div className="px-3 py-2 bg-primary/10 rounded-lg border border-primary/20">
+                    <div className="flex flex-col items-end">
+                      <span className="text-xs text-primary/70">Deposited</span>
+                      <span className="text-sm font-semibold text-primary" data-testid="text-deposited-balance">
+                        {depositedBalance.toFixed(4)} SOL
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
+              
+              {/* Show database balance if user exists but wallet not connected */}
+              {!wallet.connected && user && (
+                <>
+                  <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
+                    <Wallet className="h-4 w-4 text-primary" />
+                    <span className="font-mono text-sm" data-testid="text-wallet-address">
+                      {truncateAddress(user.walletAddress)}
+                    </span>
+                  </div>
+                  <div className="px-3 py-2 bg-primary/10 rounded-lg border border-primary/20">
+                    <div className="flex flex-col items-end">
+                      <span className="text-xs text-primary/70">Deposited</span>
+                      <span className="text-sm font-semibold text-primary" data-testid="text-balance">
+                        {depositedBalance.toFixed(4)} SOL
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleLogout}
+                    data-testid="button-logout"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </>
+              )}
+            </div>
           </nav>
         </div>
       </div>

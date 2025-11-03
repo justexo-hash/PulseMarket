@@ -3,15 +3,21 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/lib/auth";
+import { WalletContextProvider } from "@/lib/wallet";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import { useRealtime } from "@/lib/realtime";
+import { useMarketNotifications } from "@/lib/notifications";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Header } from "@/components/Header";
 import { MarketList } from "@/pages/MarketList";
 import { MarketDetail } from "@/pages/MarketDetail";
 import { CreateMarket } from "@/pages/CreateMarket";
 import { Portfolio } from "@/pages/Portfolio";
-import { WalletGenerate } from "@/pages/WalletGenerate";
-import { Register } from "@/pages/Register";
-import { Login } from "@/pages/Login";
+import { Deposit } from "@/pages/Deposit";
+import { ActivityFeed } from "@/pages/ActivityFeed";
+import { AdminPanel } from "@/pages/AdminPanel";
+import { Transparency } from "@/pages/Transparency";
+import { PrivateWager } from "@/pages/PrivateWager";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -23,25 +29,43 @@ function Router() {
         <Route path="/market/:id" component={MarketDetail} />
         <Route path="/create" component={CreateMarket} />
         <Route path="/portfolio" component={Portfolio} />
-        <Route path="/generate-wallet" component={WalletGenerate} />
-        <Route path="/register" component={Register} />
-        <Route path="/login" component={Login} />
+        <Route path="/deposit" component={Deposit} />
+        <Route path="/activity" component={ActivityFeed} />
+        <Route path="/admin" component={AdminPanel} />
+        <Route path="/transparency" component={Transparency} />
+        <Route path="/wager/:inviteCode" component={PrivateWager} />
         <Route component={NotFound} />
       </Switch>
     </>
   );
 }
 
+function AppContent() {
+  const { user } = useAuth();
+  // Initialize real-time WebSocket connection with user ID for authentication
+  useRealtime(user?.id);
+  // Initialize market expiration notifications
+  useMarketNotifications(user?.id);
+  
+  return (
+    <TooltipProvider>
+      <Toaster />
+      <Router />
+    </TooltipProvider>
+  );
+}
+
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <WalletContextProvider>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </WalletContextProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
