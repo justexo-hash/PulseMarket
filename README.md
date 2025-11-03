@@ -1,5 +1,7 @@
 # PulseMarket - Local Development Setup
 
+# This is just a test.
+
 ## Prerequisites
 
 - **Node.js** 18+ installed
