@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useSolanaConnection, getSOLBalance } from "@/lib/solana";
+import HowItWorksButton from "@/components/HowItWorks";
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -120,6 +121,7 @@ export function Header() {
                 Create Market
               </div>
             </Link>
+            <HowItWorksButton />
             {user?.isAdmin && (
               <Link href="/admin" data-testid="link-admin">
                 <div
