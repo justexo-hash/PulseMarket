@@ -1,8 +1,8 @@
 [phases.setup]
-nixPkgs = ["nodejs_20", "python3", "gcc", "gnumake", "eudev.dev"]
+nixPkgs = ["nodejs_20"]
 
 [phases.install]
-cmds = ["npm ci --legacy-peer-deps || npm install --legacy-peer-deps"]
+cmds = ["npm ci --legacy-peer-deps --ignore-optional || npm install --legacy-peer-deps --ignore-optional"]
 
 [phases.build]
 cmds = ["npm run build"]
