@@ -86,8 +86,8 @@ export class DbStorage implements IStorage {
   }
 
   async createMarket(insertMarket: InsertMarket & { createdBy?: number; inviteCode?: string }): Promise<Market> {
-    const probability = Math.floor(Math.random() * 80) + 10;
-    
+    // Probability starts at 50% when no bets are placed (equal pools)
+    // Will be recalculated automatically when bets are placed via updateMarketPools
     try {
       // Build the values object for insertion
       const values: {
@@ -103,7 +103,7 @@ export class DbStorage implements IStorage {
       } = {
         question: insertMarket.question,
         category: insertMarket.category,
-        probability,
+        probability: 50, // Default to 50% (equal odds) until bets are placed
         isPrivate: insertMarket.isPrivate ? 1 : 0,
         payoutType: insertMarket.payoutType || "proportional",
       };
@@ -242,8 +242,9 @@ export class DbStorage implements IStorage {
     const yesPool = parseFloat(market.yesPool || "0");
     const noPool = parseFloat(market.noPool || "0");
     const totalPool = yesPool + noPool;
+    // Clamp probability to 0-100 range
     const probability = totalPool > 0 
-      ? Math.round((yesPool / totalPool) * 100)
+      ? Math.max(0, Math.min(100, Math.round((yesPool / totalPool) * 100)))
       : 50;
     
     // Deduct balance
@@ -321,8 +322,9 @@ export class DbStorage implements IStorage {
     const newYesPool = position === "yes" ? parseFloat(updates.yesPool!) : yesPool;
     const newNoPool = position === "no" ? parseFloat(updates.noPool!) : noPool;
     const totalPool = newYesPool + newNoPool;
+    // Clamp probability to 0-100 range
     updates.probability = totalPool > 0 
-      ? Math.round((newYesPool / totalPool) * 100)
+      ? Math.max(0, Math.min(100, Math.round((newYesPool / totalPool) * 100)))
       : 50;
     
     const result = await db
@@ -384,7 +386,17 @@ export class DbStorage implements IStorage {
       .innerJoin(markets, eq(watchlist.marketId, markets.id))
       .where(eq(watchlist.userId, userId))
       .orderBy(desc(watchlist.createdAt));
-    return joins as unknown as Market[];
+    
+    // Recalculate probabilities from pools
+    return (joins as unknown as Market[]).map(m => {
+      const yesPool = parseFloat(m.yesPool || "0");
+      const noPool = parseFloat(m.noPool || "0");
+      const totalPool = yesPool + noPool;
+      const recalculatedProbability = totalPool > 0
+        ? Math.max(0, Math.min(100, Math.round((yesPool / totalPool) * 100)))
+        : 50;
+      return { ...m, probability: recalculatedProbability };
+    });
   }
 
   async addToWatchlist(userId: number, marketId: number): Promise<WatchlistItem> {
@@ -459,6 +471,11 @@ export class DbStorage implements IStorage {
     if (isWinnerTakesAll) {
       // Winner-takes-all: distribute entire pool equally among all winners
       // If multiple winners, split evenly (simple approach - could also do by bet size)
+      if (winnerBets.length === 0) {
+        // Safety check: no winners means refund everyone
+        await this.refundMarketBets(marketId);
+        return;
+      }
       const payoutPerWinner = totalPool / winnerBets.length;
       
       for (const bet of winnerBets) {

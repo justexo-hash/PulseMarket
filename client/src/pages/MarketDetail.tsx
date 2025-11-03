@@ -14,6 +14,7 @@ import { useAuth } from "@/lib/auth";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { verifyCommitmentHash } from "@/lib/provablyFair";
 import { MarketWatchToggle } from "@/components/MarketWatchToggle";
+import { PnLSidebar } from "@/components/PnLSidebar";
 
 interface MarketDetailProps {
   marketOverride?: Market;
@@ -29,6 +30,7 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationResult, setVerificationResult] = useState<boolean | null>(null);
   const [inviteCode, setInviteCode] = useState("");
+  const [isPnLSidebarOpen, setIsPnLSidebarOpen] = useState(false);
   
   const { data: market, isLoading, error } = useQuery<Market>({
     queryKey: ["/api/markets", slug],
@@ -38,11 +40,7 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
 
   const displayMarket = marketOverride || market;
   const marketId = displayMarket?.id?.toString() || slug;
-  
-  if (!displayMarket && !isLoading && !error) {
-    // Try to refetch if we have a slug but no market
-    return null;
-  }
+  const querySlug = slug || displayMarket?.slug || displayMarket?.id?.toString();
 
   const resolveMarket = useMutation({
     mutationFn: async (outcome: "yes" | "no") => {
@@ -51,7 +49,9 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
     },
     onSuccess: (data: { market: Market; payoutResults?: Array<{ walletAddress: string; amountSOL: number; txSignature: string | null; error?: string }> }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/markets"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/markets", marketId] });
+      if (querySlug) {
+        queryClient.invalidateQueries({ queryKey: ["/api/markets", querySlug] });
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balance"] });
       queryClient.invalidateQueries({ queryKey: ["/api/bets"] });
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
@@ -120,7 +120,9 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/markets"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/markets", marketId] });
+      if (querySlug) {
+        queryClient.invalidateQueries({ queryKey: ["/api/markets", querySlug] });
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balance"] });
       queryClient.invalidateQueries({ queryKey: ["/api/bets"] });
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
@@ -163,7 +165,9 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/markets"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/markets", marketId] });
+      if (querySlug) {
+        queryClient.invalidateQueries({ queryKey: ["/api/markets", querySlug] });
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balance"] });
       queryClient.invalidateQueries({ queryKey: ["/api/bets"] });
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
@@ -172,6 +176,8 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
         description: `You bet ${betAmount} SOL at ${data.bet.probability}% probability.`,
       });
       setBetAmount("1"); // Reset bet amount
+      // Open P&L sidebar after placing bet
+      setIsPnLSidebarOpen(true);
     },
     onError: (error: any) => {
       toast({
@@ -234,13 +240,13 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
     );
   }
 
-  if (error || !market) {
+  if (!displayMarket && !isLoading) {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center py-20">
           <h2 className="text-3xl font-bold text-foreground mb-4">Market Not Found</h2>
           <p className="text-muted-foreground mb-8">
-            The market you're looking for doesn't exist.
+            {error ? `Error: ${error.message}` : "The market you're looking for doesn't exist."}
           </p>
           <Link href="/">
             <Button variant="default" data-testid="button-back-home">
@@ -253,7 +259,24 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
     );
   }
 
-  const noProbability = 100 - (displayMarket?.probability || 50);
+  if (!displayMarket) {
+    return null; // Still loading or no data
+  }
+
+  // Recalculate probability from pools (client-side fallback to ensure accuracy)
+  const yesPool = parseFloat(displayMarket.yesPool || "0");
+  const noPool = parseFloat(displayMarket.noPool || "0");
+  const totalPool = yesPool + noPool;
+  const calculatedProbability = totalPool > 0
+    ? Math.max(0, Math.min(100, Math.round((yesPool / totalPool) * 100)))
+    : 50;
+  
+  // Use calculated probability for active markets, stored for resolved markets
+  const displayProbability = displayMarket.status === "resolved" 
+    ? displayMarket.probability 
+    : calculatedProbability;
+  
+  const noProbability = 100 - displayProbability;
 
   // Calculate potential winnings for a bet
   const calculatePotentialWinnings = (amount: number, position: "yes" | "no"): number | null => {
@@ -369,12 +392,12 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
                   Yes Probability
                 </p>
                 <p className="text-6xl font-bold text-primary mb-4" data-testid="text-yes-probability">
-                  {displayMarket.probability}%
+                  {displayProbability}%
                 </p>
                 <div className="w-full h-3 bg-background rounded-full overflow-hidden mb-4">
                   <div
                     className="h-full bg-primary rounded-full transition-all"
-                    style={{ width: `${displayMarket.probability}%` }}
+                    style={{ width: `${displayProbability}%` }}
                   />
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -409,7 +432,20 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
           </div>
 
           <div className="border-t border-border pt-8">
-            <h2 className="text-2xl font-bold text-foreground mb-6">Place Your Bet</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-foreground">Place Your Bet</h2>
+              {user && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsPnLSidebarOpen(!isPnLSidebarOpen)}
+                  className="flex items-center gap-2"
+                >
+                  <DollarSign className="h-4 w-4" />
+                  View P&L
+                </Button>
+              )}
+            </div>
             
             {/* Invite code input for private wagers (if user doesn't have access yet) */}
             {displayMarket.isPrivate === 1 && !displayMarket.inviteCode && (
@@ -741,6 +777,9 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
           )}
         </div>
       </div>
+      
+      {/* P&L Sidebar */}
+      <PnLSidebar isOpen={isPnLSidebarOpen} onClose={() => setIsPnLSidebarOpen(false)} />
     </div>
   );
 }

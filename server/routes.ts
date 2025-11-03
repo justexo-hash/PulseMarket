@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertMarketSchema, resolveMarketSchema, betSchema, depositSchema } from "@shared/schema";
+import { insertMarketSchema, resolveMarketSchema, betSchema, depositSchema, type Market } from "@shared/schema";
 import crypto from "crypto";
 import { getTreasuryKeypair, distributePayouts } from "./payouts";
 import { realtimeService } from "./websocket";
@@ -78,12 +78,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to recalculate probability from pools
+  function recalculateProbability(market: Market): Market {
+    const yesPool = parseFloat(market.yesPool || "0");
+    const noPool = parseFloat(market.noPool || "0");
+    const totalPool = yesPool + noPool;
+    
+    // Recalculate probability from pools (ignore stored value which may be stale)
+    const recalculatedProbability = totalPool > 0
+      ? Math.max(0, Math.min(100, Math.round((yesPool / totalPool) * 100)))
+      : 50;
+    
+    return {
+      ...market,
+      probability: recalculatedProbability,
+    };
+  }
+
   // Get all markets (excluding private wagers)
   app.get("/api/markets", async (req, res) => {
     try {
       const allMarkets = await storage.getAllMarkets();
-      // Filter out private wagers from public list
-      const publicMarkets = allMarkets.filter(m => m.isPrivate !== 1);
+      // Filter out private wagers from public list and recalculate probabilities
+      const publicMarkets = allMarkets
+        .filter(m => m.isPrivate !== 1)
+        .map(recalculateProbability);
       res.json(publicMarkets);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch markets" });
@@ -149,7 +168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Private wager not found" });
       }
       
-      res.json(market);
+      res.json(recalculateProbability(market));
     } catch (error: any) {
       console.error("[Wager] Error:", error);
       res.status(500).json({ error: "Failed to fetch private wager" });
@@ -166,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!isNaN(id)) {
         const market = await storage.getMarketById(id);
         if (market) {
-          return res.json(market);
+          return res.json(recalculateProbability(market));
         }
       }
       
@@ -177,7 +196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Market not found" });
       }
       
-      res.json(market);
+      res.json(recalculateProbability(market));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch market" });
     }

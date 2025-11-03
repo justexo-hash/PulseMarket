@@ -72,7 +72,18 @@ function CountdownTimer({ expiresAt }: { expiresAt: Date | string | null }) {
 export function MarketCard({ market }: MarketCardProps) {
   const isResolved = market.status === "resolved";
   const resolvedOutcome = market.resolvedOutcome;
-  const volume = parseFloat(market.yesPool) + parseFloat(market.noPool);
+  const volume = parseFloat(market.yesPool || "0") + parseFloat(market.noPool || "0");
+  
+  // Recalculate probability from pools (client-side fallback to ensure accuracy)
+  const yesPool = parseFloat(market.yesPool || "0");
+  const noPool = parseFloat(market.noPool || "0");
+  const totalPool = yesPool + noPool;
+  const calculatedProbability = totalPool > 0
+    ? Math.max(0, Math.min(100, Math.round((yesPool / totalPool) * 100)))
+    : 50;
+  
+  // Use calculated probability (ignore stored value which may be stale)
+  const displayProbability = isResolved ? market.probability : calculatedProbability;
 
   // Use slug for public markets, invite code for private wagers
   const marketPath = market.isPrivate === 1 && market.inviteCode 
@@ -106,7 +117,7 @@ export function MarketCard({ market }: MarketCardProps) {
             )}
           </div>
             <div className="flex items-center gap-2">
-            {!isResolved && market.probability > 50 && (
+            {!isResolved && displayProbability > 50 && (
               <TrendingUp className="h-4 w-4 text-primary" />
             )}
             <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
@@ -136,7 +147,7 @@ export function MarketCard({ market }: MarketCardProps) {
                 }`}
                 data-testid={`text-probability-${market.id}`}
               >
-                {market.probability}%
+                {displayProbability}%
               </span>
             </div>
           </div>
@@ -148,7 +159,7 @@ export function MarketCard({ market }: MarketCardProps) {
                   ? (resolvedOutcome === "yes" ? "bg-primary" : "bg-destructive")
                   : "bg-primary"
               }`}
-              style={{ width: `${market.probability}%` }}
+              style={{ width: `${displayProbability}%` }}
             />
           </div>
         </div>

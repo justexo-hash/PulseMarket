@@ -1,0 +1,292 @@
+import { useQuery } from "@tanstack/react-query";
+import { type Bet, type Market } from "@shared/schema";
+import { useAuth } from "@/lib/auth";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { X, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { Link } from "wouter";
+import { format } from "date-fns";
+
+interface PnLSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+interface BetWithMarket extends Bet {
+  market?: Market;
+}
+
+export function PnLSidebar({ isOpen, onClose }: PnLSidebarProps) {
+  const { user } = useAuth();
+
+  const { data: bets } = useQuery<Bet[]>({
+    queryKey: ["/api/bets"],
+    enabled: !!user && isOpen,
+    refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
+  });
+
+  const { data: markets } = useQuery<Market[]>({
+    queryKey: ["/api/markets"],
+    enabled: !!user && isOpen,
+    refetchInterval: 5000,
+  });
+
+  if (!isOpen) return null;
+
+  // Filter to only active (unresolved) bets and enrich with market data
+  const activeBetsWithMarkets: BetWithMarket[] = (bets || [])
+    .filter(bet => {
+      const market = markets?.find(m => m.id === bet.marketId);
+      return market?.status === "active";
+    })
+    .map(bet => ({
+      ...bet,
+      market: markets?.find(m => m.id === bet.marketId),
+    }))
+    .filter((bet): bet is BetWithMarket => !!bet.market);
+
+  // Calculate total unrealized PnL
+  const totalUnrealizedPnL = activeBetsWithMarkets.reduce((sum, bet) => {
+    const market = bet.market!;
+    const currentYesPool = parseFloat(market.yesPool || "0");
+    const currentNoPool = parseFloat(market.noPool || "0");
+    const totalPool = currentYesPool + currentNoPool;
+    const currentProb = totalPool > 0
+      ? Math.round((currentYesPool / totalPool) * 100)
+      : 50;
+
+    const betAmount = parseFloat(bet.amount);
+    const betProb = bet.probability;
+
+    if (bet.position === "yes") {
+      // Calculate current value: what you'd get if market resolved YES right now
+      const currentValue = totalPool > 0 && currentYesPool > 0
+        ? (betAmount / currentYesPool) * totalPool
+        : betAmount;
+      return sum + (currentValue - betAmount);
+    } else {
+      // NO position: calculate what you'd get if market resolved NO right now
+      const currentValue = totalPool > 0 && currentNoPool > 0
+        ? (betAmount / currentNoPool) * totalPool
+        : betAmount;
+      return sum + (currentValue - betAmount);
+    }
+  }, 0);
+
+  // Calculate potential profit if all bets win
+  const totalPotentialProfit = activeBetsWithMarkets.reduce((sum, bet) => {
+    const market = bet.market!;
+    const yesPool = parseFloat(market.yesPool || "0");
+    const noPool = parseFloat(market.noPool || "0");
+    const totalPool = yesPool + noPool;
+
+    if (totalPool === 0) return sum;
+
+    const betAmount = parseFloat(bet.amount);
+
+    if (bet.position === "yes") {
+      // If YES wins: (yourBet / totalYesPool) * totalPool
+      const profit = yesPool > 0 ? (betAmount / yesPool) * totalPool - betAmount : 0;
+      return sum + profit;
+    } else {
+      // If NO wins: (yourBet / totalNoPool) * totalPool
+      const profit = noPool > 0 ? (betAmount / noPool) * totalPool - betAmount : 0;
+      return sum + profit;
+    }
+  }, 0);
+
+  return (
+    <>
+      {/* Backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div
+        className={`fixed right-0 top-0 h-full w-96 bg-card border-l border-border shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+        style={{ height: "100vh" }}
+      >
+      <div className="flex flex-col h-full">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-bold text-foreground">Active Bets P&L</h2>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Summary Stats */}
+        <div className="p-4 border-b border-border bg-muted/30">
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Unrealized P&L</span>
+              <span
+                className={`text-lg font-bold ${
+                  totalUnrealizedPnL >= 0 ? "text-primary" : "text-destructive"
+                }`}
+              >
+                {totalUnrealizedPnL >= 0 ? "+" : ""}
+                {totalUnrealizedPnL.toFixed(4)} SOL
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Potential Profit</span>
+              <span className="text-lg font-bold text-primary">
+                +{totalPotentialProfit.toFixed(4)} SOL
+              </span>
+            </div>
+            <div className="flex justify-between items-center pt-2 border-t border-border">
+              <span className="text-sm font-medium text-foreground">Total Active Bets</span>
+              <span className="text-lg font-bold text-foreground">
+                {activeBetsWithMarkets.length}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Bets List */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {activeBetsWithMarkets.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>No active bets</p>
+              <p className="text-sm mt-2">Place a bet to track your P&L here</p>
+            </div>
+          ) : (
+            activeBetsWithMarkets.map((bet) => {
+              const market = bet.market!;
+              const currentYesPool = parseFloat(market.yesPool || "0");
+              const currentNoPool = parseFloat(market.noPool || "0");
+              const totalPool = currentYesPool + currentNoPool;
+              const currentProb = totalPool > 0
+                ? Math.round((currentYesPool / totalPool) * 100)
+                : 50;
+
+              const betAmount = parseFloat(bet.amount);
+              const betProb = bet.probability;
+
+              // Calculate current value
+              let currentValue: number;
+              if (bet.position === "yes") {
+                currentValue = totalPool > 0 && currentYesPool > 0
+                  ? (betAmount / currentYesPool) * totalPool
+                  : betAmount;
+              } else {
+                currentValue = totalPool > 0 && currentNoPool > 0
+                  ? (betAmount / currentNoPool) * totalPool
+                  : betAmount;
+              }
+
+              const unrealizedPnL = currentValue - betAmount;
+              const pnlPercent = betAmount > 0 ? ((unrealizedPnL / betAmount) * 100) : 0;
+
+              // Calculate potential profit if this bet wins
+              let potentialProfit = 0;
+              if (bet.position === "yes" && currentYesPool > 0) {
+                potentialProfit = (betAmount / currentYesPool) * totalPool - betAmount;
+              } else if (bet.position === "no" && currentNoPool > 0) {
+                potentialProfit = (betAmount / currentNoPool) * totalPool - betAmount;
+              }
+
+              const marketPath = market.isPrivate === 1 && market.inviteCode
+                ? `/wager/${market.inviteCode}`
+                : `/market/${market.slug || market.id}`;
+
+              return (
+                <Link key={bet.id} href={marketPath}>
+                  <Card className="p-4 hover:bg-muted/50 transition-colors cursor-pointer">
+                    <div className="space-y-3">
+                      {/* Market Question */}
+                      <p className="text-sm font-semibold text-foreground line-clamp-2">
+                        {market.question}
+                      </p>
+
+                      {/* Bet Details */}
+                      <div className="flex items-center justify-between">
+                        <Badge
+                          variant={bet.position === "yes" ? "default" : "destructive"}
+                          className="uppercase text-xs"
+                        >
+                          {bet.position}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(bet.createdAt), "MMM d, HH:mm")}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Bet Amount:</span>
+                        <span className="font-medium">{betAmount.toFixed(4)} SOL</span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Entry Odds:</span>
+                        <span className="font-medium">
+                          {bet.position === "yes" ? betProb : 100 - betProb}%
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Current Odds:</span>
+                        <span className="font-medium">
+                          {bet.position === "yes" ? currentProb : 100 - currentProb}%
+                        </span>
+                      </div>
+
+                      {/* P&L */}
+                      <div className="pt-2 border-t border-border">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm text-muted-foreground">Unrealized P&L:</span>
+                          <div className="flex items-center gap-1">
+                            {unrealizedPnL >= 0 ? (
+                              <TrendingUp className="h-3 w-3 text-primary" />
+                            ) : (
+                              <TrendingDown className="h-3 w-3 text-destructive" />
+                            )}
+                            <span
+                              className={`text-sm font-bold ${
+                                unrealizedPnL >= 0 ? "text-primary" : "text-destructive"
+                              }`}
+                            >
+                              {unrealizedPnL >= 0 ? "+" : ""}
+                              {unrealizedPnL.toFixed(4)} SOL
+                            </span>
+                            <span
+                              className={`text-xs ${
+                                unrealizedPnL >= 0 ? "text-primary" : "text-destructive"
+                              }`}
+                            >
+                              ({pnlPercent >= 0 ? "+" : ""}
+                              {pnlPercent.toFixed(2)}%)
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">If Won:</span>
+                          <span className="text-xs font-medium text-primary">
+                            +{potentialProfit.toFixed(4)} SOL
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </Link>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>
+    </>
+  );
+}
+

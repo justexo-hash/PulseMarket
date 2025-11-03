@@ -48,26 +48,32 @@ export function startExpiredMarketsJob() {
                   const winnerBets = allBets.filter(bet => bet.position === defaultOutcome);
                   const totalWinnerBets = winnerBets.reduce((sum, bet) => sum + parseFloat(bet.amount), 0);
 
-                  if (totalWinnerBets > 0 && winnerBets.length > 0) {
-                    // Calculate payouts for each winner
-                    const payouts: Array<{ walletAddress: string; amountSOL: number }> = [];
-                    
-                    // Check if this is a winner-takes-all private wager
-                    const isWinnerTakesAll = market.payoutType === "winner-takes-all" && market.isPrivate === 1;
-                    
-                    for (const bet of winnerBets) {
-                      const user = await storage.getUserById(bet.userId);
-                      if (!user) continue;
+                    if (totalWinnerBets > 0 && winnerBets.length > 0) {
+                      // Calculate payouts for each winner
+                      const payouts: Array<{ walletAddress: string; amountSOL: number }> = [];
                       
-                      let payoutAmount: number;
-                      if (isWinnerTakesAll) {
-                        // Winner-takes-all: split pool equally among all winners
-                        payoutAmount = totalPool / winnerBets.length;
-                      } else {
-                        // Proportional: based on bet size
-                        const betAmount = parseFloat(bet.amount);
-                        payoutAmount = (betAmount / totalWinnerBets) * totalPool;
+                      // Check if this is a winner-takes-all private wager
+                      const isWinnerTakesAll = market.payoutType === "winner-takes-all" && market.isPrivate === 1;
+                      
+                      // Safety check for winner-takes-all
+                      if (isWinnerTakesAll && winnerBets.length === 0) {
+                        // No winners, should refund instead - this shouldn't happen due to outer check but safety first
+                        continue;
                       }
+                      
+                      for (const bet of winnerBets) {
+                        const user = await storage.getUserById(bet.userId);
+                        if (!user) continue;
+                        
+                        let payoutAmount: number;
+                        if (isWinnerTakesAll) {
+                          // Winner-takes-all: split pool equally among all winners
+                          payoutAmount = totalPool / winnerBets.length;
+                        } else {
+                          // Proportional: based on bet size
+                          const betAmount = parseFloat(bet.amount);
+                          payoutAmount = (betAmount / totalWinnerBets) * totalPool;
+                        }
                       
                       payouts.push({
                         walletAddress: user.walletAddress,
