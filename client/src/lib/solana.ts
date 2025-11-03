@@ -45,7 +45,7 @@ export async function sendSOL(
     SystemProgram.transfer({
       fromPubkey: fromKeypair.publicKey,
       toPubkey: toAddress,
-      lamports: amountSOL * LAMPORTS_PER_SOL,
+      lamports: Math.round(amountSOL * LAMPORTS_PER_SOL),
     })
   );
 
@@ -82,7 +82,7 @@ export async function sendSOLWithWallet(
     SystemProgram.transfer({
       fromPubkey: wallet.publicKey,
       toPubkey: toAddress,
-      lamports: amountSOL * LAMPORTS_PER_SOL,
+      lamports: Math.round(amountSOL * LAMPORTS_PER_SOL),
     })
   );
 

@@ -8,6 +8,9 @@ import { startExpiredMarketsJob } from "./expiredMarkets";
 
 const app = express();
 
+// Trust Railway/Proxy to forward secure headers so cookies work in prod
+app.set('trust proxy', 1);
+
 declare module 'express-session' {
   interface SessionData {
     userId: number;
@@ -30,6 +33,7 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     },
   })
