@@ -16,7 +16,7 @@ export function Footer() {
           </Link>
 
           {/* Center: quick links */}
-          <nav className="flex items-center gap-4 text-xs text-muted-foreground">
+          <nav className="flex items-center gap-4 text-xs text-foreground/80">
             <Link href="/about"><span className="hover:text-foreground cursor-pointer">About Us</span></Link>
             <span className="opacity-40">•</span>
             <Link href="/terms"><span className="hover:text-foreground cursor-pointer">Terms of Service</span></Link>
@@ -25,7 +25,7 @@ export function Footer() {
           </nav>
 
           {/* Right: socials */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs text-foreground/80">
             <a href="#" onClick={(e)=>e.preventDefault()} className="flex items-center gap-1 hover:text-foreground">
               <Twitter className="h-3 w-3" />
               X
