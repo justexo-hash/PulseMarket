@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
-import { CheckCircle2, XCircle, DollarSign, Shield } from "lucide-react";
+import { CheckCircle2, XCircle, DollarSign, Shield, Wallet, RefreshCw } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -45,6 +45,21 @@ export function AdminPanel() {
 
   const { data: markets = [], isLoading } = useQuery<Market[]>({
     queryKey: ["/api/markets"],
+  });
+
+  // Get treasury balance
+  const { data: treasuryBalance, isLoading: isLoadingTreasury, refetch: refetchTreasury } = useQuery<{
+    balance: number;
+    balanceFormatted: string;
+    treasuryAddress: string | null;
+    reserveAmount: number;
+    availableForWithdrawal: number;
+    availableForWithdrawalFormatted: string;
+    error?: string;
+  }>({
+    queryKey: ["/api/admin/treasury-balance"],
+    enabled: !!user?.isAdmin,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const resolveMarket = useMutation({
@@ -136,6 +151,80 @@ export function AdminPanel() {
             Manage and resolve markets. Refund markets that cannot be determined.
           </p>
         </div>
+
+        {/* Treasury Balance Card */}
+        <Card className="p-6 bg-black/30 backdrop-blur-sm border-white/20 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Wallet className="h-6 w-6 text-primary" />
+              <h2 className="text-2xl font-bold text-white">Treasury Balance</h2>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetchTreasury()}
+              disabled={isLoadingTreasury}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingTreasury ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
+
+          {isLoadingTreasury ? (
+            <div className="space-y-2">
+              <div className="h-8 bg-white/10 rounded animate-pulse" />
+              <div className="h-4 bg-white/10 rounded animate-pulse w-2/3" />
+            </div>
+          ) : treasuryBalance?.error ? (
+            <div className="space-y-2">
+              <p className="text-destructive font-semibold">Error: {treasuryBalance.error}</p>
+              <p className="text-white/60 text-sm">
+                Treasury keypair not configured. Set TREASURY_PRIVATE_KEY in your .env file.
+              </p>
+            </div>
+          ) : treasuryBalance ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <p className="text-sm text-white/60 mb-1">Total Balance (On-Chain)</p>
+                <p className="text-3xl font-bold text-primary">
+                  {treasuryBalance.balanceFormatted} SOL
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-white/60 mb-1">Reserve Amount</p>
+                <p className="text-2xl font-bold text-white/80">
+                  {treasuryBalance.reserveAmount.toFixed(4)} SOL
+                </p>
+                <p className="text-xs text-white/50 mt-1">Reserved for transaction fees</p>
+              </div>
+              <div>
+                <p className="text-sm text-white/60 mb-1">Available for Withdrawals</p>
+                <p className={`text-2xl font-bold ${
+                  treasuryBalance.availableForWithdrawal > 0 ? 'text-green-400' : 'text-destructive'
+                }`}>
+                  {treasuryBalance.availableForWithdrawalFormatted} SOL
+                </p>
+                <p className="text-xs text-white/50 mt-1">
+                  {treasuryBalance.availableForWithdrawal <= 0 
+                    ? '⚠️ Fund treasury to enable withdrawals'
+                    : 'Available after reserve'}
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          {treasuryBalance?.treasuryAddress && (
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <p className="text-xs text-white/60 mb-1">Treasury Address</p>
+              <p className="text-sm font-mono text-white/80 break-all">
+                {treasuryBalance.treasuryAddress}
+              </p>
+              <p className="text-xs text-white/50 mt-2">
+                Send SOL to this address to fund the treasury
+              </p>
+            </div>
+          )}
+        </Card>
 
         {activeMarkets.length === 0 ? (
           <Card className="p-12 text-center bg-black/30 backdrop-blur-sm border-white/20">

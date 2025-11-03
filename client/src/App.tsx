@@ -15,6 +15,7 @@ import { MarketDetail } from "@/pages/MarketDetail";
 import { CreateMarket } from "@/pages/CreateMarket";
 import { Portfolio } from "@/pages/Portfolio";
 import { Deposit } from "@/pages/Deposit";
+import { Withdraw } from "@/pages/Withdraw";
 import { ActivityFeed } from "@/pages/ActivityFeed";
 import { AdminPanel } from "@/pages/AdminPanel";
 import { Transparency } from "@/pages/Transparency";
@@ -36,6 +37,7 @@ function Router() {
           <Route path="/create" component={CreateMarket} />
           <Route path="/portfolio" component={Portfolio} />
           <Route path="/deposit" component={Deposit} />
+          <Route path="/withdraw" component={Withdraw} />
           <Route path="/activity" component={ActivityFeed} />
           <Route path="/admin" component={AdminPanel} />
           <Route path="/transparency" component={Transparency} />

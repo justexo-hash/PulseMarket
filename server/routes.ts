@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertMarketSchema, resolveMarketSchema, betSchema, depositSchema, type Market } from "@shared/schema";
 import crypto from "crypto";
-import { getTreasuryKeypair, distributePayouts } from "./payouts";
+import { getTreasuryKeypair, distributePayouts, sendPayout, getTreasuryBalance } from "./payouts";
 import { realtimeService } from "./websocket";
 import { verifyDepositTransaction } from "./deposits";
 import { generateCommitmentHash, generateSecret, verifyCommitmentHash } from "./provablyFair";
@@ -357,58 +357,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Cannot refund a resolved market" });
       }
 
-      // Get all bets for this market
+      // Get all bets before refunding to notify users afterward
       const allBets = await storage.getBetsByMarket(id);
-      const yesPool = parseFloat(market.yesPool || "0");
-      const noPool = parseFloat(market.noPool || "0");
-      const totalPool = yesPool + noPool;
-
-      let onChainRefundResults: Array<{ walletAddress: string; amountSOL: number; txSignature: string | null; error?: string }> = [];
-
-      // If there are bets, send on-chain refunds
-      if (totalPool > 0 && allBets.length > 0) {
-        // Get treasury keypair
-        const treasuryKeypair = getTreasuryKeypair();
-        
-        if (treasuryKeypair) {
-          // Prepare refunds: each user gets back exactly what they bet
-          const refunds: Array<{ walletAddress: string; amountSOL: number }> = [];
-          
-          for (const bet of allBets) {
-            const user = await storage.getUserById(bet.userId);
-            if (!user) continue;
-            
-            const refundAmount = parseFloat(bet.amount);
-            
-            refunds.push({
-              walletAddress: user.walletAddress,
-              amountSOL: refundAmount,
-            });
-          }
-
-          // Send on-chain refunds
-          console.log(`[Refund] Distributing ${refunds.length} refund(s) totaling ${totalPool} SOL`);
-          onChainRefundResults = await distributePayouts(treasuryKeypair, refunds);
-          
-          // Log results
-          const successful = onChainRefundResults.filter(r => r.txSignature).length;
-          const failed = onChainRefundResults.filter(r => !r.txSignature).length;
-          console.log(`[Refund] Refunds: ${successful} successful, ${failed} failed`);
-        } else {
-          console.warn(`[Refund] Treasury keypair not available. Database refunds only.`);
-        }
-      }
-
-      // Update database with refunds (including on-chain transaction signatures)
-      const onChainRefunds = onChainRefundResults
-        .filter(r => r.txSignature)
-        .map(r => ({
-          walletAddress: r.walletAddress,
-          amountSOL: r.amountSOL,
-          txSignature: r.txSignature!,
-        }));
-
-      await storage.refundMarketBets(id, onChainRefunds);
+      
+      // Refunds now go to portfolio balance (database) only, not directly to wallets
+      // Users can withdraw funds from their portfolio when they want
+      await storage.refundMarketBets(id);
 
       // Generate provably fair commitment for refund
       const secret = generateSecret();
@@ -418,26 +372,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.updateMarketCommitment(id, commitmentHash, secret, "refunded");
       
       console.log(`[Refund] Market ${id} refunded with provably fair commitment: ${commitmentHash}`);
-
-      // Prepare response with refund results
-      const successfulRefunds = onChainRefundResults.filter(r => r.txSignature).length;
-      const failedRefunds = onChainRefundResults.filter(r => !r.txSignature).length;
       
       // Broadcast market update and balance updates for all affected users
       realtimeService.broadcast({ type: 'market:updated', data: { id } });
-      // Get all bets to notify users
       const userIds = [...new Set(allBets.map(b => b.userId))];
       userIds.forEach(userId => {
         realtimeService.broadcastToUser(userId, { type: 'balance:updated', data: { userId } });
       });
       
       res.json({ 
-        message: "Market bets refunded successfully",
-        refundResults: {
-          total: onChainRefundResults.length,
-          successful: successfulRefunds,
-          failed: failedRefunds,
-        }
+        message: "Market bets refunded successfully. Funds have been returned to portfolio balances.",
       });
     } catch (error: any) {
       console.error("[Refund] Error:", error);
@@ -474,68 +418,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const noPool = parseFloat(market.noPool || "0");
       const totalPool = yesPool + noPool;
 
-      let onChainPayoutResults: Array<{ walletAddress: string; amountSOL: number; txSignature: string | null; error?: string }> = [];
-
-      // If there are bets and winners, send on-chain payouts
-      if (totalPool > 0) {
-        const winnerBets = allBets.filter(bet => bet.position === outcome);
-        const totalWinnerBets = winnerBets.reduce((sum, bet) => sum + parseFloat(bet.amount), 0);
-
-        if (totalWinnerBets > 0) {
-          // Get treasury keypair
-          const treasuryKeypair = getTreasuryKeypair();
-          
-          if (treasuryKeypair) {
-            // Calculate payouts for each winner
-            const payouts: Array<{ walletAddress: string; amountSOL: number }> = [];
-            
-            // Check if this is a winner-takes-all private wager
-            const isWinnerTakesAll = market.payoutType === "winner-takes-all" && market.isPrivate === 1;
-            
-            for (const bet of winnerBets) {
-              const user = await storage.getUserById(bet.userId);
-              if (!user) continue;
-              
-              let payoutAmount: number;
-              if (isWinnerTakesAll) {
-                // Winner-takes-all: split pool equally among all winners
-                payoutAmount = totalPool / winnerBets.length;
-              } else {
-                // Proportional: based on bet size
-                const betAmount = parseFloat(bet.amount);
-                payoutAmount = (betAmount / totalWinnerBets) * totalPool;
-              }
-              
-              payouts.push({
-                walletAddress: user.walletAddress,
-                amountSOL: payoutAmount,
-              });
-            }
-
-            // Send on-chain payouts
-            console.log(`[Resolve] Distributing ${payouts.length} payouts totaling ${totalPool} SOL`);
-            onChainPayoutResults = await distributePayouts(treasuryKeypair, payouts);
-            
-            // Log results
-            const successful = onChainPayoutResults.filter(r => r.txSignature).length;
-            const failed = onChainPayoutResults.filter(r => !r.txSignature).length;
-            console.log(`[Resolve] Payouts: ${successful} successful, ${failed} failed`);
-          } else {
-            console.warn(`[Resolve] Treasury keypair not available. Database payouts only.`);
-          }
-        }
-      }
-
-      // Update database with payouts (including on-chain transaction signatures)
-      const onChainPayouts = onChainPayoutResults
-        .filter(r => r.txSignature)
-        .map(r => ({
-          walletAddress: r.walletAddress,
-          amountSOL: r.amountSOL,
-          txSignature: r.txSignature!,
-        }));
-
-      await storage.calculateAndDistributePayouts(id, outcome, onChainPayouts);
+      // Payouts now go to portfolio balance (database) only, not directly to wallets
+      // Users can withdraw funds from their portfolio when they want
+      await storage.calculateAndDistributePayouts(id, outcome);
 
       // Generate provably fair commitment
       const secret = generateSecret();
@@ -557,13 +442,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[Resolve] Market ${id} resolved with provably fair commitment: ${commitmentHash}`);
       console.log(`[Resolve] Secret (for verification): ${secret}`);
       
-      // Broadcast market resolved event
+      // Broadcast market resolved event and balance updates for all winners
       realtimeService.broadcast({ type: 'market:resolved', data: { id } });
       realtimeService.broadcast({ type: 'market:updated', data: { id } });
       
+      // Notify all winners that their balance has been updated
+      const winnerBets = allBets.filter(bet => bet.position === outcome);
+      const winnerUserIds = [...new Set(winnerBets.map(b => b.userId))];
+      winnerUserIds.forEach(userId => {
+        realtimeService.broadcastToUser(userId, { type: 'balance:updated', data: { userId } });
+      });
+      
       res.json({
         market: resolvedMarket,
-        payoutResults: onChainPayoutResults,
         provablyFair: {
           commitmentHash,
           secret,
@@ -587,6 +478,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ balance });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch balance" });
+    }
+  });
+
+  // Admin: Get treasury balance (on-chain)
+  app.get("/api/admin/treasury-balance", requireAdmin, async (req, res) => {
+    try {
+      const treasuryKeypair = getTreasuryKeypair();
+      
+      if (!treasuryKeypair) {
+        return res.json({
+          balance: 0,
+          balanceFormatted: "0.0000",
+          treasuryAddress: null,
+          error: "Treasury keypair not configured",
+          reserveAmount: parseFloat(process.env.TREASURY_RESERVE_SOL || "0.1"),
+          availableForWithdrawal: 0,
+        });
+      }
+
+      const balance = await getTreasuryBalance(treasuryKeypair);
+      // Calculate actual reserve dynamically
+      let reserveAmount = 0.001; // Fallback if calculation fails
+      try {
+        const { calculateRequiredReserve } = await import("./payouts");
+        reserveAmount = await calculateRequiredReserve(treasuryKeypair);
+      } catch (error) {
+        console.warn("[Treasury Balance] Could not calculate reserve, using fallback");
+      }
+      const availableForWithdrawal = Math.max(0, balance - reserveAmount);
+
+      res.json({
+        balance,
+        balanceFormatted: balance.toFixed(4),
+        treasuryAddress: treasuryKeypair.publicKey.toBase58(),
+        reserveAmount,
+        availableForWithdrawal,
+        availableForWithdrawalFormatted: availableForWithdrawal.toFixed(4),
+      });
+    } catch (error: any) {
+      console.error("[Treasury Balance] Error:", error);
+      res.status(500).json({ 
+        error: "Failed to fetch treasury balance",
+        details: error.message 
+      });
     }
   });
 
@@ -714,6 +649,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("[Deposit] Error:", error);
       res.status(500).json({ error: error.message || "Failed to deposit" });
+    }
+  });
+
+  app.post("/api/wallet/withdraw", async (req, res) => {
+    // Allow wallet-based auth via walletAddress in body, or session-based auth
+    let userId: number | undefined = req.session?.userId;
+    let walletAddress: string | undefined = req.session?.walletAddress;
+
+    // If no session, try to authenticate by wallet address
+    if (!userId && req.body.walletAddress) {
+      walletAddress = req.body.walletAddress;
+      const user = await storage.getUserByWalletAddress(walletAddress);
+      if (user) {
+        userId = user.id;
+        if (req.session) {
+          req.session.userId = user.id;
+          req.session.walletAddress = user.walletAddress;
+        }
+      }
+    }
+
+    if (!userId || !walletAddress) {
+      return res.status(401).json({ error: "Not authenticated. Please connect wallet or log in." });
+    }
+
+    try {
+      const { amount } = req.body;
+
+      // Validate required fields
+      if (!amount) {
+        return res.status(400).json({ 
+          error: "Amount is required for withdrawal" 
+        });
+      }
+
+      const withdrawAmount = parseFloat(amount);
+      if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
+        return res.status(400).json({ 
+          error: "Withdrawal amount must be a positive number" 
+        });
+      }
+
+      // Get user's current balance
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const currentBalance = parseFloat(user.balance || "0");
+      if (currentBalance < withdrawAmount) {
+        return res.status(400).json({ 
+          error: "Insufficient balance",
+          currentBalance: currentBalance.toFixed(9),
+          requestedAmount: withdrawAmount.toFixed(9)
+        });
+      }
+
+      // Get treasury keypair for sending SOL
+      const treasuryKeypair = getTreasuryKeypair();
+      let txSignature: string | null = null;
+      let onChainError: string | null = null;
+      let reserveAmount = 0;
+      let actualPayoutAmount = withdrawAmount;
+
+      if (treasuryKeypair) {
+        try {
+          // Calculate actual reserve needed (rent-exempt balance + transaction fees)
+          const { calculateRequiredReserve } = await import("./payouts");
+          reserveAmount = await calculateRequiredReserve(treasuryKeypair);
+          
+          // Calculate actual payout: subtract reserve from user's requested amount
+          // Reserve is kept in treasury for rent and transaction fees
+          actualPayoutAmount = Math.max(0, withdrawAmount - reserveAmount);
+          
+          if (actualPayoutAmount <= 0) {
+            return res.status(400).json({ 
+              error: "Withdrawal amount too small",
+              message: `Minimum withdrawal is ${(reserveAmount + 0.0001).toFixed(6)} SOL (reserve: ${reserveAmount.toFixed(6)} SOL for rent/fees + minimum: 0.0001 SOL)`,
+              reserveAmount: reserveAmount.toFixed(6),
+            });
+          }
+
+          // Send actual payout amount (user's requested amount minus reserve)
+          // Reserve stays in treasury for rent and future transaction fees
+          console.log(`[Withdraw] User requested ${withdrawAmount} SOL, sending ${actualPayoutAmount.toFixed(6)} SOL (reserve: ${reserveAmount.toFixed(6)} SOL kept in treasury for rent/fees)`);
+          txSignature = await sendPayout(treasuryKeypair, walletAddress, actualPayoutAmount);
+          console.log(`[Withdraw] Successfully sent ${actualPayoutAmount.toFixed(6)} SOL to ${walletAddress} (Tx: ${txSignature})`);
+        } catch (error: any) {
+          console.error(`[Withdraw] Failed to send on-chain withdrawal:`, error);
+          onChainError = error.message || "Failed to send on-chain withdrawal";
+          // Don't proceed with database withdrawal if on-chain fails
+          // User's balance should remain unchanged
+          return res.status(400).json({ 
+            error: "Withdrawal failed",
+            details: onChainError,
+            message: "The on-chain transaction failed. Your balance has not been changed. Please try again or contact support if the issue persists."
+          });
+        }
+      } else {
+        console.warn(`[Withdraw] Treasury keypair not available. Database withdrawal only.`);
+        // Allow database-only withdrawal if treasury keypair is not configured (for testing)
+      }
+
+      // Update database balance: deduct full requested amount from user's portfolio
+      // The reserve portion is automatically kept in treasury
+      const updatedUser = await storage.withdraw(userId, withdrawAmount.toFixed(9));
+
+      // Create transaction record (withdrawals are private, not shown in activity feed)
+      // Include on-chain signature if available
+      await storage.createTransaction({
+        userId,
+        type: "withdraw",
+        amount: (-withdrawAmount).toFixed(9),
+        txSignature: txSignature || undefined,
+        description: `Withdrew ${withdrawAmount.toFixed(9)} SOL`,
+      });
+
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      // Broadcast balance update
+      if (userId) {
+        realtimeService.broadcastToUser(userId, { type: 'balance:updated', data: { userId } });
+      }
+      
+      res.json({
+        ...userWithoutPassword,
+        withdrawalVerification: {
+          verified: !!txSignature,
+          requestedAmount: withdrawAmount,
+          actualPayoutAmount: actualPayoutAmount,
+          reserveAmount: reserveAmount,
+          txSignature: txSignature,
+        }
+      });
+    } catch (error: any) {
+      console.error("[Withdraw] Error:", error);
+      res.status(500).json({ error: error.message || "Failed to withdraw" });
     }
   });
 

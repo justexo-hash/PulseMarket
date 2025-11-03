@@ -2,6 +2,55 @@ import { Connection, PublicKey, SystemProgram, Transaction, Keypair, sendAndConf
 import bs58 from 'bs58';
 
 /**
+ * Solana transaction fee constants
+ * Base fee per signature: 5,000 lamports = 0.000005 SOL
+ * Rent-exempt minimum for system accounts: ~890,880 lamports = 0.00089088 SOL
+ */
+const BASE_TRANSACTION_FEE_LAMPORTS = 5_000; // 0.000005 SOL per signature
+const BASE_TRANSACTION_FEE_SOL = BASE_TRANSACTION_FEE_LAMPORTS / LAMPORTS_PER_SOL;
+
+/**
+ * Calculate the minimum rent-exempt balance required for an account
+ * For system accounts (wallets), this is typically ~890,880 lamports
+ */
+async function getRentExemptMinimum(connection: Connection): Promise<number> {
+  try {
+    // Get minimum rent-exempt balance for a system account (0 bytes data)
+    // This is the minimum needed to keep an account open
+    const rentExemptBalance = await connection.getMinimumBalanceForRentExemption(0);
+    return rentExemptBalance / LAMPORTS_PER_SOL;
+  } catch (error) {
+    // Fallback to known value if RPC fails
+    console.warn('[Payout] Could not fetch rent-exempt minimum, using fallback');
+    return 0.00089088; // ~890,880 lamports
+  }
+}
+
+/**
+ * Calculate the actual reserve amount needed for a transaction
+ * This includes: rent-exempt balance + transaction fees + safety buffer
+ */
+export async function calculateRequiredReserve(
+  treasuryKeypair: Keypair,
+  transactionFeeBuffer: number = 0.0001 // Small buffer for fee variations
+): Promise<number> {
+  const connection = createConnection();
+  
+  // Get rent-exempt minimum (keeps treasury account open)
+  const rentExemptMinimum = await getRentExemptMinimum(connection);
+  
+  // Transaction fee (base fee per signature)
+  const transactionFee = BASE_TRANSACTION_FEE_SOL;
+  
+  // Total reserve needed
+  const totalReserve = rentExemptMinimum + transactionFee + transactionFeeBuffer;
+  
+  console.log(`[Reserve] Calculated reserve: ${totalReserve.toFixed(6)} SOL (rent: ${rentExemptMinimum.toFixed(6)}, fee: ${transactionFee.toFixed(6)}, buffer: ${transactionFeeBuffer.toFixed(6)})`);
+  
+  return totalReserve;
+}
+
+/**
  * Create a connection to Solana RPC
  */
 function createConnection(): Connection {
@@ -20,6 +69,7 @@ export async function getTreasuryBalance(treasuryKeypair: Keypair): Promise<numb
 
 /**
  * Send SOL payout to a winner's wallet address
+ * Checks treasury balance and calculates actual reserve needed (rent + fees)
  */
 export async function sendPayout(
   treasuryKeypair: Keypair,
@@ -28,6 +78,22 @@ export async function sendPayout(
 ): Promise<string> {
   const connection = createConnection();
   const recipientPubkey = new PublicKey(recipientAddress);
+  
+  // Calculate actual reserve needed (rent-exempt + transaction fees + buffer)
+  const requiredReserve = await calculateRequiredReserve(treasuryKeypair);
+  
+  // Check treasury balance - we need enough to send the payout AND keep the reserve
+  const treasuryBalance = await getTreasuryBalance(treasuryKeypair);
+  const requiredAmount = amountSOL + requiredReserve;
+  
+  if (treasuryBalance < requiredAmount) {
+    const available = Math.max(0, treasuryBalance - requiredReserve);
+    throw new Error(
+      `Insufficient treasury balance. Required: ${requiredAmount.toFixed(6)} SOL (${amountSOL.toFixed(6)} payout + ${requiredReserve.toFixed(6)} reserve). ` +
+      `Treasury has: ${treasuryBalance.toFixed(6)} SOL. ` +
+      `Maximum payout available: ${available.toFixed(6)} SOL.`
+    );
+  }
   
   const transaction = new Transaction().add(
     SystemProgram.transfer({

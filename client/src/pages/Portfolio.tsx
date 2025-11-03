@@ -3,7 +3,7 @@ import { type Market, type Bet, type Transaction } from "@shared/schema";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown, DollarSign, Target, Plus, ArrowUp, ArrowDown, ExternalLink, Shield } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Target, Plus, Minus, ArrowUp, ArrowDown, ExternalLink, Shield, Wallet } from "lucide-react";
 import { format } from "date-fns";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
@@ -27,6 +27,18 @@ export function Portfolio() {
     queryKey: ["/api/transactions"],
     enabled: !!user,
   });
+
+  // Get user's current portfolio balance (from database)
+  const { data: balanceData } = useQuery<{ balance: string }>({
+    queryKey: ["/api/wallet/balance"],
+    enabled: !!user,
+    retry: false,
+    refetchInterval: 3000, // Refetch every 3 seconds to catch updates
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    refetchOnMount: true, // Always refetch when component mounts
+  });
+
+  const currentBalance = balanceData ? parseFloat(balanceData.balance || "0") : parseFloat(user?.balance || "0");
 
   // Calculate portfolio metrics
   const totalBet = bets.reduce((sum, bet) => sum + parseFloat(bet.amount), 0);
@@ -77,10 +89,16 @@ export function Portfolio() {
             Track your betting history and portfolio performance
           </p>
         </div>
-        <Button onClick={() => setLocation("/deposit")} data-testid="button-deposit">
-          <Plus className="mr-2 h-4 w-4" />
-          Deposit SOL
-        </Button>
+        <div className="flex gap-3">
+          <Button onClick={() => setLocation("/withdraw")} variant="outline" data-testid="button-withdraw">
+            <Minus className="mr-2 h-4 w-4" />
+            Withdraw
+          </Button>
+          <Button onClick={() => setLocation("/deposit")} data-testid="button-deposit">
+            <Plus className="mr-2 h-4 w-4" />
+            Deposit
+          </Button>
+        </div>
       </div>
 
       {/* Portfolio Summary Cards */}
@@ -107,12 +125,13 @@ export function Portfolio() {
 
         <Card className="p-6">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-muted-foreground font-medium">Portfolio Value</p>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground font-medium">Current Balance</p>
+            <Wallet className="h-4 w-4 text-muted-foreground" />
           </div>
-          <p className="text-3xl font-bold text-foreground" data-testid="text-portfolio-value">
-            {portfolioValue.toFixed(4)} SOL
+          <p className="text-3xl font-bold text-primary" data-testid="text-current-balance">
+            {currentBalance.toFixed(4)} SOL
           </p>
+          <p className="text-xs text-muted-foreground mt-1">Available for betting</p>
         </Card>
 
         <Card className="p-6">

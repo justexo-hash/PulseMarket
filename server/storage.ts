@@ -30,6 +30,7 @@ export interface IStorage {
   // Balance methods
   getUserBalance(userId: number): Promise<string>;
   deposit(userId: number, amount: string): Promise<User>;
+  withdraw(userId: number, amount: string): Promise<User>;
   
   // Bet methods
   createBet(userId: number, marketId: number, position: "yes" | "no", amount: string): Promise<Bet>;
@@ -43,7 +44,7 @@ export interface IStorage {
   // Transaction methods
   createTransaction(data: {
     userId: number;
-    type: "deposit" | "bet" | "payout" | "refund";
+    type: "deposit" | "bet" | "payout" | "refund" | "withdraw";
     amount: string;
     marketId?: number;
     betId?: number;
@@ -207,13 +208,41 @@ export class DbStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     
-    // Create transaction record
+    // Create transaction record (deposits are private, not shown in activity feed)
     await this.createTransaction({
       userId,
       type: "deposit",
       amount,
       description: `Deposited ${amount} SOL`,
     });
+    
+    return result[0];
+  }
+
+  async withdraw(userId: number, amount: string): Promise<User> {
+    const user = await this.getUserById(userId);
+    if (!user) throw new Error("User not found");
+    
+    const currentBalance = parseFloat(user.balance || "0");
+    const withdrawAmount = parseFloat(amount);
+    
+    if (withdrawAmount <= 0) {
+      throw new Error("Withdrawal amount must be greater than 0");
+    }
+    
+    if (currentBalance < withdrawAmount) {
+      throw new Error("Insufficient balance");
+    }
+    
+    const newBalance = (currentBalance - withdrawAmount).toFixed(9);
+    
+    const result = await db
+      .update(users)
+      .set({ balance: newBalance })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    // Transaction record is created in the route handler with optional on-chain signature
     
     return result[0];
   }

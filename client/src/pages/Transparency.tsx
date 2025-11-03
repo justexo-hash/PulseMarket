@@ -135,7 +135,12 @@ export function Transparency() {
         <div>
           <h2 className="text-2xl font-bold text-foreground mb-6">On-Chain Transactions</h2>
           
-          {transactions.filter(t => extractTxSignature(t.description, t.txSignature)).length === 0 ? (
+          {transactions.filter(t => {
+            // Filter out deposits and withdrawals (private transactions)
+            if (t.type === "deposit" || t.type === "withdraw") return false;
+            // Only show transactions with on-chain signatures
+            return extractTxSignature(t.description, t.txSignature);
+          }).length === 0 ? (
             <Card className="p-8">
               <div className="text-center">
                 <p className="text-muted-foreground">No on-chain transactions yet</p>
@@ -144,7 +149,12 @@ export function Transparency() {
           ) : (
             <div className="space-y-4">
               {transactions
-                .filter(t => extractTxSignature(t.description, t.txSignature))
+                .filter(t => {
+                  // Filter out deposits and withdrawals (private transactions)
+                  if (t.type === "deposit" || t.type === "withdraw") return false;
+                  // Only show transactions with on-chain signatures
+                  return extractTxSignature(t.description, t.txSignature);
+                })
                 .map((transaction) => {
                   const txSig = extractTxSignature(transaction.description, transaction.txSignature);
                   
