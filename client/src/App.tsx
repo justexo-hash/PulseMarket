@@ -9,6 +9,7 @@ import { useRealtime } from "@/lib/realtime";
 import { useMarketNotifications } from "@/lib/notifications";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { MarketList } from "@/pages/MarketList";
 import { MarketDetail } from "@/pages/MarketDetail";
 import { CreateMarket } from "@/pages/CreateMarket";
@@ -18,25 +19,34 @@ import { ActivityFeed } from "@/pages/ActivityFeed";
 import { AdminPanel } from "@/pages/AdminPanel";
 import { Transparency } from "@/pages/Transparency";
 import { PrivateWager } from "@/pages/PrivateWager";
+import AboutUs from "@/pages/AboutUs";
+import TermsOfService from "@/pages/TermsOfService";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <Header />
-      <Switch>
-        <Route path="/" component={MarketList} />
-        <Route path="/market/:id" component={MarketDetail} />
-        <Route path="/create" component={CreateMarket} />
-        <Route path="/portfolio" component={Portfolio} />
-        <Route path="/deposit" component={Deposit} />
-        <Route path="/activity" component={ActivityFeed} />
-        <Route path="/admin" component={AdminPanel} />
-        <Route path="/transparency" component={Transparency} />
-        <Route path="/wager/:inviteCode" component={PrivateWager} />
-        <Route component={NotFound} />
-      </Switch>
-    </>
+      <main className="flex-grow">
+        <Switch>
+          <Route path="/" component={MarketList} />
+          <Route path="/market/:id" component={MarketDetail} />
+          <Route path="/create" component={CreateMarket} />
+          <Route path="/portfolio" component={Portfolio} />
+          <Route path="/deposit" component={Deposit} />
+          <Route path="/activity" component={ActivityFeed} />
+          <Route path="/admin" component={AdminPanel} />
+          <Route path="/transparency" component={Transparency} />
+          <Route path="/wager/:inviteCode" component={PrivateWager} />
+          <Route path="/about" component={AboutUs} />
+          <Route path="/terms" component={TermsOfService} />
+          <Route path="/privacy" component={PrivacyPolicy} />
+          <Route component={NotFound} />
+        </Switch>
+      </main>
+      <Footer />
+    </div>
   );
 }
 
