@@ -8,6 +8,7 @@ import { realtimeService } from "./websocket";
 import { verifyDepositTransaction } from "./deposits";
 import { generateCommitmentHash, generateSecret, verifyCommitmentHash } from "./provablyFair";
 import { generateInviteCode, isValidInviteCode } from "./inviteCodes";
+import { getGlobalMetrics, getCryptoQuotes, getFearAndGreedIndex } from "./coinmarketcap";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes - Wallet-based only
@@ -109,51 +110,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Watchlist routes (require auth)
-  app.get("/api/watchlist", async (req, res) => {
-    try {
-      const userId = req.session?.userId;
-      if (!userId) return res.status(401).json({ error: "Not authenticated" });
-      const list = await storage.getWatchlist(userId);
-      res.json(list);
-    } catch (e: any) {
-      console.error("[Watchlist] Error fetching watchlist:", e);
-      const errorMessage = e?.message || String(e);
-      if (errorMessage.includes('watchlist') || errorMessage.includes('column') || errorMessage.includes('table')) {
-        return res.status(500).json({ 
-          error: "Watchlist table not found. Please run database migration.",
-          details: errorMessage 
-        });
-      }
-      res.status(500).json({ error: "Failed to fetch watchlist", details: errorMessage });
-    }
-  });
-
-  app.post("/api/watchlist/:marketId", async (req, res) => {
-    try {
-      const userId = req.session?.userId;
-      if (!userId) return res.status(401).json({ error: "Not authenticated" });
-      const marketId = parseInt(req.params.marketId);
-      if (isNaN(marketId)) return res.status(400).json({ error: "Invalid market id" });
-      const item = await storage.addToWatchlist(userId, marketId);
-      res.json(item);
-    } catch (e) {
-      res.status(500).json({ error: "Failed to add to watchlist" });
-    }
-  });
-
-  app.delete("/api/watchlist/:marketId", async (req, res) => {
-    try {
-      const userId = req.session?.userId;
-      if (!userId) return res.status(401).json({ error: "Not authenticated" });
-      const marketId = parseInt(req.params.marketId);
-      if (isNaN(marketId)) return res.status(400).json({ error: "Invalid market id" });
-      await storage.removeFromWatchlist(userId, marketId);
-      res.json({ ok: true });
-    } catch (e) {
-      res.status(500).json({ error: "Failed to remove from watchlist" });
-    }
-  });
 
   // Get market by invite code (for private wagers)
   app.get("/api/wager/:inviteCode", async (req, res) => {
@@ -339,8 +295,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-  // Refund market bets (admin only)
-  app.post("/api/markets/:id/refund", requireAdmin, async (req, res) => {
+  // Refund market bets (admin for public markets, creator for private wagers)
+  app.post("/api/markets/:id/refund", async (req, res) => {
+    // Check authentication
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    
+    // Get user to check admin status
+    const user = await storage.getUserById(userId);
+    if (!user) {
+      return res.status(401).json({ error: "User not found" });
+    }
+    
     try {
       const id = parseInt(req.params.id);
       
@@ -355,6 +323,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (market.status === "resolved") {
         return res.status(400).json({ error: "Cannot refund a resolved market" });
+      }
+
+      // Authorization check:
+      // - For public markets: only admins can refund
+      // - For private wagers: only the creator can refund
+      if (market.isPrivate === 1) {
+        // Private wager: only creator can refund
+        if (market.createdBy !== userId) {
+          return res.status(403).json({ error: "Only the creator of this private wager can refund it" });
+        }
+      } else {
+        // Public market: only admins can refund
+        if (!user.isAdmin) {
+          return res.status(403).json({ error: "Only admins can refund public markets" });
+        }
       }
 
       // Get all bets before refunding to notify users afterward
@@ -389,8 +372,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Resolve market (admin only)
-  app.post("/api/markets/:id/resolve", requireAdmin, async (req, res) => {
+  // Resolve market (admin for public markets, creator for private wagers)
+  app.post("/api/markets/:id/resolve", async (req, res) => {
+    // Check authentication
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    
+    // Get user to check admin status
+    const user = await storage.getUserById(userId);
+    if (!user) {
+      return res.status(401).json({ error: "User not found" });
+    }
     try {
       const id = parseInt(req.params.id);
       
@@ -410,6 +404,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const market = await storage.getMarketById(id);
       if (!market) {
         return res.status(404).json({ error: "Market not found" });
+      }
+
+      // Authorization check:
+      // - For public markets: only admins can resolve
+      // - For private wagers: only the creator can resolve
+      if (market.isPrivate === 1) {
+        // Private wager: only creator can resolve
+        if (market.createdBy !== userId) {
+          return res.status(403).json({ error: "Only the creator of this private wager can resolve it" });
+        }
+      } else {
+        // Public market: only admins can resolve
+        if (!user.isAdmin) {
+          return res.status(403).json({ error: "Only admins can resolve public markets" });
+        }
       }
 
       // Get all bets for this market to calculate payouts
@@ -468,6 +477,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Wallet routes
+  // CoinMarketCap API proxy routes
+  app.get("/api/coinmarketcap/global-metrics", getGlobalMetrics);
+  app.get("/api/coinmarketcap/quotes", getCryptoQuotes);
+  app.get("/api/coinmarketcap/fear-and-greed", getFearAndGreedIndex);
+
   app.get("/api/wallet/balance", async (req, res) => {
     if (!req.session?.userId) {
       return res.status(401).json({ error: "Not authenticated" });

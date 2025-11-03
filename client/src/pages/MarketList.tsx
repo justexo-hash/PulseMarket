@@ -12,6 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { BitcoinDominanceWidget } from "@/components/widgets/BitcoinDominanceWidget";
+import { FearGreedWidget } from "@/components/widgets/FearGreedWidget";
+import { CryptoPriceWidget } from "@/components/widgets/CryptoPriceWidget";
+import { Link } from "wouter";
+import { useAuth } from "@/lib/auth";
+import { Plus, Users } from "lucide-react";
 
 type SortOption = "newest" | "oldest" | "volume" | "probability" | "ending-soon";
 
@@ -19,6 +25,7 @@ export function MarketList() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const { user } = useAuth();
   
   const { data: markets = [], isLoading, error } = useQuery<Market[]>({
     queryKey: ["/api/markets"],
@@ -77,32 +84,23 @@ export function MarketList() {
   if (isLoading) {
     return (
       <div className="relative min-h-screen">
-        {/* Background Image with Dark Overlay */}
-        <div 
-          className="fixed inset-0 z-0"
-          style={{
-            backgroundImage: 'url(/IMG_8113.PNG)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" />
-        </div>
-        
-        {/* Content */}
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">Active Markets</h1>
+            <h1 className="text-4xl font-bold text-white mb-2">Discover</h1>
             <p className="text-white/80 text-lg">
               Explore prediction markets and place your bets on future events
             </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-6 h-64 animate-pulse" />
+            <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-6 h-64 animate-pulse" />
+            <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-6 h-64 animate-pulse" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="bg-card border border-card-border rounded-lg p-6 shadow-lg h-64 animate-pulse"
+                className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-6 shadow-lg h-64 animate-pulse"
               />
             ))}
           </div>
@@ -114,23 +112,9 @@ export function MarketList() {
   if (error) {
     return (
       <div className="relative min-h-screen">
-        {/* Background Image with Dark Overlay */}
-        <div 
-          className="fixed inset-0 z-0"
-          style={{
-            backgroundImage: 'url(/IMG_8113.PNG)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" />
-        </div>
-        
-        {/* Content */}
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center py-20">
-            <p className="text-2xl text-destructive mb-4">Failed to load markets</p>
+            <p className="text-2xl text-red-400 mb-4">Failed to load markets</p>
             <p className="text-white/70">{error.message}</p>
           </div>
         </div>
@@ -140,26 +124,39 @@ export function MarketList() {
 
   return (
     <div className="relative min-h-screen">
-      {/* Background Image with Dark Overlay */}
-      <div 
-        className="fixed inset-0 z-0"
-        style={{
-          backgroundImage: 'url(/IMG_8113.PNG)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" />
-      </div>
       
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Active Markets</h1>
-          <p className="text-white/80 text-lg">
-            Explore prediction markets and place your bets on future events
-          </p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2">Discover</h1>
+            <p className="text-white/80 text-lg">
+              Explore prediction markets and place your bets on future events
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {user?.isAdmin && (
+              <Link href="/create">
+                <Button size="lg" className="gap-2">
+                  <Plus className="h-5 w-5" />
+                  Create Market
+                </Button>
+              </Link>
+            )}
+            <Link href="/create">
+              <Button size="lg" variant="secondary" className="gap-2">
+                <Users className="h-5 w-5" />
+                Private Wager
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Widgets Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <BitcoinDominanceWidget />
+          <FearGreedWidget />
+          <CryptoPriceWidget />
         </div>
 
         {/* Search and Filters */}

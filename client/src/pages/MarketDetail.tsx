@@ -13,7 +13,6 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { verifyCommitmentHash } from "@/lib/provablyFair";
-import { MarketWatchToggle } from "@/components/MarketWatchToggle";
 import { PnLSidebar } from "@/components/PnLSidebar";
 
 interface MarketDetailProps {
@@ -344,7 +343,6 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
               <h1 className="text-4xl font-bold text-foreground" data-testid="text-question">
                 {displayMarket.question}
               </h1>
-              <div className="pt-2"><MarketWatchToggle marketId={displayMarket.id} /></div>
             </div>
             
             {/* Show invite code for private wagers */}
@@ -391,17 +389,17 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
                 <p className="text-sm text-muted-foreground uppercase tracking-wide font-medium mb-2">
                   Yes Probability
                 </p>
-                <p className="text-6xl font-bold text-primary mb-4" data-testid="text-yes-probability">
+                <p className="text-6xl font-bold text-green-500 mb-4" data-testid="text-yes-probability">
                   {displayProbability}%
                 </p>
                 <div className="w-full h-3 bg-background rounded-full overflow-hidden mb-4">
                   <div
-                    className="h-full bg-primary rounded-full transition-all"
+                    className="h-full bg-green-500 rounded-full transition-all"
                     style={{ width: `${displayProbability}%` }}
                   />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Pool: <span className="font-semibold text-primary" data-testid="text-yes-pool">
+                  Pool: <span className="font-semibold text-green-500" data-testid="text-yes-pool">
                     {parseFloat(displayMarket.yesPool || "0").toFixed(4)} SOL
                   </span>
                 </p>
@@ -540,8 +538,7 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
               >
                 <Button
                   size="lg"
-                  variant="default"
-                  className="h-auto py-6 text-lg font-semibold w-full"
+                  className="h-auto py-6 text-lg font-semibold w-full bg-green-600 hover:bg-green-700 text-white border-green-500"
                   onClick={() => handleBet("yes")}
                   disabled={placeBet.isPending || displayMarket.status !== "active"}
                   data-testid="button-bet-yes"
@@ -583,7 +580,7 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
                       Market Resolved
                     </p>
                     <p className="text-2xl font-bold text-foreground" data-testid="text-resolved-outcome">
-                      Outcome: <span className={displayMarket.resolvedOutcome === "yes" ? "text-primary" : "text-destructive"}>
+                      Outcome: <span className={displayMarket.resolvedOutcome === "yes" ? "text-green-500" : "text-destructive"}>
                         {displayMarket.resolvedOutcome?.toUpperCase()}
                       </span>
                     </p>

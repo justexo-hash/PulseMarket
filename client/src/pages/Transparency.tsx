@@ -67,7 +67,10 @@ export function Transparency() {
                     <div className="mb-4">
                       <h3 className="text-lg font-semibold text-foreground mb-2">{market.question}</h3>
                       <div className="flex items-center gap-2 mb-2">
-                        <Badge variant={market.resolvedOutcome === "yes" ? "default" : market.resolvedOutcome === "no" ? "destructive" : "secondary"}>
+                        <Badge 
+                          variant={market.resolvedOutcome === "yes" ? "default" : market.resolvedOutcome === "no" ? "destructive" : "secondary"}
+                          className={market.resolvedOutcome === "yes" ? "bg-green-600 text-white border-green-500" : ""}
+                        >
                           {market.resolvedOutcome?.toUpperCase() || "UNKNOWN"}
                         </Badge>
                         <span className="text-sm text-muted-foreground">

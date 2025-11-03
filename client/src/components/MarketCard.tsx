@@ -3,7 +3,6 @@ import { Link } from "wouter";
 import { type Market } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, CheckCircle2, Clock } from "lucide-react";
-import { MarketWatchToggle } from "@/components/MarketWatchToggle";
 
 interface MarketCardProps {
   market: Market;
@@ -105,7 +104,9 @@ export function MarketCard({ market }: MarketCardProps) {
             {isResolved && (
               <Badge
                 variant={resolvedOutcome === "yes" ? "default" : "destructive"}
-                className="uppercase text-xs font-bold flex items-center gap-1"
+                className={`uppercase text-xs font-bold flex items-center gap-1 ${
+                  resolvedOutcome === "yes" ? "bg-green-600 text-white border-green-500" : ""
+                }`}
                 data-testid={`badge-resolved-${market.id}`}
               >
                 <CheckCircle2 className="h-3 w-3" />
@@ -116,14 +117,9 @@ export function MarketCard({ market }: MarketCardProps) {
               <CountdownTimer expiresAt={market.expiresAt} />
             )}
           </div>
-            <div className="flex items-center gap-2">
-            {!isResolved && displayProbability > 50 && (
-              <TrendingUp className="h-4 w-4 text-primary" />
-            )}
-            <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-              <MarketWatchToggle marketId={market.id} />
-            </div>
-          </div>
+          {!isResolved && displayProbability > 50 && (
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          )}
         </div>
 
         <h3 className="text-xl font-semibold text-foreground mb-4 line-clamp-3 flex-grow" data-testid={`text-question-${market.id}`}>
@@ -142,8 +138,8 @@ export function MarketCard({ market }: MarketCardProps) {
               <span 
                 className={`text-4xl font-bold ${
                   isResolved 
-                    ? (resolvedOutcome === "yes" ? "text-primary" : "text-destructive")
-                    : "text-primary"
+                    ? (resolvedOutcome === "yes" ? "text-green-500" : "text-destructive")
+                    : "text-green-500"
                 }`}
                 data-testid={`text-probability-${market.id}`}
               >
@@ -156,8 +152,8 @@ export function MarketCard({ market }: MarketCardProps) {
             <div
               className={`h-full rounded-full transition-all duration-300 ${
                 isResolved
-                  ? (resolvedOutcome === "yes" ? "bg-primary" : "bg-destructive")
-                  : "bg-primary"
+                  ? (resolvedOutcome === "yes" ? "bg-green-500" : "bg-destructive")
+                  : "bg-green-500"
               }`}
               style={{ width: `${displayProbability}%` }}
             />

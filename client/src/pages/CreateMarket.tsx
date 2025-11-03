@@ -43,11 +43,12 @@ export function CreateMarket() {
       question: "",
       category: "",
       expiresAt: null,
-      isPrivate: false,
+      isPrivate: !user?.isAdmin, // Default to private for non-admins, public for admins
     },
   });
 
   const isPrivate = form.watch("isPrivate");
+  const isAdmin = user?.isAdmin;
 
   const createMarket = useMutation({
     mutationFn: async (data: InsertMarket & { isPrivate?: boolean }) => {
@@ -107,6 +108,11 @@ export function CreateMarket() {
   });
 
   const onSubmit = (data: InsertMarket & { isPrivate?: boolean }) => {
+    // Force isPrivate=true for non-admins
+    if (!isAdmin) {
+      data.isPrivate = true;
+    }
+    
     if (data.isPrivate && !user) {
       toast({
         title: "Authentication Required",
@@ -131,9 +137,13 @@ export function CreateMarket() {
 
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Create New Market</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-2">
+            {isAdmin ? "Create New Market" : "Create Private Wager"}
+          </h1>
           <p className="text-muted-foreground text-lg">
-            Create a public market or a private wager between friends
+            {isAdmin 
+              ? "Create a public market or a private wager between friends"
+              : "Create a private wager that only people with the invite code can bet on"}
           </p>
         </div>
 
@@ -212,30 +222,35 @@ export function CreateMarket() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="isPrivate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="text-base font-semibold flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        Private Wager
-                      </FormLabel>
-                      <FormDescription>
-                        Create a private wager that only people with the invite code can bet on. 
-                        Winner takes all the SOL in the pool.
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
+              {isAdmin && (
+                <FormField
+                  control={form.control}
+                  name="isPrivate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-base font-semibold flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          Private Wager
+                        </FormLabel>
+                        <FormDescription>
+                          Create a private wager that only people with the invite code can bet on. 
+                          Winner takes all the SOL in the pool.
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              )}
+              {!isAdmin && (
+                <input type="hidden" {...form.register("isPrivate")} value="true" />
+              )}
 
               {isPrivate && (
                 <Card className="p-4 bg-primary/5 border-primary/20">
@@ -263,7 +278,11 @@ export function CreateMarket() {
                   data-testid="button-submit"
                 >
                   <Plus className="mr-2 h-5 w-5" />
-                  {createMarket.isPending ? "Creating..." : "Create Market"}
+                  {createMarket.isPending 
+                    ? "Creating..." 
+                    : isAdmin 
+                      ? "Create Market" 
+                      : "Create Private Wager"}
                 </Button>
               </div>
             </div>

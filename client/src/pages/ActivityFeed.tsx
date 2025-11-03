@@ -347,7 +347,7 @@ export function ActivityFeed() {
                       <div className="flex items-start gap-4">
                         <div className={`p-3 rounded-full ${
                           market.resolvedOutcome === "yes"
-                            ? "bg-primary/20 text-primary"
+                            ? "bg-green-500/20 text-green-500"
                             : "bg-destructive/20 text-destructive"
                         }`}>
                           <Target className="h-5 w-5" />
@@ -364,7 +364,7 @@ export function ActivityFeed() {
                             </div>
                             <Badge 
                               variant={market.resolvedOutcome === "yes" ? "default" : "destructive"}
-                              className="text-xs"
+                              className={`text-xs ${market.resolvedOutcome === "yes" ? "bg-green-600 text-white border-green-500" : ""}`}
                             >
                               RESOLVED
                             </Badge>
