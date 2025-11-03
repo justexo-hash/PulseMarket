@@ -141,34 +141,21 @@ export function Header() {
               {/* Solana Wallet Connection Button */}
               <WalletMultiButton className="!h-9 !rounded-lg" />
               
-              {/* Show connected wallet info and balances */}
+              {/* Show compact balances when wallet is connected */}
               {wallet.connected && wallet.publicKey && (
-                <>
-                  <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
+                <div className="px-3 py-2 bg-muted rounded-lg border border-border text-sm">
+                  <div className="flex items-center gap-2">
                     <Wallet className="h-4 w-4 text-primary" />
-                    <span className="font-mono text-sm" data-testid="text-wallet-address">
-                      {truncateAddress(wallet.publicKey.toBase58())}
+                    <span className="text-foreground" data-testid="text-onchain-balance">
+                      {(onChainBalance ?? 0).toFixed(4)} SOL
+                    </span>
+                    <span className="text-muted-foreground">|
+                    </span>
+                    <span className="text-primary font-semibold" data-testid="text-deposited-balance">
+                      {depositedBalance.toFixed(4)} SOL
                     </span>
                   </div>
-                  {/* On-chain wallet balance */}
-                  <div className="px-3 py-2 bg-muted rounded-lg border border-border">
-                    <div className="flex flex-col items-end">
-                      <span className="text-xs text-muted-foreground">Wallet</span>
-                      <span className="text-sm font-semibold text-foreground" data-testid="text-onchain-balance">
-                        {onChainBalance !== undefined ? onChainBalance.toFixed(4) : "0.0000"} SOL
-                      </span>
-                    </div>
-                  </div>
-                  {/* Deposited balance (for betting) */}
-                  <div className="px-3 py-2 bg-primary/10 rounded-lg border border-primary/20">
-                    <div className="flex flex-col items-end">
-                      <span className="text-xs text-primary/70">Deposited</span>
-                      <span className="text-sm font-semibold text-primary" data-testid="text-deposited-balance">
-                        {depositedBalance.toFixed(4)} SOL
-                      </span>
-                    </div>
-                  </div>
-                </>
+                </div>
               )}
               
               {/* Show database balance if user exists but wallet not connected */}
