@@ -182,15 +182,15 @@ export async function verifyDepositTransaction(
     if (expectedAmount !== undefined) {
       const transferLamports = Math.round(transferAmount * LAMPORTS_PER_SOL);
       const expectedLamports = Math.round(expectedAmount * LAMPORTS_PER_SOL);
-      const lamportTolerance = 5; // allow tiny drift from wallet/SDK rounding
-      if (Math.abs(transferLamports - expectedLamports) > lamportTolerance) {
+      const lamportTolerance = 10_000; // accept tiny overage; only reject if underpaid by > tolerance
+      if (transferLamports + lamportTolerance < expectedLamports) {
         return {
           amountSOL: transferAmount,
           fromAddress: fromPubkey.toBase58(),
           toAddress: toPubkey.toBase58(),
           signature,
           isValid: false,
-          error: `Amount mismatch: expected ${expectedAmount}, got ${transferAmount} (lamports expected=${expectedLamports}, got=${transferLamports})`,
+          error: `Amount mismatch: expected at least ${expectedAmount}, got ${transferAmount} (lamports expected>=${expectedLamports}, got=${transferLamports})`,
         };
       }
     }
