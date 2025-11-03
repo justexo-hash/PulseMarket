@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { type Market } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, CheckCircle2, Clock } from "lucide-react";
+import { MarketWatchToggle } from "@/components/MarketWatchToggle";
 
 interface MarketCardProps {
   market: Market;
@@ -73,8 +74,13 @@ export function MarketCard({ market }: MarketCardProps) {
   const resolvedOutcome = market.resolvedOutcome;
   const volume = parseFloat(market.yesPool) + parseFloat(market.noPool);
 
+  // Use slug for public markets, invite code for private wagers
+  const marketPath = market.isPrivate === 1 && market.inviteCode 
+    ? `/wager/${market.inviteCode}` 
+    : `/market/${market.slug || market.id}`;
+  
   return (
-    <Link href={`/market/${market.id}`} data-testid={`card-market-${market.id}`}>
+    <Link href={marketPath} data-testid={`card-market-${market.id}`}>
       <div className={`group bg-card border border-card-border rounded-lg p-6 shadow-lg hover-elevate active-elevate-2 transition-all duration-200 cursor-pointer h-full flex flex-col ${isResolved ? "opacity-75" : ""}`}>
         <div className="flex items-start justify-between gap-2 mb-4">
           <div className="flex flex-wrap gap-2">
@@ -99,9 +105,14 @@ export function MarketCard({ market }: MarketCardProps) {
               <CountdownTimer expiresAt={market.expiresAt} />
             )}
           </div>
-          {!isResolved && market.probability > 50 && (
-            <TrendingUp className="h-4 w-4 text-primary" />
-          )}
+            <div className="flex items-center gap-2">
+            {!isResolved && market.probability > 50 && (
+              <TrendingUp className="h-4 w-4 text-primary" />
+            )}
+            <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+              <MarketWatchToggle marketId={market.id} />
+            </div>
+          </div>
         </div>
 
         <h3 className="text-xl font-semibold text-foreground mb-4 line-clamp-3 flex-grow" data-testid={`text-question-${market.id}`}>

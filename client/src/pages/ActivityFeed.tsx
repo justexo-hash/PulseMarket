@@ -293,7 +293,7 @@ export function ActivityFeed() {
                 const volume = parseFloat(bet.market.yesPool) + parseFloat(bet.market.noPool);
                 
                 return (
-                  <Link key={`bet-${bet.id}-${index}`} href={`/market/${bet.marketId}`}>
+                  <Link key={`bet-${bet.id}-${index}`} href={bet.market.isPrivate === 1 && bet.market.inviteCode ? `/wager/${bet.market.inviteCode}` : `/market/${bet.market.slug || bet.marketId}`}>
                     <Card className="p-6 bg-black/30 backdrop-blur-sm border-white/20 hover:bg-white/10 transition-colors cursor-pointer">
                       <div className="flex items-start gap-4">
                         <div className={`p-3 rounded-full ${
@@ -342,7 +342,7 @@ export function ActivityFeed() {
                   : "recently";
                 
                 return (
-                  <Link key={`resolution-${market.id}-${index}`} href={`/market/${market.id}`}>
+                  <Link key={`resolution-${market.id}-${index}`} href={market.isPrivate === 1 && market.inviteCode ? `/wager/${market.inviteCode}` : `/market/${market.slug || market.id}`}>
                     <Card className="p-6 bg-black/30 backdrop-blur-sm border-white/20 hover:bg-white/10 transition-colors cursor-pointer">
                       <div className="flex items-start gap-4">
                         <div className={`p-3 rounded-full ${
@@ -391,7 +391,7 @@ export function ActivityFeed() {
                 const volume = parseFloat(market.yesPool) + parseFloat(market.noPool);
                 
                 return (
-                  <Link key={`created-${market.id}-${index}`} href={`/market/${market.id}`}>
+                  <Link key={`created-${market.id}-${index}`} href={market.isPrivate === 1 && market.inviteCode ? `/wager/${market.inviteCode}` : `/market/${market.slug || market.id}`}>
                     <Card className="p-6 bg-black/30 backdrop-blur-sm border-white/20 hover:bg-white/10 transition-colors cursor-pointer">
                       <div className="flex items-start gap-4">
                         <div className="p-3 rounded-full bg-primary/20 text-primary">

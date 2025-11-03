@@ -13,9 +13,14 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { verifyCommitmentHash } from "@/lib/provablyFair";
+import { MarketWatchToggle } from "@/components/MarketWatchToggle";
 
-export function MarketDetail() {
-  const { id } = useParams<{ id: string }>();
+interface MarketDetailProps {
+  marketOverride?: Market;
+}
+
+export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
+  const { slug } = useParams<{ slug: string }>();
   const { toast } = useToast();
   const { user } = useAuth();
   const wallet = useWallet();
@@ -26,18 +31,27 @@ export function MarketDetail() {
   const [inviteCode, setInviteCode] = useState("");
   
   const { data: market, isLoading, error } = useQuery<Market>({
-    queryKey: ["/api/markets", id],
-    enabled: !!id,
+    queryKey: ["/api/markets", slug],
+    enabled: !!slug && !marketOverride,
+    initialData: marketOverride,
   });
+
+  const displayMarket = marketOverride || market;
+  const marketId = displayMarket?.id?.toString() || slug;
+  
+  if (!displayMarket && !isLoading && !error) {
+    // Try to refetch if we have a slug but no market
+    return null;
+  }
 
   const resolveMarket = useMutation({
     mutationFn: async (outcome: "yes" | "no") => {
-      const response = await apiRequest("POST", `/api/markets/${id}/resolve`, { outcome });
+      const response = await apiRequest("POST", `/api/markets/${marketId}/resolve`, { outcome });
       return await response.json();
     },
     onSuccess: (data: { market: Market; payoutResults?: Array<{ walletAddress: string; amountSOL: number; txSignature: string | null; error?: string }> }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/markets"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/markets", id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/markets", marketId] });
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balance"] });
       queryClient.invalidateQueries({ queryKey: ["/api/bets"] });
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
@@ -101,12 +115,12 @@ export function MarketDetail() {
 
   const refundMarket = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", `/api/markets/${id}/refund`);
+      const response = await apiRequest("POST", `/api/markets/${marketId}/refund`);
       return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/markets"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/markets", id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/markets", marketId] });
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balance"] });
       queryClient.invalidateQueries({ queryKey: ["/api/bets"] });
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
@@ -138,18 +152,18 @@ export function MarketDetail() {
       }
 
       // Include invite code if this is a private wager
-      if (market?.isPrivate && market.inviteCode) {
-        body.inviteCode = market.inviteCode;
-      } else if (market?.isPrivate && inviteCode) {
+      if (displayMarket?.isPrivate && displayMarket.inviteCode) {
+        body.inviteCode = displayMarket.inviteCode;
+      } else if (displayMarket?.isPrivate && inviteCode) {
         body.inviteCode = inviteCode;
       }
       
-      const response = await apiRequest("POST", `/api/markets/${id}/bet`, body);
+      const response = await apiRequest("POST", `/api/markets/${marketId}/bet`, body);
       return await response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/markets"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/markets", id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/markets", marketId] });
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balance"] });
       queryClient.invalidateQueries({ queryKey: ["/api/bets"] });
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
@@ -178,7 +192,7 @@ export function MarketDetail() {
       return;
     }
 
-    if (!market) return;
+    if (!displayMarket) return;
     
     const amount = parseFloat(betAmount);
     if (isNaN(amount) || amount <= 0) {
@@ -239,14 +253,14 @@ export function MarketDetail() {
     );
   }
 
-  const noProbability = 100 - market.probability;
+  const noProbability = 100 - (displayMarket?.probability || 50);
 
   // Calculate potential winnings for a bet
   const calculatePotentialWinnings = (amount: number, position: "yes" | "no"): number | null => {
-    if (amount <= 0 || isNaN(amount)) return null;
+    if (amount <= 0 || isNaN(amount) || !displayMarket) return null;
 
-    const yesPool = parseFloat(market.yesPool || "0");
-    const noPool = parseFloat(market.noPool || "0");
+    const yesPool = parseFloat(displayMarket.yesPool || "0");
+    const noPool = parseFloat(displayMarket.noPool || "0");
     const totalPool = yesPool + noPool;
 
     // Calculate what the pools would be after this bet
@@ -289,38 +303,41 @@ export function MarketDetail() {
                 className="bg-primary/20 text-primary border-primary/30 uppercase text-xs font-semibold tracking-wide"
                 data-testid="badge-category"
               >
-                {market.category}
+                {displayMarket.category}
               </Badge>
-              {market.isPrivate === 1 && (
+              {displayMarket.isPrivate === 1 && (
                 <Badge variant="outline" className="bg-muted border-muted-foreground/20">
                   <Shield className="h-3 w-3 mr-1" />
                   Private Wager
                 </Badge>
               )}
-              {market.payoutType === "winner-takes-all" && (
+              {displayMarket.payoutType === "winner-takes-all" && (
                 <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
                   Winner Takes All
                 </Badge>
               )}
             </div>
-            <h1 className="text-4xl font-bold text-foreground mb-4" data-testid="text-question">
-              {market.question}
-            </h1>
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h1 className="text-4xl font-bold text-foreground" data-testid="text-question">
+                {displayMarket.question}
+              </h1>
+              <div className="pt-2"><MarketWatchToggle marketId={displayMarket.id} /></div>
+            </div>
             
             {/* Show invite code for private wagers */}
-            {market.isPrivate === 1 && market.inviteCode && (
+            {displayMarket.isPrivate === 1 && displayMarket.inviteCode && (
               <Card className="p-4 bg-primary/5 border-primary/20 mb-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">Invite Code</p>
-                    <code className="text-lg font-mono text-foreground">{market.inviteCode}</code>
+                    <code className="text-lg font-mono text-foreground">{displayMarket.inviteCode}</code>
                   </div>
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        navigator.clipboard.writeText(market.inviteCode!);
+                        navigator.clipboard.writeText(displayMarket.inviteCode!);
                         toast({ title: "Copied!", description: "Invite code copied to clipboard" });
                       }}
                     >
@@ -331,7 +348,7 @@ export function MarketDetail() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        const inviteLink = `${window.location.origin}/wager/${market.inviteCode}`;
+                        const inviteLink = `${window.location.origin}/wager/${displayMarket.inviteCode}`;
                         navigator.clipboard.writeText(inviteLink);
                         toast({ title: "Copied!", description: "Invite link copied to clipboard" });
                       }}
@@ -352,17 +369,17 @@ export function MarketDetail() {
                   Yes Probability
                 </p>
                 <p className="text-6xl font-bold text-primary mb-4" data-testid="text-yes-probability">
-                  {market.probability}%
+                  {displayMarket.probability}%
                 </p>
                 <div className="w-full h-3 bg-background rounded-full overflow-hidden mb-4">
                   <div
                     className="h-full bg-primary rounded-full transition-all"
-                    style={{ width: `${market.probability}%` }}
+                    style={{ width: `${displayMarket.probability}%` }}
                   />
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Pool: <span className="font-semibold text-primary" data-testid="text-yes-pool">
-                    {parseFloat(market.yesPool || "0").toFixed(4)} SOL
+                    {parseFloat(displayMarket.yesPool || "0").toFixed(4)} SOL
                   </span>
                 </p>
               </div>
@@ -384,7 +401,7 @@ export function MarketDetail() {
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Pool: <span className="font-semibold text-destructive" data-testid="text-no-pool">
-                    {parseFloat(market.noPool || "0").toFixed(4)} SOL
+                    {parseFloat(displayMarket.noPool || "0").toFixed(4)} SOL
                   </span>
                 </p>
               </div>
@@ -395,7 +412,7 @@ export function MarketDetail() {
             <h2 className="text-2xl font-bold text-foreground mb-6">Place Your Bet</h2>
             
             {/* Invite code input for private wagers (if user doesn't have access yet) */}
-            {market.isPrivate === 1 && !market.inviteCode && (
+            {displayMarket.isPrivate === 1 && !displayMarket.inviteCode && (
               <div className="mb-6">
                 <Label htmlFor="invite-code" className="text-base font-semibold mb-2 block">
                   Invite Code <span className="text-muted-foreground text-sm">(Required)</span>
@@ -490,7 +507,7 @@ export function MarketDetail() {
                   variant="default"
                   className="h-auto py-6 text-lg font-semibold w-full"
                   onClick={() => handleBet("yes")}
-                  disabled={placeBet.isPending || market.status !== "active"}
+                  disabled={placeBet.isPending || displayMarket.status !== "active"}
                   data-testid="button-bet-yes"
                 >
                   <ThumbsUp className="mr-2 h-5 w-5" />
@@ -506,7 +523,7 @@ export function MarketDetail() {
                   variant="destructive"
                   className="h-auto py-6 text-lg font-semibold w-full"
                   onClick={() => handleBet("no")}
-                  disabled={placeBet.isPending || market.status !== "active"}
+                  disabled={placeBet.isPending || displayMarket.status !== "active"}
                   data-testid="button-bet-no"
                 >
                   <ThumbsDown className="mr-2 h-5 w-5" />
@@ -520,7 +537,7 @@ export function MarketDetail() {
           </div>
 
           {/* Market Resolution Section - Show resolved status to all, but only show resolution buttons to admins */}
-          {market.status === "resolved" ? (
+          {displayMarket.status === "resolved" ? (
             <div className="border-t border-border pt-8 space-y-6">
               <Card className="p-6 bg-muted/30">
                 <div className="flex items-center justify-center gap-3">
@@ -530,8 +547,8 @@ export function MarketDetail() {
                       Market Resolved
                     </p>
                     <p className="text-2xl font-bold text-foreground" data-testid="text-resolved-outcome">
-                      Outcome: <span className={market.resolvedOutcome === "yes" ? "text-primary" : "text-destructive"}>
-                        {market.resolvedOutcome?.toUpperCase()}
+                      Outcome: <span className={displayMarket.resolvedOutcome === "yes" ? "text-primary" : "text-destructive"}>
+                        {displayMarket.resolvedOutcome?.toUpperCase()}
                       </span>
                     </p>
                   </div>
@@ -539,7 +556,7 @@ export function MarketDetail() {
               </Card>
 
               {/* Provably Fair Verification */}
-              {market.commitmentHash && (
+              {displayMarket.commitmentHash && (
                 <Card className="p-6 bg-primary/5 border-primary/20">
                   <div className="flex items-center gap-2 mb-4">
                     <Shield className="h-5 w-5 text-primary" />
@@ -553,13 +570,13 @@ export function MarketDetail() {
                       </label>
                       <div className="flex items-center gap-2">
                         <code className="flex-1 text-xs font-mono bg-muted p-3 rounded-lg break-all">
-                          {market.commitmentHash}
+                          {displayMarket.commitmentHash}
                         </code>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            navigator.clipboard.writeText(market.commitmentHash!);
+                            navigator.clipboard.writeText(displayMarket.commitmentHash!);
                             toast({ title: "Copied!", description: "Commitment hash copied to clipboard" });
                           }}
                         >
@@ -568,20 +585,20 @@ export function MarketDetail() {
                       </div>
                     </div>
 
-                    {market.commitmentSecret && (
+                    {displayMarket.commitmentSecret && (
                       <div>
                         <label className="text-sm font-medium text-muted-foreground mb-2 block">
                           Revealed Secret
                         </label>
                         <div className="flex items-center gap-2">
                           <code className="flex-1 text-xs font-mono bg-muted p-3 rounded-lg break-all">
-                            {market.commitmentSecret}
+                            {displayMarket.commitmentSecret}
                           </code>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              navigator.clipboard.writeText(market.commitmentSecret!);
+                              navigator.clipboard.writeText(displayMarket.commitmentSecret!);
                               toast({ title: "Copied!", description: "Secret copied to clipboard" });
                             }}
                           >
@@ -591,7 +608,7 @@ export function MarketDetail() {
                       </div>
                     )}
 
-                    {market.commitmentHash && market.commitmentSecret && market.resolvedOutcome && (
+                    {displayMarket.commitmentHash && displayMarket.commitmentSecret && displayMarket.resolvedOutcome && (
                       <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
@@ -616,14 +633,14 @@ export function MarketDetail() {
                             variant="outline"
                             size="sm"
                             onClick={async () => {
-                              if (!market.commitmentHash || !market.commitmentSecret || !market.resolvedOutcome || !id) return;
+                              if (!displayMarket.commitmentHash || !displayMarket.commitmentSecret || !displayMarket.resolvedOutcome || !displayMarket.id) return;
                               setIsVerifying(true);
                               try {
                                 const isValid = await verifyCommitmentHash(
-                                  market.resolvedOutcome as "yes" | "no" | "refunded",
-                                  market.commitmentSecret,
-                                  parseInt(id),
-                                  market.commitmentHash
+                                  displayMarket.resolvedOutcome as "yes" | "no" | "refunded",
+                                  displayMarket.commitmentSecret,
+                                  displayMarket.id,
+                                  displayMarket.commitmentHash
                                 );
                                 setVerificationResult(isValid);
                                 if (isValid) {
@@ -647,11 +664,11 @@ export function MarketDetail() {
                             {isVerifying ? "Verifying..." : "Verify Hash"}
                           </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          Verify by computing: SHA256(&quot;{market.resolvedOutcome}:{market.commitmentSecret}:{id}&quot;)
-                        </p>
+                          <p className="text-xs text-muted-foreground">
+                            Verify by computing: SHA256(&quot;{displayMarket.resolvedOutcome}:{displayMarket.commitmentSecret}:{displayMarket.id}&quot;)
+                          </p>
                         <p className="text-xs text-muted-foreground mt-1 font-mono">
-                          Expected: {market.commitmentHash}
+                          Expected: {displayMarket.commitmentHash}
                         </p>
                       </div>
                     )}
@@ -669,15 +686,15 @@ export function MarketDetail() {
               )}
             </div>
           ) : (
-            (user?.isAdmin || (market.isPrivate === 1 && market.createdBy === user?.id)) && (
+            (user?.isAdmin || (displayMarket.isPrivate === 1 && displayMarket.createdBy === user?.id)) && (
               <div className="border-t border-border pt-8">
                 <h2 className="text-2xl font-bold text-foreground mb-6">
-                  {market.isPrivate === 1 && market.createdBy === user?.id 
+                  {displayMarket.isPrivate === 1 && displayMarket.createdBy === user?.id 
                     ? "Resolve Private Wager" 
                     : "Admin: Resolve Market"}
                 </h2>
                 <p className="text-muted-foreground mb-6">
-                  {market.isPrivate === 1 && market.createdBy === user?.id
+                  {displayMarket.isPrivate === 1 && displayMarket.createdBy === user?.id
                     ? "Resolve this wager with the actual outcome or refund all bets if the wager cannot be determined."
                     : "Admin only: Resolve this market with the actual outcome or refund all bets if the market cannot be determined."}
                 </p>

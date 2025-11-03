@@ -90,6 +90,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Watchlist routes (require auth)
+  app.get("/api/watchlist", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) return res.status(401).json({ error: "Not authenticated" });
+      const list = await storage.getWatchlist(userId);
+      res.json(list);
+    } catch (e: any) {
+      console.error("[Watchlist] Error fetching watchlist:", e);
+      const errorMessage = e?.message || String(e);
+      if (errorMessage.includes('watchlist') || errorMessage.includes('column') || errorMessage.includes('table')) {
+        return res.status(500).json({ 
+          error: "Watchlist table not found. Please run database migration.",
+          details: errorMessage 
+        });
+      }
+      res.status(500).json({ error: "Failed to fetch watchlist", details: errorMessage });
+    }
+  });
+
+  app.post("/api/watchlist/:marketId", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) return res.status(401).json({ error: "Not authenticated" });
+      const marketId = parseInt(req.params.marketId);
+      if (isNaN(marketId)) return res.status(400).json({ error: "Invalid market id" });
+      const item = await storage.addToWatchlist(userId, marketId);
+      res.json(item);
+    } catch (e) {
+      res.status(500).json({ error: "Failed to add to watchlist" });
+    }
+  });
+
+  app.delete("/api/watchlist/:marketId", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) return res.status(401).json({ error: "Not authenticated" });
+      const marketId = parseInt(req.params.marketId);
+      if (isNaN(marketId)) return res.status(400).json({ error: "Invalid market id" });
+      await storage.removeFromWatchlist(userId, marketId);
+      res.json({ ok: true });
+    } catch (e) {
+      res.status(500).json({ error: "Failed to remove from watchlist" });
+    }
+  });
+
   // Get market by invite code (for private wagers)
   app.get("/api/wager/:inviteCode", async (req, res) => {
     try {
@@ -110,16 +156,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get single market by ID
-  app.get("/api/markets/:id", async (req, res) => {
+  // Get single market by slug or ID (supports both for backward compatibility)
+  app.get("/api/markets/:identifier", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const identifier = req.params.identifier;
       
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid market ID" });
+      // Try parsing as ID first (backward compatibility)
+      const id = parseInt(identifier);
+      if (!isNaN(id)) {
+        const market = await storage.getMarketById(id);
+        if (market) {
+          return res.json(market);
+        }
       }
       
-      const market = await storage.getMarketById(id);
+      // If not found by ID, try as slug
+      const market = await storage.getMarketBySlug(identifier);
       
       if (!market) {
         return res.status(404).json({ error: "Market not found" });

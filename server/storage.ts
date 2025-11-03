@@ -2,17 +2,21 @@ import {
   type Market, type InsertMarket, markets, 
   type User, type InsertUser, users,
   type Bet, type InsertBet, bets,
-  type Transaction, transactions
+  type Transaction, transactions,
+  watchlist,
+  type WatchlistItem
 } from "@shared/schema";
 import { db } from "../db";
 import { eq, and, sql, desc } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import { generateInviteCode, isValidInviteCode } from "./inviteCodes";
+import { generateSlug } from "./slugs";
 
 export interface IStorage {
   getAllMarkets(): Promise<Market[]>;
   getMarketById(id: number): Promise<Market | undefined>;
   getMarketByInviteCode(inviteCode: string): Promise<Market | undefined>;
+  getMarketBySlug(slug: string): Promise<Market | undefined>;
   createMarket(market: InsertMarket): Promise<Market>;
   deleteMarket(id: number): Promise<void>;
   resolveMarket(id: number, outcome: "yes" | "no", commitmentHash?: string, commitmentSecret?: string): Promise<Market | undefined>;
@@ -53,6 +57,12 @@ export interface IStorage {
   
   // Admin methods
   refundMarketBets(marketId: number, onChainRefunds?: Array<{ walletAddress: string; amountSOL: number; txSignature?: string }>): Promise<void>;
+
+  // Watchlist
+  getWatchlist(userId: number): Promise<Market[]>;
+  addToWatchlist(userId: number, marketId: number): Promise<WatchlistItem>;
+  removeFromWatchlist(userId: number, marketId: number): Promise<void>;
+  isInWatchlist(userId: number, marketId: number): Promise<boolean>;
 }
 
 export class DbStorage implements IStorage {
@@ -70,6 +80,11 @@ export class DbStorage implements IStorage {
     return result[0];
   }
 
+  async getMarketBySlug(slug: string): Promise<Market | undefined> {
+    const result = await db.select().from(markets).where(eq(markets.slug, slug)).limit(1);
+    return result[0];
+  }
+
   async createMarket(insertMarket: InsertMarket & { createdBy?: number; inviteCode?: string }): Promise<Market> {
     const probability = Math.floor(Math.random() * 80) + 10;
     
@@ -82,6 +97,7 @@ export class DbStorage implements IStorage {
         expiresAt?: Date;
         isPrivate?: number;
         inviteCode?: string;
+        slug?: string;
         createdBy?: number;
         payoutType?: string;
       } = {
@@ -121,7 +137,20 @@ export class DbStorage implements IStorage {
         .insert(markets)
         .values(values)
         .returning();
-      return result[0];
+      
+      // Generate and update slug for public markets (after we have the ID)
+      const createdMarket = result[0];
+      if (!createdMarket.isPrivate && !createdMarket.slug) {
+        const slug = generateSlug(createdMarket.question, createdMarket.id);
+        const updated = await db
+          .update(markets)
+          .set({ slug })
+          .where(eq(markets.id, createdMarket.id))
+          .returning();
+        return updated[0];
+      }
+      
+      return createdMarket;
     } catch (error: any) {
       // Check if it's a column missing error
       const errorMessage = error?.message || String(error);
@@ -327,6 +356,64 @@ export class DbStorage implements IStorage {
       .from(transactions)
       .where(eq(transactions.userId, userId))
       .orderBy(desc(transactions.createdAt));
+  }
+
+  // Watchlist methods
+  async getWatchlist(userId: number): Promise<Market[]> {
+    const joins = await db
+      .select({
+        id: markets.id,
+        question: markets.question,
+        category: markets.category,
+        probability: markets.probability,
+        status: markets.status,
+        resolvedOutcome: markets.resolvedOutcome,
+        yesPool: markets.yesPool,
+        noPool: markets.noPool,
+        expiresAt: markets.expiresAt,
+        commitmentHash: markets.commitmentHash,
+        commitmentSecret: markets.commitmentSecret,
+        isPrivate: markets.isPrivate,
+        inviteCode: markets.inviteCode,
+        slug: markets.slug,
+        createdBy: markets.createdBy,
+        payoutType: markets.payoutType,
+        createdAt: markets.createdAt,
+      })
+      .from(watchlist)
+      .innerJoin(markets, eq(watchlist.marketId, markets.id))
+      .where(eq(watchlist.userId, userId))
+      .orderBy(desc(watchlist.createdAt));
+    return joins as unknown as Market[];
+  }
+
+  async addToWatchlist(userId: number, marketId: number): Promise<WatchlistItem> {
+    const existing = await db
+      .select()
+      .from(watchlist)
+      .where(and(eq(watchlist.userId, userId), eq(watchlist.marketId, marketId)))
+      .limit(1);
+    if (existing[0]) return existing[0];
+    const result = await db
+      .insert(watchlist)
+      .values({ userId, marketId })
+      .returning();
+    return result[0];
+  }
+
+  async removeFromWatchlist(userId: number, marketId: number): Promise<void> {
+    await db
+      .delete(watchlist)
+      .where(and(eq(watchlist.userId, userId), eq(watchlist.marketId, marketId)));
+  }
+
+  async isInWatchlist(userId: number, marketId: number): Promise<boolean> {
+    const rows = await db
+      .select({ id: watchlist.id })
+      .from(watchlist)
+      .where(and(eq(watchlist.userId, userId), eq(watchlist.marketId, marketId)))
+      .limit(1);
+    return !!rows[0];
   }
 
   async calculateAndDistributePayouts(

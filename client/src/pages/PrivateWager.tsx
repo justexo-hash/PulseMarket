@@ -1,9 +1,9 @@
-import { useParams, Link, Redirect } from "wouter";
+import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { type Market } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import MarketDetail from "./MarketDetail";
+import { MarketDetail } from "./MarketDetail";
 
 export function PrivateWager() {
   const { inviteCode } = useParams<{ inviteCode: string }>();
@@ -65,7 +65,7 @@ export function PrivateWager() {
     );
   }
 
-  // Redirect to market detail page with the invite code available
-  return <Redirect to={`/market/${market.id}`} />;
+  // Render MarketDetail directly with market data, keeping invite code in URL
+  return <MarketDetail marketOverride={market} />;
 }
 

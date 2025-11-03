@@ -25,6 +25,7 @@ export const markets = pgTable("markets", {
   commitmentSecret: text("commitment_secret"), // Provably fair: revealed secret after resolution
   isPrivate: integer("is_private").notNull().default(0), // 0 = public, 1 = private wager
   inviteCode: text("invite_code"), // Unique invite code for private wagers
+  slug: text("slug"), // URL-friendly slug for public markets (e.g., "trump-2024-id5252643646")
   createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }), // Creator of private wager
   payoutType: text("payout_type").notNull().default("proportional"), // "proportional" or "winner-takes-all"
   createdAt: timestamp("created_at").notNull().defaultNow(), // Track when market was created
@@ -51,6 +52,14 @@ export const transactions = pgTable("transactions", {
   betId: integer("bet_id").references(() => bets.id, { onDelete: "set null" }), // null for deposits
   description: text("description"), // Human-readable description
   txSignature: text("tx_signature"), // On-chain transaction signature/hash for verification
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// User Watchlist (Favorites)
+export const watchlist = pgTable("watchlist", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  marketId: integer("market_id").notNull().references(() => markets.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -119,6 +128,7 @@ export type InsertMarket = z.infer<typeof insertMarketSchema> & {
 export type Bet = typeof bets.$inferSelect;
 export type InsertBet = z.infer<typeof betSchema>;
 export type Transaction = typeof transactions.$inferSelect;
+export type WatchlistItem = typeof watchlist.$inferSelect;
 
 export const mockMarkets: Omit<Market, "id">[] = [
   {

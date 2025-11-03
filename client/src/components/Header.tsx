@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { TrendingUp, Wallet, LogOut, Activity, Shield } from "lucide-react";
+import { TrendingUp, Wallet, LogOut, Activity, Shield, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -72,6 +72,18 @@ export function Header() {
                 }`}
               >
                 Markets
+              </div>
+            </Link>
+            <Link href="/watchlist" data-testid="link-watchlist">
+              <div
+                className={`px-4 py-2 rounded-lg font-semibold transition-all hover-elevate flex items-center gap-2 ${
+                  location === "/watchlist"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground"
+                }`}
+              >
+                <Heart className="h-4 w-4" />
+                Watchlist
               </div>
             </Link>
             <Link href="/activity" data-testid="link-activity">

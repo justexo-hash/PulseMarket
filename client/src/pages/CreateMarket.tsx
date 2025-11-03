@@ -68,20 +68,27 @@ export function CreateMarket() {
       console.log('[CreateMarket] Market created:', market);
       console.log('[CreateMarket] Market isPrivate:', market?.isPrivate);
       console.log('[CreateMarket] Market id:', market?.id);
-      
-      if (market?.isPrivate === 1 && market?.id) {
+
+      if (market?.isPrivate === 1 && market?.inviteCode) {
         toast({
           title: "Private Wager Created!",
           description: "Redirecting to your wager page...",
         });
-        
-        // Use window.location for reliable redirect
-        const targetUrl = `/market/${market.id}`;
+
+        // Use invite code URL for private wagers
+        const targetUrl = `/wager/${market.inviteCode}`;
         console.log('[CreateMarket] Redirecting to:', targetUrl);
-        console.log('[CreateMarket] Current pathname:', window.location.pathname);
         
         // Force redirect using window.location (most reliable)
         window.location.href = targetUrl;
+      } else if (market?.slug) {
+        toast({
+          title: "Market Created!",
+          description: "Redirecting to your market page...",
+        });
+        
+        // Use slug for public markets
+        window.location.href = `/market/${market.slug}`;
       } else {
         toast({
           title: "Market Created!",

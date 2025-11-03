@@ -275,7 +275,7 @@ export function AdminPanel() {
                           </AlertDialogContent>
                         </AlertDialog>
                       </div>
-                      <Link href={`/market/${market.id}`}>
+                      <Link href={market.isPrivate === 1 && market.inviteCode ? `/wager/${market.inviteCode}` : `/market/${market.slug || market.id}`}>
                         <Button
                           variant="ghost"
                           size="sm"
