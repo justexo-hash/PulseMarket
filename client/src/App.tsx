@@ -28,7 +28,7 @@ function Router() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-grow">
+      <main className="flex-grow pb-24">
         <Switch>
           <Route path="/" component={MarketList} />
           <Route path="/market/:id" component={MarketDetail} />
