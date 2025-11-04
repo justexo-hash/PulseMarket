@@ -46,6 +46,14 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: false }));
 
+// Handle JSON parsing errors
+app.use((err: any, req: any, res: any, next: any) => {
+  if (err instanceof SyntaxError && 'body' in err) {
+    return res.status(400).json({ error: 'Invalid JSON in request body' });
+  }
+  next(err);
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -79,11 +87,18 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
+  // Error handler - must return JSON, never HTML
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
+    // Ensure we always return JSON, never HTML
+    if (!res.headersSent) {
+      res.status(status).json({ 
+        error: message,
+        details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+      });
+    }
     // Don't throw - just log the error to prevent server crashes
     console.error('[Express] Error:', err);
   });

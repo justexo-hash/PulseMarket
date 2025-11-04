@@ -122,42 +122,64 @@ export function MarketCard({ market }: MarketCardProps) {
           )}
         </div>
 
-        <h3 className="text-xl font-semibold text-foreground mb-4 line-clamp-3 flex-grow" data-testid={`text-question-${market.id}`}>
-          {market.question}
-        </h3>
+        <div className="flex gap-4 flex-grow items-center">
+          {/* Left side: Question, Volume, Probability */}
+          <div className="flex-1 min-w-0 flex flex-col">
+            <h3 className="text-xl font-semibold text-foreground mb-2 line-clamp-2" data-testid={`text-question-${market.id}`}>
+              {market.question}
+            </h3>
+            <div className="flex items-center text-xs text-muted-foreground mb-4">
+              <span>Volume: {volume.toFixed(2)} SOL</span>
+            </div>
+            
+            <div className="mt-auto space-y-3">
+              <div className="flex items-end justify-between mb-3">
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">
+                    {isResolved ? "Final Result" : "Probability"}
+                  </span>
+                  <span 
+                    className={`text-4xl font-bold ${
+                      isResolved 
+                        ? (resolvedOutcome === "yes" ? "text-green-500" : "text-destructive")
+                        : "text-green-500"
+                    }`}
+                    data-testid={`text-probability-${market.id}`}
+                  >
+                    {displayProbability}%
+                  </span>
+                </div>
+              </div>
 
-        <div className="mt-auto space-y-3">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Volume: {volume.toFixed(2)} SOL</span>
-          </div>
-          <div className="flex items-end justify-between mb-3">
-            <div className="flex flex-col">
-              <span className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">
-                {isResolved ? "Final Result" : "Probability"}
-              </span>
-              <span 
-                className={`text-4xl font-bold ${
-                  isResolved 
-                    ? (resolvedOutcome === "yes" ? "text-green-500" : "text-destructive")
-                    : "text-green-500"
-                }`}
-                data-testid={`text-probability-${market.id}`}
-              >
-                {displayProbability}%
-              </span>
+              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    isResolved
+                      ? (resolvedOutcome === "yes" ? "bg-green-500" : "bg-destructive")
+                      : "bg-green-500"
+                  }`}
+                  style={{ width: `${displayProbability}%` }}
+                />
+              </div>
             </div>
           </div>
-
-          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${
-                isResolved
-                  ? (resolvedOutcome === "yes" ? "bg-green-500" : "bg-destructive")
-                  : "bg-green-500"
-              }`}
-              style={{ width: `${displayProbability}%` }}
-            />
-          </div>
+          
+          {/* Right side: Image */}
+          {market.image && (
+            <div className="flex-shrink-0 w-1/2 max-w-[200px] flex items-center justify-center">
+              <div className="w-full rounded-lg overflow-hidden border border-card-border">
+                <img
+                  src={market.image}
+                  alt={market.question}
+                  className="w-full h-auto object-cover"
+                  onError={(e) => {
+                    // Hide image if it fails to load
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Link>

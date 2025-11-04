@@ -339,11 +339,34 @@ export function MarketDetail({ marketOverride }: MarketDetailProps = {}) {
                 </Badge>
               )}
             </div>
-            <div className="flex items-start justify-between gap-4 mb-4">
+            <div className="flex items-start justify-between gap-4 mb-2">
               <h1 className="text-4xl font-bold text-foreground" data-testid="text-question">
                 {displayMarket.question}
               </h1>
             </div>
+            
+            {/* Show token address if available as subheader */}
+            {displayMarket.tokenAddress && (
+              <div className="mb-4 flex items-center gap-2">
+                <p className="text-sm text-muted-foreground font-mono">
+                  {displayMarket.tokenAddress}
+                </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2"
+                  onClick={() => {
+                    navigator.clipboard.writeText(displayMarket.tokenAddress || "");
+                    toast({
+                      title: "Copied!",
+                      description: "Token address copied to clipboard",
+                    });
+                  }}
+                >
+                  <Copy className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
             
             {/* Show invite code for private wagers */}
             {displayMarket.isPrivate === 1 && displayMarket.inviteCode && (

@@ -93,6 +93,8 @@ export class DbStorage implements IStorage {
         slug?: string;
         createdBy?: number;
         payoutType?: string;
+        image?: string | null;
+        tokenAddress?: string | null;
       } = {
         question: insertMarket.question,
         category: insertMarket.category,
@@ -107,6 +109,20 @@ export class DbStorage implements IStorage {
         values.expiresAt = insertMarket.expiresAt;
       }
       // If expiresAt is null/undefined, we simply don't include it (column will be NULL in DB)
+      
+      // Handle optional image field (null or empty string becomes null)
+      if (insertMarket.image && insertMarket.image.trim() !== "") {
+        values.image = insertMarket.image.trim();
+      } else {
+        values.image = null;
+      }
+      
+      // Handle optional tokenAddress field (null or empty string becomes null)
+      if (insertMarket.tokenAddress && insertMarket.tokenAddress.trim() !== "") {
+        values.tokenAddress = insertMarket.tokenAddress.trim();
+      } else {
+        values.tokenAddress = null;
+      }
       
       // For private wagers, include invite code and creator
       if (insertMarket.isPrivate) {

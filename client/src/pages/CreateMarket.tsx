@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { insertMarketSchema, type InsertMarket, type Market } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Shield, Users } from "lucide-react";
+import { ArrowLeft, Plus, Shield, Users, Search, Loader2, Upload, X } from "lucide-react";
 import { Link } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
@@ -44,20 +45,39 @@ export function CreateMarket() {
       category: "",
       expiresAt: null,
       isPrivate: !user?.isAdmin, // Default to private for non-admins, public for admins
+      image: null,
+      tokenAddress: null,
     },
   });
 
   const isPrivate = form.watch("isPrivate");
   const isAdmin = user?.isAdmin;
+  const [isFetchingToken, setIsFetchingToken] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const createMarket = useMutation({
     mutationFn: async (data: InsertMarket & { isPrivate?: boolean }) => {
       // Convert expiresAt to ISO string if it's a date string
-      const payload = {
+      // Normalize image field: convert null/undefined to undefined, keep strings as-is
+      const payload: any = {
         ...data,
         expiresAt: data.expiresAt ? new Date(data.expiresAt).toISOString() : null,
         payoutType: data.isPrivate ? "winner-takes-all" : "proportional",
       };
+      
+      // Only include image field if it has a value (not null/undefined/empty)
+      if (data.image !== null && data.image !== undefined && data.image !== "") {
+        payload.image = data.image;
+      } else {
+        // Explicitly set to undefined (will be omitted in JSON)
+        payload.image = undefined;
+      }
+      
+      console.log('[CreateMarket] Sending payload:', JSON.stringify(payload, null, 2));
+      console.log('[CreateMarket] Image value:', data.image);
+      console.log('[CreateMarket] Image type:', typeof data.image);
       const response = await apiRequest("POST", "/api/markets", payload);
       // Ensure we parse JSON if it's a Response object
       const market = response instanceof Response ? await response.json() : response;
@@ -106,6 +126,204 @@ export function CreateMarket() {
       });
     },
   });
+
+  const handleFileUpload = async (file: File) => {
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload a JPEG, PNG, GIF, or WebP image.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please upload an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      // For FormData, we need to let the browser set Content-Type automatically
+      const response = await fetch("/api/upload/image", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      
+      console.log("[Upload] Response status:", response.status);
+      console.log("[Upload] Response headers:", Object.fromEntries(response.headers.entries()));
+      
+      // Check content type before parsing
+      const contentType = response.headers.get("content-type");
+      console.log("[Upload] Content-Type:", contentType);
+      
+      if (!contentType || !contentType.includes("application/json")) {
+        // Clone response to read text without consuming the original
+        const clonedResponse = response.clone();
+        const text = await clonedResponse.text();
+        console.error("[Upload] Non-JSON response (first 500 chars):", text.substring(0, 500));
+        throw new Error(`Server returned ${contentType || "unknown"} instead of JSON`);
+      }
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch((e) => {
+          console.error("[Upload] Failed to parse error JSON:", e);
+          return { error: "Failed to upload image" };
+        });
+        throw new Error(errorData.error || "Failed to upload image");
+      }
+
+      const data = await response.json();
+      console.log("[Upload] Success! Data:", data);
+      
+      if (data.success && data.url) {
+        form.setValue("image", data.url);
+        setImagePreview(data.url);
+        toast({
+          title: "Image Uploaded!",
+          description: "Image has been uploaded successfully.",
+        });
+      } else {
+        throw new Error("Failed to upload image");
+      }
+    } catch (error: any) {
+      console.error("[Upload] Error:", error);
+      toast({
+        title: "Upload Failed",
+        description: error.message || "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFileUpload(e.target.files[0]);
+    }
+  };
+
+  const removeImage = () => {
+    form.setValue("image", null);
+    setImagePreview(null);
+  };
+
+  const fetchTokenData = async () => {
+    const currentTokenAddress = form.getValues("tokenAddress");
+    if (!currentTokenAddress || currentTokenAddress.trim() === "") {
+      toast({
+        title: "Token Address Required",
+        description: "Please enter a token contract address first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsFetchingToken(true);
+    try {
+      // Use fetch directly to avoid apiRequest consuming the response body
+      const response = await fetch(`/api/tokens/${currentTokenAddress.trim()}`, {
+        method: "GET",
+        credentials: "include",
+      });
+      
+      console.log("[Fetch Token] Response status:", response.status);
+      console.log("[Fetch Token] Response headers:", Object.fromEntries(response.headers.entries()));
+      
+      // Check content type before parsing
+      const contentType = response.headers.get("content-type");
+      console.log("[Fetch Token] Content-Type:", contentType);
+      
+      if (!contentType || !contentType.includes("application/json")) {
+        // Clone response to read text without consuming the original
+        const clonedResponse = response.clone();
+        const text = await clonedResponse.text();
+        console.error("[Fetch Token] Non-JSON response (first 500 chars):", text.substring(0, 500));
+        throw new Error(`Server returned ${contentType || "unknown"} instead of JSON. Response: ${text.substring(0, 100)}`);
+      }
+      
+      // Check if response is ok
+      if (!response.ok) {
+        // Clone response to read text without consuming
+        const clonedResponse = response.clone();
+        const errorText = await clonedResponse.text();
+        console.error("[Fetch Token] Error response text:", errorText);
+        let errorMessage = `Failed to fetch token data: ${response.status}`;
+        
+        // Try to parse as JSON for better error message
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.details || errorJson.error || errorMessage;
+        } catch {
+          // If not JSON, use the text or status
+          if (errorText && errorText.length < 200) {
+            errorMessage = errorText;
+          }
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
+      const data = await response.json();
+      console.log("[Fetch Token] Success! Data:", data);
+      
+      if (data.success && data.token) {
+        // Auto-populate image field if available
+        if (data.token.image) {
+          form.setValue("image", data.token.image);
+          setImagePreview(data.token.image);
+        }
+        
+        toast({
+          title: "Token Data Fetched!",
+          description: `Found ${data.token.name} (${data.token.symbol})`,
+        });
+      } else {
+        throw new Error(data.error || "Failed to fetch token data");
+      }
+    } catch (error: any) {
+      console.error("[Fetch Token] Error:", error);
+      toast({
+        title: "Failed to Fetch Token Data",
+        description: error.message || "Please check the token address and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFetchingToken(false);
+    }
+  };
 
   const onSubmit = (data: InsertMarket & { isPrivate?: boolean }) => {
     // Force isPrivate=true for non-admins
@@ -267,6 +485,130 @@ export function CreateMarket() {
                     </div>
                   </div>
                 </Card>
+              )}
+
+              {isAdmin && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="tokenAddress"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-semibold">Token Contract Address (Optional)</FormLabel>
+                        <FormControl>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="e.g., 77SDHo2kgfNiYbR4bCPLLaDtjZ22ucTPsD3zFRB5c3Gu"
+                              {...field}
+                              value={field.value || ""}
+                              className="text-base font-mono"
+                              data-testid="input-token-address"
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={fetchTokenData}
+                              disabled={isFetchingToken || !field.value || field.value.trim() === ""}
+                              className="flex-shrink-0"
+                            >
+                              {isFetchingToken ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Fetching...
+                                </>
+                              ) : (
+                                <>
+                                  <Search className="mr-2 h-4 w-4" />
+                                  Fetch Data
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </FormControl>
+                        <FormDescription>
+                          Enter a Solana token contract address and click "Fetch Data" to automatically populate the image field
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="image"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-semibold">Market Image (Optional)</FormLabel>
+                        <FormControl>
+                          <div className="space-y-4">
+                            {imagePreview || field.value ? (
+                              <div className="relative">
+                                <img
+                                  src={imagePreview || field.value || ""}
+                                  alt="Market preview"
+                                  className="w-full h-48 object-cover rounded-lg border border-card-border"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  className="absolute top-2 right-2"
+                                  onClick={removeImage}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div
+                                onDragEnter={handleDrag}
+                                onDragLeave={handleDrag}
+                                onDragOver={handleDrag}
+                                onDrop={handleDrop}
+                                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                                  dragActive
+                                    ? "border-primary bg-primary/5"
+                                    : "border-card-border bg-muted/30"
+                                } ${isUploading ? "opacity-50 pointer-events-none" : "cursor-pointer hover:border-primary/50"}`}
+                              >
+                                <input
+                                  type="file"
+                                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                                  onChange={handleFileSelect}
+                                  className="hidden"
+                                  id="image-upload"
+                                  disabled={isUploading}
+                                />
+                                <label htmlFor="image-upload" className="cursor-pointer">
+                                  {isUploading ? (
+                                    <div className="flex flex-col items-center gap-2">
+                                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                      <p className="text-sm text-muted-foreground">Uploading...</p>
+                                    </div>
+                                  ) : (
+                                    <div className="flex flex-col items-center gap-2">
+                                      <Upload className="h-8 w-8 text-muted-foreground" />
+                                      <p className="text-sm font-medium text-foreground">
+                                        Drag and drop an image here, or click to select
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        JPEG, PNG, GIF, or WebP (max 5MB)
+                                      </p>
+                                    </div>
+                                  )}
+                                </label>
+                              </div>
+                            )}
+                            <input type="hidden" {...field} value={field.value || ""} />
+                          </div>
+                        </FormControl>
+                        <FormDescription>
+                          Upload an image for this market. Will be auto-populated if you fetch token data.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
               )}
 
               <div className="pt-4">

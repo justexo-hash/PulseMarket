@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertMarketSchema, resolveMarketSchema, betSchema, depositSchema, type Market } from "@shared/schema";
@@ -8,6 +8,10 @@ import { realtimeService } from "./websocket";
 import { verifyDepositTransaction } from "./deposits";
 import { generateCommitmentHash, generateSecret, verifyCommitmentHash } from "./provablyFair";
 import { generateInviteCode, isValidInviteCode } from "./inviteCodes";
+import multer from "multer";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
 import { getGlobalMetrics, getCryptoQuotes, getFearAndGreedIndex } from "./coinmarketcap";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -164,11 +168,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user ID from session (optional for private wagers)
       const userId = req.session?.userId;
 
-      const result = insertMarketSchema.safeParse(req.body);
+      console.log("[Create Market] Request body:", JSON.stringify(req.body, null, 2));
+      console.log("[Create Market] Image field type:", typeof req.body.image);
+      console.log("[Create Market] Image field value:", req.body.image);
+      
+      // Normalize image field before validation
+      const normalizedBody = {
+        ...req.body,
+        image: req.body.image === null || req.body.image === undefined || req.body.image === "" 
+          ? undefined  // Use undefined instead of empty string for optional field
+          : String(req.body.image), // Ensure it's a string
+      };
+      
+      console.log("[Create Market] Normalized body:", JSON.stringify(normalizedBody, null, 2));
+      
+      const result = insertMarketSchema.safeParse(normalizedBody);
       
       if (!result.success) {
+        console.error("[Create Market] Validation error:", JSON.stringify(result.error.errors, null, 2));
+        console.error("[Create Market] Validation error details:", result.error);
         return res.status(400).json({ error: result.error.errors });
       }
+      
+      console.log("[Create Market] Validation passed! Result data:", JSON.stringify(result.data, null, 2));
 
       // Convert expiresAt from ISO string to Date object if provided
       // Handle empty string, null, undefined, or actual date string
@@ -534,6 +556,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("[Treasury Balance] Error:", error);
       res.status(500).json({ 
         error: "Failed to fetch treasury balance",
+        details: error.message 
+      });
+    }
+  });
+
+  // Admin: Test Solana Tracker API
+  app.get("/api/admin/test-token/:tokenAddress", requireAdmin, async (req, res) => {
+    try {
+      const { tokenAddress } = req.params;
+      const { getTokenInfo } = await import("./solanaTracker");
+      const tokenInfo = await getTokenInfo(tokenAddress);
+      res.json({
+        success: true,
+        token: {
+          name: tokenInfo.token.name,
+          symbol: tokenInfo.token.symbol,
+          image: tokenInfo.token.image,
+          mint: tokenInfo.token.mint,
+          decimals: tokenInfo.token.decimals,
+        },
+        fullData: tokenInfo,
+      });
+    } catch (error: any) {
+      console.error("[Test Token] Error:", error);
+      res.status(500).json({ 
+        error: "Failed to fetch token info",
+        details: error.message 
+      });
+    }
+  });
+
+  // Fetch token information from Solana Tracker (for market creation)
+  app.get("/api/tokens/:tokenAddress", requireAdmin, async (req, res) => {
+    try {
+      console.log("[Fetch Token] Request received for:", req.params.tokenAddress);
+      const { tokenAddress } = req.params;
+      
+      if (!tokenAddress || tokenAddress.trim() === "") {
+        console.log("[Fetch Token] Missing token address");
+        return res.status(400).json({ 
+          error: "Token address is required",
+        });
+      }
+
+      console.log("[Fetch Token] Fetching token info from Solana Tracker...");
+      const { getTokenInfo } = await import("./solanaTracker");
+      const tokenInfo = await getTokenInfo(tokenAddress.trim());
+      console.log("[Fetch Token] Successfully fetched token:", tokenInfo.token.name);
+      
+      res.json({
+        success: true,
+        token: {
+          name: tokenInfo.token.name,
+          symbol: tokenInfo.token.symbol,
+          image: tokenInfo.token.image,
+          mint: tokenInfo.token.mint,
+          decimals: tokenInfo.token.decimals,
+        },
+      });
+    } catch (error: any) {
+      console.error("[Fetch Token] Error:", error);
+      console.error("[Fetch Token] Error stack:", error?.stack);
+      const statusCode = error.message?.includes("401") || error.message?.includes("Unauthorized") ? 401
+        : error.message?.includes("404") || error.message?.includes("Not found") ? 404
+        : error.message?.includes("400") || error.message?.includes("Invalid") ? 400
+        : 500;
+      
+      res.status(statusCode).json({ 
+        error: "Failed to fetch token info",
+        details: error.message || "Unknown error occurred",
+      });
+    }
+  });
+
+  // File upload configuration
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const uploadsDir = path.resolve(__dirname, "..", "client", "public", "uploads");
+  
+  // Ensure uploads directory exists
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
+  // Serve uploaded files statically
+  app.use("/uploads", express.static(uploadsDir));
+
+  const multerStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, uploadsDir);
+    },
+    filename: (req, file, cb) => {
+      // Generate unique filename: timestamp-random-originalname
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
+      const ext = path.extname(file.originalname);
+      const name = path.basename(file.originalname, ext);
+      cb(null, `${name}-${uniqueSuffix}${ext}`);
+    },
+  });
+
+  const upload = multer({
+    storage: multerStorage,
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      // Only allow image files
+      const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (allowedMimes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.'));
+      }
+    },
+  });
+
+  // Upload image endpoint with proper error handling
+  app.post("/api/upload/image", requireAdmin, (req, res, next) => {
+    console.log("[Upload] Request received");
+    upload.single('image')(req, res, (err: any) => {
+      if (err instanceof multer.MulterError) {
+        console.error("[Upload] Multer error:", err);
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ error: 'File too large. Maximum size is 5MB.' });
+        }
+        return res.status(400).json({ error: err.message || 'File upload error' });
+      } else if (err) {
+        console.error("[Upload] Error:", err);
+        return res.status(400).json({ error: err.message || 'File upload error' });
+      }
+      next();
+    });
+  }, async (req, res) => {
+    try {
+      console.log("[Upload] Processing file upload");
+      if (!req.file) {
+        console.log("[Upload] No file in request");
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      console.log("[Upload] File uploaded:", req.file.filename);
+      // Return the URL path (files are served from /uploads/)
+      const imageUrl = `/uploads/${req.file.filename}`;
+      res.json({
+        success: true,
+        url: imageUrl,
+        filename: req.file.filename,
+      });
+    } catch (error: any) {
+      console.error("[Upload] Error:", error);
+      console.error("[Upload] Error stack:", error?.stack);
+      res.status(500).json({ 
+        error: "Failed to upload image",
         details: error.message 
       });
     }

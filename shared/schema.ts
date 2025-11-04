@@ -28,6 +28,8 @@ export const markets = pgTable("markets", {
   slug: text("slug"), // URL-friendly slug for public markets (e.g., "trump-2024-id5252643646")
   createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }), // Creator of private wager
   payoutType: text("payout_type").notNull().default("proportional"), // "proportional" or "winner-takes-all"
+  image: text("image"), // Optional market image URL
+  tokenAddress: text("token_address"), // Optional Solana token contract address
   createdAt: timestamp("created_at").notNull().defaultNow(), // Track when market was created
 });
 
@@ -73,12 +75,36 @@ export const insertMarketSchema = createInsertSchema(markets).omit({
   createdAt: true,
   inviteCode: true,
   createdBy: true,
+  image: true, // Remove image from auto-generated schema
 }).extend({
   question: z.string().min(10, "Question must be at least 10 characters"),
   category: z.string().min(1, "Category is required"),
   expiresAt: z.string().datetime().nullable().optional(),
   isPrivate: z.boolean().optional(),
   payoutType: z.enum(["proportional", "winner-takes-all"]).optional(),
+  image: z.string().optional().refine(
+    (val) => {
+      // Allow undefined, null, or empty string
+      if (!val || val === "" || val === null || val === undefined) return true;
+      // Allow relative paths starting with /uploads/
+      if (typeof val === "string" && val.startsWith("/uploads/")) return true;
+      // Allow valid URLs (both absolute and relative)
+      if (typeof val === "string") {
+        // Try to parse as URL - if it's a relative path like /uploads/..., it will fail
+        // So we check for /uploads/ first, then try URL parsing
+        try {
+          new URL(val);
+          return true;
+        } catch {
+          // If URL parsing fails, it might still be valid if it starts with /
+          return val.startsWith("/");
+        }
+      }
+      return false;
+    },
+    { message: "Image must be a valid URL or uploaded file path" }
+  ),
+  tokenAddress: z.string().nullable().optional().or(z.literal("")),
 });
 
 export const resolveMarketSchema = z.object({
