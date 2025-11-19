@@ -8,6 +8,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useSolanaConnection, getSOLBalance } from "@/lib/solana";
 import HowItWorksButton from "@/components/HowItWorks";
+import { useEffect } from "react";
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -50,6 +51,39 @@ export function Header() {
     if (!address) return '';
     return `${address.slice(0, 4)}...${address.slice(-4)}`;
   };
+
+  // Remove any stray "0" text nodes that might be rendered
+  useEffect(() => {
+    const removeZeroTextNodes = () => {
+      const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT,
+        null
+      );
+      const textNodes: Text[] = [];
+      let node;
+      while (node = walker.nextNode()) {
+        if (node.textContent?.trim() === "0") {
+          textNodes.push(node as Text);
+        }
+      }
+      textNodes.forEach(textNode => {
+        // Only remove if it's near Activity or Private Wager
+        const parent = textNode.parentElement;
+        if (parent) {
+          const text = parent.textContent || "";
+          if (text.includes("Activity") || text.includes("Private Wager")) {
+            textNode.remove();
+          }
+        }
+      });
+    };
+    
+    // Run immediately and after a short delay
+    removeZeroTextNodes();
+    const timeout = setTimeout(removeZeroTextNodes, 100);
+    return () => clearTimeout(timeout);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/80 backdrop-blur-md shadow-lg">

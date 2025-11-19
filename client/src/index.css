@@ -212,73 +212,9 @@
 
   body {
     @apply font-sans antialiased text-foreground;
-    background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1629 100%);
-    background-size: 400% 400%;
-    animation: gradientWave 15s ease infinite;
+    /* Video background is handled in App.tsx */
   }
 
-  @keyframes gradientWave {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
-  }
-
-  /* Pulsating blue gradient overlay */
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
-    animation: pulse 4s ease-in-out infinite;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  @keyframes pulse {
-    0%, 100% {
-      opacity: 0.3;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.6;
-      transform: scale(1.1);
-    }
-  }
-
-  /* Additional wave effect */
-  body::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 50%, rgba(59, 130, 246, 0.1) 100%);
-    background-size: 200% 200%;
-    animation: wave 8s ease-in-out infinite;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  @keyframes wave {
-    0%, 100% {
-      background-position: 0% 50%;
-      opacity: 0.2;
-    }
-    50% {
-      background-position: 100% 50%;
-      opacity: 0.4;
-    }
-  }
 }
 
 /**
@@ -390,5 +326,12 @@
   .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
+  }
+
+  /* Hide any stray "0" text nodes that might be rendered */
+  nav:has(a[href="/activity"]) > a[href="/activity"]::after,
+  div.flex.gap-2:has(a[href="/create"])::before {
+    content: none !important;
+    display: none !important;
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -56,6 +56,39 @@ export function CreateMarket() {
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Remove any stray "0" text nodes that might be rendered
+  useEffect(() => {
+    const removeZeroTextNodes = () => {
+      const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT,
+        null
+      );
+      const textNodes: Text[] = [];
+      let node;
+      while (node = walker.nextNode()) {
+        if (node.textContent?.trim() === "0") {
+          textNodes.push(node as Text);
+        }
+      }
+      textNodes.forEach(textNode => {
+        // Only remove if it's near Private Wager or Create Private Wager
+        const parent = textNode.parentElement;
+        if (parent) {
+          const text = parent.textContent || "";
+          if (text.includes("Private Wager") || text.includes("Create Private Wager")) {
+            textNode.remove();
+          }
+        }
+      });
+    };
+    
+    // Run immediately and after a short delay
+    removeZeroTextNodes();
+    const timeout = setTimeout(removeZeroTextNodes, 100);
+    return () => clearTimeout(timeout);
+  }, []);
 
   const createMarket = useMutation({
     mutationFn: async (data: InsertMarket & { isPrivate?: boolean }) => {

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type Market } from "@shared/schema";
 import { MarketCard } from "@/components/MarketCard";
@@ -12,9 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BitcoinDominanceWidget } from "@/components/widgets/BitcoinDominanceWidget";
-import { FearGreedWidget } from "@/components/widgets/FearGreedWidget";
-import { CryptoPriceWidget } from "@/components/widgets/CryptoPriceWidget";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { Plus, Users } from "lucide-react";
@@ -30,6 +27,39 @@ export function MarketList() {
   const { data: markets = [], isLoading, error } = useQuery<Market[]>({
     queryKey: ["/api/markets"],
   });
+
+  // Remove any stray "0" text nodes that might be rendered
+  useEffect(() => {
+    const removeZeroTextNodes = () => {
+      const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT,
+        null
+      );
+      const textNodes: Text[] = [];
+      let node;
+      while (node = walker.nextNode()) {
+        if (node.textContent?.trim() === "0") {
+          textNodes.push(node as Text);
+        }
+      }
+      textNodes.forEach(textNode => {
+        // Only remove if it's near Private Wager
+        const parent = textNode.parentElement;
+        if (parent) {
+          const text = parent.textContent || "";
+          if (text.includes("Private Wager")) {
+            textNode.remove();
+          }
+        }
+      });
+    };
+    
+    // Run immediately and after a short delay
+    removeZeroTextNodes();
+    const timeout = setTimeout(removeZeroTextNodes, 100);
+    return () => clearTimeout(timeout);
+  }, []);
 
   // Extract unique categories from markets
   const categories = useMemo(() => {
@@ -150,13 +180,6 @@ export function MarketList() {
               </Button>
             </Link>
           </div>
-        </div>
-
-        {/* Widgets Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <BitcoinDominanceWidget />
-          <FearGreedWidget />
-          <CryptoPriceWidget />
         </div>
 
         {/* Search and Filters */}

@@ -4,6 +4,7 @@ import { type Market } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { MarketDetail } from "./MarketDetail";
+import { useEffect } from "react";
 
 export function PrivateWager() {
   const { inviteCode } = useParams<{ inviteCode: string }>();
@@ -13,6 +14,39 @@ export function PrivateWager() {
     enabled: !!inviteCode && /^[A-Z0-9]{8}$/.test(inviteCode || ""),
     retry: false,
   });
+
+  // Remove any stray "0" text nodes that might be rendered
+  useEffect(() => {
+    const removeZeroTextNodes = () => {
+      const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT,
+        null
+      );
+      const textNodes: Text[] = [];
+      let node;
+      while (node = walker.nextNode()) {
+        if (node.textContent?.trim() === "0") {
+          textNodes.push(node as Text);
+        }
+      }
+      textNodes.forEach(textNode => {
+        // Only remove if it's near Private Wager text
+        const parent = textNode.parentElement;
+        if (parent) {
+          const text = parent.textContent || "";
+          if (text.includes("Private Wager")) {
+            textNode.remove();
+          }
+        }
+      });
+    };
+    
+    // Run immediately and after a short delay
+    removeZeroTextNodes();
+    const timeout = setTimeout(removeZeroTextNodes, 100);
+    return () => clearTimeout(timeout);
+  }, []);
 
   if (!inviteCode || !/^[A-Z0-9]{8}$/.test(inviteCode)) {
     return (
