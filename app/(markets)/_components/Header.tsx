@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { type Market } from "@shared/schema";
+
 import { usePathname } from "next/navigation";
 import { TrendingUp, Bell, Plus, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +16,7 @@ import { useSolanaConnection, getSOLBalance } from "@/lib/solana";
 import HowItWorksButton from "@/components/HowItWorks";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
+
 import {
   Dialog,
   DialogContent,
@@ -22,7 +25,7 @@ import {
   DialogTrigger,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ModeToggle } from "@/components/theme-toggle";
+import { MarketSearchBar } from "./Searchbar";
 
 const NAV_LINKS = [
   { href: "/", label: "Discover" },
@@ -35,8 +38,8 @@ export function Header() {
   const { toast } = useToast();
   const wallet = useWallet();
   const connection = useSolanaConnection();
-  const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
+
 
   const { data: onChainBalance } = useQuery({
     queryKey: ["wallet-balance", wallet.publicKey?.toBase58()],
@@ -115,7 +118,6 @@ export function Header() {
                 PulseMarket
               </span>
             </Link>
-
             <nav className="hidden md:flex items-center gap-1">
               <HowItWorksButton />
               {NAV_LINKS.filter(({ requiresAuth }) => {
@@ -146,6 +148,7 @@ export function Header() {
                 </Button>
               )}
             </nav>
+         
           </div>
 
 
@@ -175,7 +178,7 @@ export function Header() {
 
                 <Button variant="ghost" size="icon">
                   <Bell className="h-5 w-5" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-400 rounded-full" />
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
                 </Button>
               </>
             )}
@@ -221,7 +224,7 @@ export function Header() {
                 )}
               </DialogContent>
             </Dialog>
-            <ModeToggle />
+     
           </div>
         </div>
       </div>

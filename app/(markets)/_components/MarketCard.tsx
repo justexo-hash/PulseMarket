@@ -105,46 +105,66 @@ export function MarketCard({ market }: MarketCardProps) {
           isResolved ? "opacity-75" : ""
         }`}
       >
-        <div className="flex items-start justify-between gap-2 mb-4">
-          <div className="flex flex-wrap gap-2">
-            <Badge
-              variant="secondary"
-              className="bg-primary/20 text-primary border-primary/30 uppercase text-xs font-semibold tracking-wide"
-              data-testid={`badge-category-${market.id}`}
-            >
-              {market.category}
-            </Badge>
-            {isResolved && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between gap-2 mb-4">
+            <div className="flex flex-wrap gap-2">
               <Badge
-                variant={resolvedOutcome === "yes" ? "default" : "destructive"}
-                className={`uppercase text-xs font-bold flex items-center gap-1 ${
-                  resolvedOutcome === "yes"
-                    ? "bg-green-600 text-white border-green-500"
-                    : ""
-                }`}
-                data-testid={`badge-resolved-${market.id}`}
+                variant="secondary"
+                className="bg-primary/20 text-primary border-primary/30 uppercase text-xs font-semibold tracking-wide"
+                data-testid={`badge-category-${market.id}`}
               >
-                <CheckCircle2 className="h-3 w-3" />
-                {resolvedOutcome}
+                {market.category}
               </Badge>
-            )}
-            {!isResolved && market.expiresAt && (
-              <CountdownTimer expiresAt={market.expiresAt} />
+              {isResolved && (
+                <Badge
+                  variant={
+                    resolvedOutcome === "yes" ? "default" : "destructive"
+                  }
+                  className={`uppercase text-xs font-bold flex items-center gap-1 ${
+                    resolvedOutcome === "yes"
+                      ? "bg-green-600 text-white border-green-500"
+                      : ""
+                  }`}
+                  data-testid={`badge-resolved-${market.id}`}
+                >
+                  <CheckCircle2 className="h-3 w-3" />
+                  {resolvedOutcome}
+                </Badge>
+              )}
+              {!isResolved && market.expiresAt && (
+                <CountdownTimer expiresAt={market.expiresAt} />
+              )}
+            </div>
+            {!isResolved && displayProbability > 50 && (
+              <TrendingUp className="h-4 w-4 text-chart-2" />
             )}
           </div>
-          {!isResolved && displayProbability > 50 && (
-            <TrendingUp className="h-4 w-4 text-chart-2" />
-          )}
         </div>
 
         <div className="flex gap-4 flex-grow items-center">
           <div className="flex-1 min-w-0 flex flex-col">
-            <h3
-              className="text-xl font-semibold text-foreground mb-2 line-clamp-2"
-              data-testid={`text-question-${market.id}`}
-            >
-              {market.question}
-            </h3>
+            <div className="flex items-center gap-4">
+              {market.image && (
+                <div className="flex-shrink-0 w-1/2 max-w-[50px] flex items-center justify-center">
+                  <div className="w-full rounded-md overflow-hidden">
+                    <img
+                      src={market.image}
+                      alt={market.question}
+                      className="w-full h-auto object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+              <h2
+                className="text-md font-semibold text-foreground mb-2 line-clamp-2"
+                data-testid={`text-question-${market.id}`}
+              >
+                {market.question}
+              </h2>
+            </div>
             <div className="flex items-center text-xs text-muted-foreground mb-4">
               <span>Volume: {volume.toFixed(2)} SOL</span>
             </div>
@@ -184,24 +204,8 @@ export function MarketCard({ market }: MarketCardProps) {
               </div>
             </div>
           </div>
-
-          {market.image && (
-            <div className="flex-shrink-0 w-1/2 max-w-[200px] flex items-center justify-center">
-              <div className="w-full rounded-lg overflow-hidden border border-card-border">
-                <img
-                  src={market.image}
-                  alt={market.question}
-                  className="w-full h-auto object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </Link>
   );
 }
-

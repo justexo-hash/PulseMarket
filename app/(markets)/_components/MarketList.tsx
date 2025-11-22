@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type Market } from "@shared/schema";
 import { MarketCard } from "./MarketCard";
@@ -16,19 +16,10 @@ import {
 } from "@/components/ui/select";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
-
-type SortOption =
-  | "newest"
-  | "oldest"
-  | "volume"
-  | "probability"
-  | "ending-soon";
-
+import { MarketSearchBar } from "./Searchbar";
+import { useMarketSearch } from "../_hooks/useMarketSearch";
 
 export function MarketListView() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
   const { user } = useAuth();
 
   const {
@@ -38,6 +29,17 @@ export function MarketListView() {
   } = useQuery<Market[]>({
     queryKey: ["/api/markets"],
   });
+
+  const {
+    searchQuery,
+    setSearchQuery,
+    sortBy,
+    setSortBy,
+    selectedCategory,
+    setSelectedCategory,
+    categories,
+    filteredMarkets,
+  } = useMarketSearch(markets);
 
   useEffect(() => {
     const removeZeroTextNodes = () => {
@@ -68,60 +70,6 @@ export function MarketListView() {
     const timeout = setTimeout(removeZeroTextNodes, 100);
     return () => clearTimeout(timeout);
   }, []);
-
-  const categories = useMemo(() => {
-    const unique = new Set(markets.map((m) => m.category));
-    return ["All", ...Array.from(unique).sort()];
-  }, [markets]);
-
-  const filteredMarkets = useMemo(() => {
-    let filtered = markets.filter((market) => {
-      const matchesCategory =
-        selectedCategory === "All" || market.category === selectedCategory;
-      const matchesSearch =
-        searchQuery === "" ||
-        market.question.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
-    });
-
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "newest": {
-          const aCreated = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-          const bCreated = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return bCreated - aCreated;
-        }
-        case "oldest": {
-          const aCreated = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-          const bCreated = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return aCreated - bCreated;
-        }
-        case "volume": {
-          const aVolume = parseFloat(a.yesPool) + parseFloat(a.noPool);
-          const bVolume = parseFloat(b.yesPool) + parseFloat(b.noPool);
-          return bVolume - aVolume;
-        }
-        case "probability":
-          return b.probability - a.probability;
-        case "ending-soon": {
-          const aExpires = a.expiresAt
-            ? new Date(a.expiresAt).getTime()
-            : Infinity;
-          const bExpires = b.expiresAt
-            ? new Date(b.expiresAt).getTime()
-            : Infinity;
-          if (aExpires === Infinity && bExpires === Infinity) return 0;
-          if (aExpires === Infinity) return 1;
-          if (bExpires === Infinity) return -1;
-          return aExpires - bExpires;
-        }
-        default:
-          return 0;
-      }
-    });
-
-    return filtered;
-  }, [markets, selectedCategory, searchQuery, sortBy]);
 
   if (error) {
     return (
@@ -164,62 +112,15 @@ export function MarketListView() {
           </div>
         </div>
 
-        {/** Search bar */}
-        <div className="mb-8 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search markets..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50"
-                data-testid="input-search"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <ArrowUpDown className="h-4 w-4 text-white/70" />
-              <Select
-                value={sortBy}
-                onValueChange={(value) => setSortBy(value as SortOption)}
-              >
-                <SelectTrigger className="w-[180px] bg-black/30 backdrop-blur-sm border-white/20 text-white">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest First</SelectItem>
-                  <SelectItem value="oldest">Oldest First</SelectItem>
-                  <SelectItem value="volume">Highest Volume</SelectItem>
-                  <SelectItem value="probability">
-                    Highest Probability
-                  </SelectItem>
-                  <SelectItem value="ending-soon">Ending Soon</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(category)}
-                className={
-                  selectedCategory !== category
-                    ? "bg-black/30 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
-                    : undefined
-                }
-                data-testid={`button-filter-${category.toLowerCase()}`}
-              >
-                {category}
-              </Button>
-            ))}
-          </div>
-        </div>
+        <MarketSearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          categories={categories}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+        />
 
         {filteredMarkets.length === 0 ? (
           <div className="text-center py-20">
@@ -245,5 +146,3 @@ export function MarketListView() {
     </div>
   );
 }
-
-
