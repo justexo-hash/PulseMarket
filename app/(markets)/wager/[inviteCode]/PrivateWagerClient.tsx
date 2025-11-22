@@ -29,39 +29,6 @@ export function PrivateWagerClient({ inviteCode }: PrivateWagerClientProps) {
     retry: false,
   });
 
-  // Remove any stray "0" text nodes that might be rendered
-  useEffect(() => {
-    const removeZeroTextNodes = () => {
-      const walker = document.createTreeWalker(
-        document.body,
-        NodeFilter.SHOW_TEXT,
-        null
-      );
-      const textNodes: Text[] = [];
-      let node;
-      while (node = walker.nextNode()) {
-        if (node.textContent?.trim() === "0") {
-          textNodes.push(node as Text);
-        }
-      }
-      textNodes.forEach(textNode => {
-        // Only remove if it's near Private Wager text
-        const parent = textNode.parentElement;
-        if (parent) {
-          const text = parent.textContent || "";
-          if (text.includes("Private Wager")) {
-            textNode.remove();
-          }
-        }
-      });
-    };
-    
-    // Run immediately and after a short delay
-    removeZeroTextNodes();
-    const timeout = setTimeout(removeZeroTextNodes, 100);
-    return () => clearTimeout(timeout);
-  }, []);
-
   if (!normalizedCode || !inviteCodeValid) {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
