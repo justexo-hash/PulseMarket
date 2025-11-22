@@ -1,9 +1,9 @@
 import { Suspense } from "react";
-import { MarketListView, MarketsSkeleton } from "./_components/MarketList";
+import { MarketListView } from "./_components/MarketList";
 
 export default function MarketsPage() {
   return (
-    <Suspense fallback={<MarketsSkeleton />}>
+    <Suspense>
       <MarketListView />
     </Suspense>
   );
