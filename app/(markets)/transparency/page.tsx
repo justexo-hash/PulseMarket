@@ -120,9 +120,9 @@ export default function TransparencyPage() {
                         )}
 
                         {isValid && (
-                          <div className="flex items-center gap-2 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
-                            <span className="text-sm text-green-500 font-medium">
+                          <div className="flex items-center gap-2 p-3 bg-chart-2/10 border border-green-500/20 rounded-lg">
+                            <CheckCircle2 className="h-4 w-4 text-chart-2" />
+                            <span className="text-sm text-chart-2 font-medium">
                               Verifiable: hash({market.resolvedOutcome} + secret + marketId) = commitment
                             </span>
                           </div>

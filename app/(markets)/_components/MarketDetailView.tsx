@@ -336,7 +336,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                 </Badge>
               )}
               {displayMarket.payoutType === "winner-takes-all" && (
-                <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                <Badge variant="outline" className="bg-chart-2/10 text-chart-2 border-green-500/20">
                   Winner Takes All
                 </Badge>
               )}
@@ -414,17 +414,17 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                 <p className="text-sm text-muted-foreground uppercase tracking-wide font-medium mb-2">
                   Yes Probability
                 </p>
-                <p className="text-6xl font-bold text-green-500 mb-4" data-testid="text-yes-probability">
+                <p className="text-6xl font-bold text-chart-2 mb-4" data-testid="text-yes-probability">
                   {displayProbability}%
                 </p>
                 <div className="w-full h-3 bg-background rounded-full overflow-hidden mb-4">
                   <div
-                    className="h-full bg-green-500 rounded-full transition-all"
+                    className="h-full bg-chart-2 rounded-full transition-all"
                     style={{ width: `${displayProbability}%` }}
                   />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Pool: <span className="font-semibold text-green-500" data-testid="text-yes-pool">
+                  Pool: <span className="font-semibold text-chart-2" data-testid="text-yes-pool">
                     {parseFloat(displayMarket.yesPool || "0").toFixed(4)} SOL
                   </span>
                 </p>
@@ -546,7 +546,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Profit:</span>
-                        <span className={`font-semibold ${potentialProfit! >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        <span className={`font-semibold ${potentialProfit! >= 0 ? 'text-chart-2' : 'text-red-400'}`}>
                           {potentialProfit! >= 0 ? '+' : ''}{potentialProfit!.toFixed(4)} SOL
                         </span>
                       </div>
@@ -605,7 +605,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                       Market Resolved
                     </p>
                     <p className="text-2xl font-bold text-foreground" data-testid="text-resolved-outcome">
-                      Outcome: <span className={displayMarket.resolvedOutcome === "yes" ? "text-green-500" : "text-destructive"}>
+                      Outcome: <span className={displayMarket.resolvedOutcome === "yes" ? "text-chart-2" : "text-destructive"}>
                         {displayMarket.resolvedOutcome?.toUpperCase()}
                       </span>
                     </p>
@@ -667,19 +667,19 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                     )}
 
                     {displayMarket.commitmentHash && displayMarket.commitmentSecret && displayMarket.resolvedOutcome && (
-                      <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                      <div className="p-4 bg-chart-2/10 border border-green-500/20 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
                             {verificationResult === true ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <CheckCircle2 className="h-4 w-4 text-chart-2" />
                             ) : verificationResult === false ? (
-                              <XCircle className="h-4 w-4 text-red-500" />
+                              <XCircle className="h-4 w-4 text-red-400" />
                             ) : (
                               <Shield className="h-4 w-4 text-muted-foreground" />
                             )}
                             <span className={`text-sm font-medium ${
-                              verificationResult === true ? "text-green-500" :
-                              verificationResult === false ? "text-red-500" :
+                              verificationResult === true ? "text-chart-2" :
+                              verificationResult === false ? "text-red-400" :
                               "text-muted-foreground"
                             }`}>
                               {verificationResult === true ? "Verified ✓" :

@@ -101,7 +101,7 @@ export function MarketCard({ market }: MarketCardProps) {
   return (
     <Link href={marketPath} data-testid={`card-market-${market.id}`}>
       <div
-        className={`group bg-card border border-card-border rounded-lg p-6 shadow-lg hover-elevate active-elevate-2 transition-all duration-200 cursor-pointer h-full flex flex-col ${
+        className={`group bg-secondary rounded-lg p-6 shadow-lg hover-elevate active-elevate-2 transition-all duration-200 cursor-pointer h-full flex flex-col ${
           isResolved ? "opacity-75" : ""
         }`}
       >
@@ -133,7 +133,7 @@ export function MarketCard({ market }: MarketCardProps) {
             )}
           </div>
           {!isResolved && displayProbability > 50 && (
-            <TrendingUp className="h-4 w-4 text-green-500" />
+            <TrendingUp className="h-4 w-4 text-chart-2" />
           )}
         </div>
 
@@ -159,9 +159,9 @@ export function MarketCard({ market }: MarketCardProps) {
                     className={`text-4xl font-bold ${
                       isResolved
                         ? resolvedOutcome === "yes"
-                          ? "text-green-500"
-                          : "text-destructive"
-                        : "text-green-500"
+                          ? "text-chart-2"
+                          : "text-red-400"
+                        : "text-chart-2"
                     }`}
                     data-testid={`text-probability-${market.id}`}
                   >
@@ -175,9 +175,9 @@ export function MarketCard({ market }: MarketCardProps) {
                   className={`h-full rounded-full transition-all duration-300 ${
                     isResolved
                       ? resolvedOutcome === "yes"
-                        ? "bg-green-500"
-                        : "bg-destructive"
-                      : "bg-green-500"
+                        ? "bg-chart-2"
+                        : "bg-red-400"
+                      : "bg-chart-2"
                   }`}
                   style={{ width: `${displayProbability}%` }}
                 />

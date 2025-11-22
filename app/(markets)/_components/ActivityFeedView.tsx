@@ -380,7 +380,7 @@ export function ActivityFeedView() {
                       <div className="flex items-start gap-4">
                         <div className={`p-3 rounded-full ${
                           market.resolvedOutcome === "yes"
-                            ? "bg-green-500/20 text-green-500"
+                            ? "bg-chart-2/20 text-chart-2"
                             : "bg-destructive/20 text-destructive"
                         }`}>
                           <Target className="h-5 w-5" />

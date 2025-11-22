@@ -24,36 +24,6 @@ type SortOption =
   | "probability"
   | "ending-soon";
 
-function MarketsSkeleton() {
-  return (
-    <div className="relative min-h-screen">
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Discover</h1>
-          <p className="text-white/80 text-lg">
-            Explore prediction markets and place your bets on future events
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-6 h-64 animate-pulse"
-            />
-          ))}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div
-              key={i}
-              className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-6 shadow-lg h-64 animate-pulse"
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function MarketListView() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
@@ -153,10 +123,6 @@ export function MarketListView() {
     return filtered;
   }, [markets, selectedCategory, searchQuery, sortBy]);
 
-  if (isLoading) {
-    return <MarketsSkeleton />;
-  }
-
   if (error) {
     return (
       <div className="relative min-h-screen">
@@ -189,7 +155,7 @@ export function MarketListView() {
                 </Link>
               </Button>
             )}
-            <Button size="lg" variant="secondary" className="gap-2" asChild>
+            <Button size="lg"  className="gap-2" asChild>
               <Link href="/create">
                 <Users className="h-5 w-5" />
                 Private Wager
@@ -198,6 +164,7 @@ export function MarketListView() {
           </div>
         </div>
 
+        {/** Search bar */}
         <div className="mb-8 space-y-4">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <div className="relative flex-1 max-w-md">
@@ -268,7 +235,7 @@ export function MarketListView() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredMarkets.map((market) => (
               <MarketCard key={market.id} market={market} />
             ))}
@@ -279,5 +246,4 @@ export function MarketListView() {
   );
 }
 
-export { MarketsSkeleton };
 
