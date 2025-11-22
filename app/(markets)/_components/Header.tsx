@@ -14,6 +14,15 @@ import { useSolanaConnection, getSOLBalance } from "@/lib/solana";
 import HowItWorksButton from "@/components/HowItWorks";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { ModeToggle } from "@/components/theme-toggle";
 
 const NAV_LINKS = [
   { href: "/", label: "Discover" },
@@ -113,120 +122,109 @@ export function Header() {
                 if (!requiresAuth) return true;
                 return Boolean(user);
               }).map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  data-testid={`link-${label.toLowerCase()}`}
-                  className={clsx(
-                    "px-4 py-2 rounded-lg font-medium transition-all",
-                    pathname === href
-                      ? "bg-primary/20 text-primary"
-                      : "text-foreground/70 hover:text-foreground hover:bg-muted/50"
-                  )}
-                >
-                  {label}
-                </Link>
+                <Button asChild key={href} variant="ghost">
+                  <Link href={href} data-testid={`link-${label.toLowerCase()}`}>
+                    {label}
+                  </Link>
+                </Button>
               ))}
               {user && (
-                <Link
-                  href={`/profile/${user.username}`}
-                  data-testid="link-profile"
-                  className={clsx(
-                    "px-4 py-2 rounded-lg font-medium transition-all",
-                    pathname?.startsWith("/profile/")
-                      ? "bg-primary/20 text-primary"
-                      : "text-foreground/70 hover:text-foreground hover:bg-muted/50"
-                  )}
-                >
-                  Profile
-                </Link>
+                <Button asChild variant="ghost">
+                  <Link
+                    href={`/profile/${user.username}`}
+                    data-testid="link-profile"
+                  >
+                    Profile
+                  </Link>
+                </Button>
               )}
               {user?.isAdmin && (
-                <Link
-                  href="/admin"
-                  data-testid="link-admin"
-                  className={clsx(
-                    "px-4 py-2 rounded-lg font-medium transition-all",
-                    pathname === "/admin"
-                      ? "bg-primary/20 text-primary"
-                      : "text-foreground/70 hover:text-foreground hover:bg-muted/50"
-                  )}
-                >
-                  Admin
-                </Link>
+                <Button asChild variant="ghost">
+                  <Link href="/admin" data-testid="link-admin">
+                    Admin
+                  </Link>
+                </Button>
               )}
             </nav>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Button size="sm" asChild className="gap-2">
-              <Link href="/deposit">
-                <Plus className="h-4 w-4" />
-                Deposit
-              </Link>
-            </Button>
 
+
+          <div className="flex items-center gap-3">
+
+            
+
+            {/** LOGGED */}
             {wallet.connected && wallet.publicKey && (
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg border border-border/50">
-                <Image
-                  src="/solana.webp"
-                  alt="SOL"
-                  width={20}
-                  height={20}
-                  className="rounded-full object-cover"
-                />
-                <span className="text-sm font-medium text-foreground">
-                  {(onChainBalance ?? 0).toFixed(2)}
-                </span>
-              </div>
+              <>
+                          <Button variant="secondary" asChild>
+              <Link href="/deposit">Deposit</Link>
+            </Button>
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg border border-border/50">
+                  <Image
+                    src="/solana.webp"
+                    alt="SOL"
+                    width={20}
+                    height={20}
+                    className="rounded-full object-cover"
+                  />
+                  <span className="text-sm font-medium text-foreground">
+                    {(onChainBalance ?? 0).toFixed(2)}
+                  </span>
+                </div>
+
+                <Button variant="ghost" size="icon">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                </Button>
+              </>
             )}
 
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost">
+                  Log in
+                </Button>
+              </DialogTrigger>
+              <DialogTrigger asChild>
+                <Button>
+                  Sign Up
+                </Button>
+              </DialogTrigger>
 
-            {wallet.connected ? (
-              <div className="flex items-center gap-2">
+
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Connect your Wallet</DialogTitle>
+                  <DialogDescription>
+                    Choose your preferred wallet provider to connect securely.
+                  </DialogDescription>
+                </DialogHeader>
+
                 {isMounted ? (
-                  <WalletMultiButton className="!h-9 !rounded-lg" />
+                  <WalletMultiButton className="!h-9 !rounded-lg w-full" />
                 ) : (
-                  <Button
-                    size="sm"
-                    disabled
-                    className="!h-9 !rounded-lg opacity-50"
-                    aria-hidden="true"
-                  >
+                  <Button size="sm" disabled aria-hidden="true" className="w-full">
                     Loading
                   </Button>
                 )}
-                {user && (
+
+                {wallet.connected && user && (
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={handleLogout}
-                    className="hidden sm:flex"
+                    className="mt-2"
                   >
                     <LogOut className="h-4 w-4" />
                   </Button>
                 )}
-              </div>
-            ) : isMounted ? (
-              <WalletMultiButton className="!h-9 !rounded-lg" />
-            ) : (
-              <Button
-                size="sm"
-                disabled
-                className="!h-9 !rounded-lg opacity-50"
-                aria-hidden="true"
-              >
-                Connect Wallet
-              </Button>
-            )}
+              </DialogContent>
+            </Dialog>
+            <ModeToggle />
           </div>
         </div>
       </div>
     </header>
   );
 }
-
