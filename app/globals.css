@@ -123,15 +123,15 @@
 }
 
 .dark {
-  --background:  222.2 84% 5%;
+  --background:  198 30% 12%;
   --foreground:  210 40% 98%;
   --card:  222.2 84% 4.9%;
   --card-foreground:  210 40% 98%;
   --popover:  222.2 84% 4.9%;
   --popover-foreground:  210 40% 98%;
-  --primary:  217.2 91.2% 60%;
+  --primary: 214 67% 84%;
   --primary-foreground:  222.2 47.4% 11.2%;
-  --secondary:  217.2 32.6% 17.5%;
+  --secondary:  198 30% 15%;
   --secondary-foreground:  210 40% 98%;
   --muted:  217.2 32.6% 17.5%;
   --muted-foreground:  215 20.2% 65.1%;
