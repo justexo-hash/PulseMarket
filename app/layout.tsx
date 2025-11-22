@@ -4,9 +4,17 @@ import "./globals.css";
 import { AppProviders } from "./providers";
 
 export const metadata: Metadata = {
-  title: "PulseMarket – Next.js Migration",
+  title: "PulseMarket - Memecoin Prediction Markets",
   description:
-    "Incrementally porting the PulseMarket experience to the Next.js App Router.",
+    "Building the future of memecoin prediction markets.",
+  icons: {
+    icon: "/favicon.png",
+  },
+  openGraph: {
+    title: "PulseMarket - Memecoin Prediction Markets",
+    description: "Building the future of memecoin prediction markets.",
+    url: "https://pulsemarket.fun",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
