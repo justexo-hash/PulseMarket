@@ -39,36 +39,6 @@ export function MarketListView() {
     queryKey: ["/api/markets"],
   });
 
-  useEffect(() => {
-    const removeZeroTextNodes = () => {
-      const walker = document.createTreeWalker(
-        document.body,
-        NodeFilter.SHOW_TEXT,
-        null
-      );
-      const textNodes: Text[] = [];
-      let node: Node | null;
-      while ((node = walker.nextNode())) {
-        if (node.textContent?.trim() === "0") {
-          textNodes.push(node as Text);
-        }
-      }
-      textNodes.forEach((textNode) => {
-        const parent = textNode.parentElement;
-        if (parent) {
-          const text = parent.textContent || "";
-          if (text.includes("Private Wager")) {
-            textNode.remove();
-          }
-        }
-      });
-    };
-
-    removeZeroTextNodes();
-    const timeout = setTimeout(removeZeroTextNodes, 100);
-    return () => clearTimeout(timeout);
-  }, []);
-
   const categories = useMemo(() => {
     const unique = new Set(markets.map((m) => m.category));
     return ["All", ...Array.from(unique).sort()];
