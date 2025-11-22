@@ -74,6 +74,7 @@ DATABASE_URL=<Your Neon PostgreSQL connection string>
 SESSION_SECRET=<Random secure string - generate one!>
 TREASURY_ADDRESS=<Your Solana treasury address>
 TREASURY_PRIVATE_KEY=<Your treasury private key (base58 or hex)>
+CRON_SECRET=<Random string for cron endpoint auth>
 VITE_SOLANA_NETWORK=mainnet-beta
 VITE_SOLANA_RPC_URL=<Your Helius RPC URL>
 VITE_TREASURY_ADDRESS=<Same as TREASURY_ADDRESS>
@@ -116,4 +117,12 @@ These work on most platforms (Railway, Render, Fly.io, etc.)
 - Ensure all dependencies are in `dependencies` (not just `devDependencies`)
 - Check that TypeScript compilation succeeds
 - Verify `esbuild` can bundle the server code
+
+### Background Jobs (Expired Markets)
+- Set `CRON_SECRET` in your environment variables
+- Configure your platform's scheduler (Railway Schedules, cron, etc.) to run:
+  ```
+  curl -X POST https://<your-domain>/api/jobs/expired-markets -H "x-cron-secret: $CRON_SECRET"
+  ```
+- Check logs for `[Jobs]` messages if resolutions are not occurring
 

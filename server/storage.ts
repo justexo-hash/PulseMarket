@@ -24,6 +24,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getUserByWalletAddress(walletAddress: string): Promise<User | undefined>;
   getUserById(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
   
   // Balance methods
   getUserBalance(userId: number): Promise<string>;
@@ -105,8 +106,17 @@ export class DbStorage implements IStorage {
       
       // Only include expiresAt if it's a valid Date object
       // Drizzle handles undefined fields by not including them in the insert
-      if (insertMarket.expiresAt instanceof Date && !isNaN(insertMarket.expiresAt.getTime())) {
-        values.expiresAt = insertMarket.expiresAt;
+      const expiresAtValue = insertMarket.expiresAt as Date | string | null | undefined;
+      if (
+        expiresAtValue instanceof Date &&
+        !isNaN(expiresAtValue.getTime())
+      ) {
+        values.expiresAt = expiresAtValue;
+      } else if (typeof expiresAtValue === "string") {
+        const parsed = new Date(expiresAtValue);
+        if (!isNaN(parsed.getTime())) {
+          values.expiresAt = parsed;
+        }
       }
       // If expiresAt is null/undefined, we simply don't include it (column will be NULL in DB)
       
@@ -180,9 +190,10 @@ export class DbStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const hashedPassword = await bcrypt.hash(insertUser.password, 10);
+    const username = await this.generateUniqueUsername(insertUser.walletAddress);
     const result = await db
       .insert(users)
-      .values({ ...insertUser, password: hashedPassword })
+      .values({ ...insertUser, password: hashedPassword, username })
       .returning();
     return result[0];
   }
@@ -195,6 +206,29 @@ export class DbStorage implements IStorage {
   async getUserById(id: number): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.id, id));
     return result[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    return result[0];
+  }
+
+  private async generateUniqueUsername(walletAddress: string): Promise<string> {
+    const base = `forecaster-${walletAddress.slice(0, 6).toLowerCase()}`;
+    let candidate = base;
+    let suffix = 1;
+
+    // Ensure uniqueness; fallback to random suffix after several tries
+    while (await this.getUserByUsername(candidate)) {
+      candidate = `${base}-${suffix}`;
+      suffix += 1;
+      if (suffix > 50) {
+        candidate = `forecaster-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        break;
+      }
+    }
+
+    return candidate;
   }
 
   async getUserBalance(userId: number): Promise<string> {
@@ -375,7 +409,7 @@ export class DbStorage implements IStorage {
 
   async createTransaction(data: {
     userId: number;
-    type: "deposit" | "bet" | "payout" | "refund";
+    type: "deposit" | "bet" | "payout" | "refund" | "withdraw";
     amount: string;
     marketId?: number;
     betId?: number;

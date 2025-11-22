@@ -9,3 +9,5 @@ vite.config.ts.*
 .env.*.local
 .local/
 client/public/uploads/
+public/uploads/
+.next

@@ -43,6 +43,7 @@ DATABASE_URL=<Your Neon PostgreSQL URL or Railway PostgreSQL URL>
 SESSION_SECRET=<Generate a random string - use: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))" >
 TREASURY_ADDRESS=<Your Solana treasury address>
 TREASURY_PRIVATE_KEY=<Your treasury private key (base58 or hex)>
+CRON_SECRET=<Any random string used by Railway scheduler to hit the job endpoint>
 ```
 
 **Client Variables (VITE_ prefix - these are public):**
@@ -124,7 +125,7 @@ After deployment:
 ### Background Jobs Not Running
 - Railway keeps the process alive, so jobs should run
 - Check server logs in Railway dashboard
-- Verify `startExpiredMarketsJob()` is being called
+- Verify the cron schedule is successfully calling `/api/jobs/expired-markets`
 
 ## 💰 Pricing
 
@@ -165,12 +166,23 @@ DATABASE_URL=<Railway PostgreSQL URL>
 SESSION_SECRET=<Generate a random string>
 TREASURY_ADDRESS=<Your Solana treasury address>
 TREASURY_PRIVATE_KEY=<Your treasury private key (base58 or hex)>
+CRON_SECRET=<Random string used by the scheduled curl call>
 VITE_SOLANA_NETWORK=mainnet-beta
 VITE_SOLANA_RPC_URL=<Your Helius RPC URL>
 VITE_TREASURY_ADDRESS=<Same as TREASURY_ADDRESS>
 NODE_ENV=production
 PORT=5000
 ```
+
+### 5. Schedule the Expired Markets Job
+1. Inside your Railway service, go to the **Settings** tab and scroll to **Schedules** (or "Cron Jobs").
+2. Click **New Schedule** and configure how often you want to auto-resolve markets (e.g. `*/5 * * * *` for every 5 minutes).
+3. Use the following command so Railway hits the protected cron endpoint with your secret:
+   ```
+   bash -lc "curl -X POST https://<your-app>.railway.app/api/jobs/expired-markets -H \"x-cron-secret: $CRON_SECRET\""
+   ```
+   (Replace `<your-app>` with your Railway domain. Scheduled commands automatically inherit the service env vars, so `$CRON_SECRET` resolves to the same value you defined above.)
+4. Save the schedule. Railway will now call the endpoint on the cadence you set, and the job bypasses admin cookies by validating the `x-cron-secret` header.
 
 ### 5. Configure Build Settings
 Railway will auto-detect Node.js. Ensure:

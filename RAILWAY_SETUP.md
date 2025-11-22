@@ -43,6 +43,15 @@ Run in Railway terminal or via CLI:
 railway run npm run db:push
 ```
 
+### Step 7: Schedule Expired Markets Job
+- In your service, open **Settings → Schedules** (Cron Jobs)
+- Add a new schedule (e.g. every 5 minutes)
+- Command:
+  ```
+  bash -lc "curl -X POST https://<your-app>.railway.app/api/jobs/expired-markets -H \"x-cron-secret: $CRON_SECRET\""
+  ```
+- Make sure `CRON_SECRET` is set in your service variables so the endpoint authenticates the request
+
 ## 🎯 That's It!
 
 Your app should be live at `https://your-app.railway.app`

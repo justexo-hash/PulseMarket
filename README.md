@@ -129,27 +129,21 @@ npm start
 ```
 
 This will:
-1. Build the React frontend to `dist/public`
-2. Bundle the Express server to `dist/index.js`
+1. Build the Next.js app into `.next/`
+2. Prepare the API route handlers
 3. Serve everything on the configured port
 
 ## Project Structure
 
 ```
 PulseMarket/
-├── client/          # React frontend
-│   └── src/
-│       ├── components/
-│       ├── pages/
-│       └── lib/
-├── server/          # Express backend
-│   ├── index.ts
-│   ├── routes.ts
-│   └── storage.ts
-├── shared/          # Shared types and schemas
-│   └── schema.ts
-├── db/              # Database configuration
-│   └── index.ts
+├── app/            # Next.js App Router (pages + API routes)
+├── components/     # Shared UI primitives (shadcn/ui, HowItWorks, ErrorBoundary)
+├── hooks/          # Reusable client hooks (toast helpers, etc.)
+├── lib/            # Client/server utilities (wallet, auth, payouts, realtime, etc.)
+├── server/         # Shared server-side helpers (storage, invite codes, Solana helpers)
+├── shared/         # Shared types and schemas
+├── db/             # Database configuration
 └── package.json
 ```
 
@@ -160,6 +154,16 @@ PulseMarket/
 3. Deposit some SOL at `/deposit` (simulated)
 4. Browse markets and place bets!
 5. Check your portfolio and transaction history
+
+## Scheduled Jobs
+
+- Run the expired-market resolution job manually (useful for Railway Cron):
+
+```bash
+npm run job:expired
+```
+
+This executes `/api/jobs/expired-markets` logic server-side and can be wired into a Railway schedule.
 
 ## Features
 

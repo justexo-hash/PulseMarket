@@ -1,4 +1,13 @@
-import { pgTable, serial, text, integer, timestamp, numeric } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  serial,
+  text,
+  integer,
+  timestamp,
+  numeric,
+  jsonb,
+} from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -8,6 +17,10 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   balance: numeric("balance", { precision: 20, scale: 9 }).notNull().default("0"), // SOL balance with 9 decimal places
   isAdmin: integer("is_admin").notNull().default(0), // 0 = false, 1 = true
+  username: text("username").notNull().unique(),
+  displayName: text("display_name"),
+  bio: text("bio"),
+  avatarUrl: text("avatar_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -45,15 +58,37 @@ export const bets = pgTable("bets", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+const transactionTypes = ["deposit", "bet", "payout", "refund", "withdraw"] as const;
+export type TransactionType = (typeof transactionTypes)[number];
+
 export const transactions = pgTable("transactions", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  type: text("type").notNull(), // "deposit", "bet", "payout", "refund"
+  type: text("type").$type<TransactionType>().notNull(),
   amount: numeric("amount", { precision: 20, scale: 9 }).notNull(), // SOL amount (positive for deposits/payouts, negative for bets)
   marketId: integer("market_id").references(() => markets.id, { onDelete: "set null" }), // null for deposits
   betId: integer("bet_id").references(() => bets.id, { onDelete: "set null" }), // null for deposits
   description: text("description"), // Human-readable description
   txSignature: text("tx_signature"), // On-chain transaction signature/hash for verification
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const userStats = pgTable("user_stats", {
+  userId: integer("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  realizedPnl: numeric("realized_pnl", { precision: 20, scale: 9 }).notNull().default("0"),
+  totalPredictions: integer("total_predictions").notNull().default(0),
+  correctPredictions: integer("correct_predictions").notNull().default(0),
+  calibrationScore: numeric("calibration_score", { precision: 6, scale: 3 }).notNull().default("0"),
+  calibrationBuckets: jsonb("calibration_buckets").$type<Record<string, any>[]>().notNull().default(sql`'[]'::jsonb`),
+  sectorSpecialization: jsonb("sector_specialization").$type<Record<string, number>>().notNull().default(sql`'{}'::jsonb`),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const userFollowers = pgTable("user_followers", {
+  id: serial("id").primaryKey(),
+  followerId: integer("follower_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  followeeId: integer("followee_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -135,6 +170,10 @@ export const depositSchema = z.object({
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+  username: true,
+  displayName: true,
+  bio: true,
+  avatarUrl: true,
 }).extend({
   walletAddress: z.string().min(32, "Invalid wallet address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -155,39 +194,5 @@ export type Bet = typeof bets.$inferSelect;
 export type InsertBet = z.infer<typeof betSchema>;
 export type Transaction = typeof transactions.$inferSelect;
 export type WatchlistItem = typeof watchlist.$inferSelect;
-
-export const mockMarkets: Omit<Market, "id">[] = [
-  {
-    question: "Will Ethereum reach $5,000 by 2026?",
-    category: "Crypto",
-    probability: 65,
-    status: "active",
-    resolvedOutcome: null,
-    yesPool: "0",
-    noPool: "0",
-    expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
-    createdAt: new Date(),
-  },
-  {
-    question: "Will 'Dune: Part Two' win Best Picture?",
-    category: "Entertainment",
-    probability: 22,
-    status: "active",
-    resolvedOutcome: null,
-    yesPool: "0",
-    noPool: "0",
-    expiresAt: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000), // 6 months from now
-    createdAt: new Date(),
-  },
-  {
-    question: "Will AI surpass human intelligence by 2030?",
-    category: "Technology",
-    probability: 40,
-    status: "active",
-    resolvedOutcome: null,
-    yesPool: "0",
-    noPool: "0",
-    expiresAt: new Date(Date.now() + 2190 * 24 * 60 * 60 * 1000), // 6 years from now
-    createdAt: new Date(),
-  },
-];
+export type UserStats = typeof userStats.$inferSelect;
+export type UserFollower = typeof userFollowers.$inferSelect;

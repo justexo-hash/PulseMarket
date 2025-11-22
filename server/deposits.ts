@@ -63,53 +63,27 @@ export async function verifyDepositTransaction(
       };
     }
 
-    // Get account keys involved in the transaction
-    const accountKeys = transaction.transaction.message.accountKeys;
-    
-    // Find the SystemProgram transfer instruction
-    const instructions = transaction.transaction.message.instructions;
+    const message = transaction.transaction.message as any;
+    let accountKeys: PublicKey[] = [];
+    if (typeof message.getAccountKeys === "function") {
+      const keys = message.getAccountKeys();
+      accountKeys = [
+        ...keys.staticAccountKeys,
+        ...(keys.lookupTableAccounts?.flatMap((table: any) => table.addresses) ??
+          []),
+      ];
+    } else if (Array.isArray(message.accountKeys)) {
+      accountKeys = message.accountKeys.map((key: any) =>
+        key instanceof PublicKey ? key : new PublicKey(key)
+      );
+    }
+
     let transferAmount = 0;
     let fromPubkey: PublicKey | null = null;
     let toPubkey: PublicKey | null = null;
 
-    for (const instruction of instructions) {
-      // SystemProgram transfer instructions have programIdIndex 0 (System Program)
-      if ('programIdIndex' in instruction && instruction.programIdIndex === 0) {
-        // This is a SystemProgram instruction - likely a transfer
-        const programId = accountKeys[instruction.programIdIndex];
-        
-        // Check if this is SystemProgram (11111111111111111111111111111111)
-        if (programId.equals(PublicKey.default)) {
-          // Parse the transfer instruction
-          const data = instruction.data;
-          
-          // SystemProgram.transfer instruction format:
-          // - Instruction discriminator: 2 (for transfer)
-          // - lamports: u64 (8 bytes)
-          if (data.length >= 9 && data[0] === 2) {
-            // Extract lamports (little-endian u64)
-            const lamportsBuffer = Buffer.from(data.slice(1, 9));
-            const lamports = Number(lamportsBuffer.readBigUInt64LE(0));
-            transferAmount = lamports / LAMPORTS_PER_SOL;
-            
-            // Account indices: [0] = from, [1] = to
-            if ('accounts' in instruction && instruction.accounts.length >= 2) {
-              const fromIndex = instruction.accounts[0];
-              const toIndex = instruction.accounts[1];
-              
-              if (fromIndex < accountKeys.length && toIndex < accountKeys.length) {
-                fromPubkey = accountKeys[fromIndex];
-                toPubkey = accountKeys[toIndex];
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // If we couldn't parse from instructions, try using account keys and balance changes
-    if (!fromPubkey || !toPubkey || transferAmount === 0) {
-      const accountChanges = transaction.meta?.postBalances?.map((balance, index) => ({
+    const accountChanges =
+      transaction.meta?.postBalances?.map((balance, index) => ({
         index,
         pubkey: accountKeys[index],
         preBalance: transaction.meta?.preBalances?.[index] || 0,
@@ -117,28 +91,30 @@ export async function verifyDepositTransaction(
         change: balance - (transaction.meta?.preBalances?.[index] || 0),
       })) || [];
 
-      // Find the account that lost SOL (sender) and gained SOL (receiver)
-      const sender = accountChanges.find(acc => acc.change < 0 && acc.pubkey.toBase58() === expectedFromAddress);
-      const receiver = accountChanges.find(acc => acc.change > 0 && acc.pubkey.toBase58() === expectedToAddress);
+    const sender = accountChanges.find(
+      (acc) =>
+        acc.change < 0 && acc.pubkey && acc.pubkey.toBase58() === expectedFromAddress
+    );
+    const receiver = accountChanges.find(
+      (acc) =>
+        acc.change > 0 && acc.pubkey && acc.pubkey.toBase58() === expectedToAddress
+    );
 
-      if (sender && receiver) {
-        transferAmount = Math.abs(sender.change) / LAMPORTS_PER_SOL;
-        fromPubkey = sender.pubkey;
-        toPubkey = receiver.pubkey;
-      } else {
-        // Try to find any transfer by looking for the treasury address
-        const treasuryPubkey = new PublicKey(expectedToAddress);
-        const receiverChange = accountChanges.find(acc => acc.pubkey.equals(treasuryPubkey) && acc.change > 0);
-        
-        if (receiverChange) {
-          transferAmount = receiverChange.change / LAMPORTS_PER_SOL;
-          toPubkey = treasuryPubkey;
-          
-          // Find the sender (account with negative change)
-          const senderChange = accountChanges.find(acc => acc.change < 0);
-          if (senderChange) {
-            fromPubkey = senderChange.pubkey;
-          }
+    if (sender && receiver) {
+      transferAmount = Math.abs(sender.change) / LAMPORTS_PER_SOL;
+      fromPubkey = sender.pubkey;
+      toPubkey = receiver.pubkey;
+    } else {
+      const treasuryPubkey = new PublicKey(expectedToAddress);
+      const receiverChange = accountChanges.find(
+        (acc) => acc.pubkey?.equals(treasuryPubkey) && acc.change > 0
+      );
+      if (receiverChange) {
+        transferAmount = receiverChange.change / LAMPORTS_PER_SOL;
+        toPubkey = treasuryPubkey;
+        const senderChange = accountChanges.find((acc) => acc.change < 0);
+        if (senderChange) {
+          fromPubkey = senderChange.pubkey;
         }
       }
     }
