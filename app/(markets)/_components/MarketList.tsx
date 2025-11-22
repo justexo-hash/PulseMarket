@@ -1,23 +1,13 @@
 "use client";
-
-import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type Market } from "@shared/schema";
 import { MarketCard } from "./MarketCard";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, ArrowUpDown, Plus, Users } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import Link from "next/link";
+import { Plus, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { MarketSearchBar } from "./Searchbar";
 import { useMarketSearch } from "../_hooks/useMarketSearch";
+import Link from "next/link";
 
 export function MarketListView() {
   const { user } = useAuth();
