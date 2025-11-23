@@ -1,5 +1,7 @@
 "use client";
 
+// HEADER COMPONENT — Handles navigation, searchbar, wallet connection, and mobile/desktop menus
+
 import Link from "next/link";
 import Image from "next/image";
 import { type Market } from "@shared/schema";
@@ -15,8 +17,20 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useSolanaConnection, getSOLBalance } from "@/lib/solana";
 import HowItWorksButton from "@/components/HowItWorks";
 import { useEffect, useState } from "react";
-import clsx from "clsx";
 import { ModeToggle } from "@/components/theme-toggle";
+
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, X } from "lucide-react";
+
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
 
 import {
   Dialog,
@@ -29,19 +43,25 @@ import {
 import { MarketSearchBar } from "./Searchbar";
 import { SearchCategories } from "./SearchCategories";
 
+// Static navigation links for both desktop and mobile menus
 const NAV_LINKS = [
   { href: "/", label: "Discover" },
   { href: "/portfolio", label: "Portfolio", requiresAuth: true },
   { href: "/activity", label: "Activity" },
 ];
 
+// Main Header component — responsive navbar + wallet + search + menus
 export function Header() {
+  // AUTH / WALLET / QUERY HOOKS
+  // - user authentication
+  // - wallet connection
+  // - on-chain balance fetching
+  // - mounting state (to avoid hydration issues with WalletMultiButton)
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const wallet = useWallet();
   const connection = useSolanaConnection();
   const [isMounted, setIsMounted] = useState(false);
-
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -81,58 +101,133 @@ export function Header() {
     isAuthenticated && wallet.connected && wallet.publicKey
   );
 
+  // =========================
+  // HEADER LAYOUT STRUCTURE
+  // =========================
   return (
-    <header className="sticky top-0 z-50 w-full bg-background">
-      <div className="container mx-auto sm:px-6 md:px-0 border-b border-muted-foreground/20">
+    // Top-level sticky header wrapper
+    <header className="z-50 w-full">
+      <div className="container mx-auto sm:px-6 lg:px-0 border-b border-muted-foreground/20 px-3 md:px-0">
+        {/* LEFT SIDE: Logo + Searchbar + Mobile Burger Menu */}
         <div className="flex h-16 items-center justify-between gap-3">
-          <div className="flex items-center justify-center gap-6">
-            <Link
+          <div className="flex justify-between md:justify-start w-full gap-3">
+
+          {/* App logo linking to homepage */}
+          <Link
               href="/"
               data-testid="link-home"
               className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
             >
-              <img src="../logo-white.png" className="w-8 h-8 bg-secondary rounded-md" alt="" />
+              <img src="../logo-white.png" className="w-8 h-8" alt="" />
               <span className="text-xl font-bold text-foreground">
                 PulseMarket
               </span>
             </Link>
-            <MarketSearchBar/>
-            <nav className="hidden md:flex items-center gap-1">
-              <HowItWorksButton />
-              {NAV_LINKS.filter(({ requiresAuth }) => {
-                if (!requiresAuth) return true;
-                return Boolean(user);
-              }).map(({ href, label }) => (
-                <Button asChild key={href} variant="ghost">
-                  <Link href={href} data-testid={`link-${label.toLowerCase()}`}>
-                    {label}
-                  </Link>
+          {/* MOBILE NAVIGATION (Sheet Menu) */}
+          <div className="flex md:hidden items-center">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
                 </Button>
-              ))}
-              {user && (
-                <Button asChild variant="ghost">
-                  <Link
-                    href={`/profile/${user.username}`}
-                    data-testid="link-profile"
-                  >
-                    Profile
-                  </Link>
-                </Button>
-              )}
-              {user?.isAdmin && (
-                <Button asChild variant="ghost">
-                  <Link href="/admin" data-testid="link-admin">
-                    Admin
-                  </Link>
-                </Button>
-              )}
-            </nav>
+              </SheetTrigger>
+
+              <SheetContent side="left" className="w-72 px-4 py-6">
+                <div className="flex items-center justify-between mb-6">
+                  <span className="text-lg font-semibold">Menu</span>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  {NAV_LINKS.filter(({ requiresAuth }) => {
+                    if (!requiresAuth) return true;
+                    return Boolean(user);
+                  }).map(({ href, label }) => (
+                    <Link key={href} href={href} className="text-base py-2 font-medium">
+                      {label}
+                    </Link>
+                  ))}
+
+                  {user && (
+                    <Link
+                      href={`/profile/${user.username}`}
+                      className="text-base py-2 font-medium"
+                    >
+                      Profile
+                    </Link>
+                  )}
+
+                  {user?.isAdmin && (
+                    <Link href="/admin" className="text-base py-2 font-medium">
+                      Admin
+                    </Link>
+                  )}
+
+                  {!isAuthenticated && (
+                    <>
+                      <Button variant="ghost" className="w-full">
+                        Log in
+                      </Button>
+                      <Button className="w-full">Sign Up</Button>
+                    </>
+                  )}
+
+                  {isAuthenticated && wallet.connected && (
+                    <Button
+                      onClick={handleLogout}
+                      className="w-full"
+                      variant="ghost"
+                    >
+                      Log out
+                    </Button>
+                  )}
+
+                  {canShowWalletActions && (
+                    <>
+                      <Link href="/deposit" className="w-full">
+                        <Button variant="secondary" className="w-full">
+                          Deposit
+                        </Button>
+                      </Link>
+
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg border border-border/50 w-full">
+                        <Image
+                          src="/solana.webp"
+                          alt="SOL"
+                          width={20}
+                          height={20}
+                          className="rounded-full object-cover"
+                        />
+                        <span className="text-sm font-medium text-foreground">
+                          {(onChainBalance ?? 0).toFixed(2)}
+                        </span>
+                      </div>
+
+                      <Button variant="ghost" className="w-full flex justify-start gap-2">
+                        <Bell className="h-5 w-5" />
+                        Notifications
+                      </Button>
+                    </>
+                  )}
+
+                  <HowItWorksButton />
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
 
-          <div className="flex items-center gap-3">
-            <ModeToggle />
-            {/** LOGGED */}
-            {canShowWalletActions && (
+          {/* Searchbar — desktop & mobile responsive */}
+          <MarketSearchBar />
+          <div className="hidden lg:flex">
+            <HowItWorksButton />
+          </div>
+
+          </div>
+
+        {/* RIGHT SIDE: Wallet actions, notifications, login/signup dialog, and desktop menu */}
+        <div className="hidden md:flex items-center gap-3">
+          <ModeToggle />
+          {/* If wallet is connected, display deposit + balance + notifications */}
+          {canShowWalletActions && (
               <>
                 <Button variant="secondary" asChild>
                   <Link href="/deposit">Deposit</Link>
@@ -157,6 +252,8 @@ export function Header() {
               </>
             )}
 
+            {/* LOGIN / SIGNUP WALLET MODAL
+            Uses Dialog + WalletMultiButton */}
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="ghost">Log in</Button>
@@ -198,9 +295,69 @@ export function Header() {
                 )}
               </DialogContent>
             </Dialog>
+            {/* DESKTOP DROPDOWN MENU */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="hidden md:flex">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent
+                className="w-56 bg-secondary text-primary-foreground border-none shadow-lg"
+                align="end"
+              >
+                <DropdownMenuLabel className="text-foreground">Navigation</DropdownMenuLabel>
+                <DropdownMenuGroup>
+                  {NAV_LINKS.filter(({ requiresAuth }) => {
+                    if (!requiresAuth) return true;
+                    return Boolean(user);
+                  }).map(({ href, label }) => (
+                    <DropdownMenuItem className="hover:bg-primary/20 transition-colors" asChild key={href}>
+                      <Link
+                        href={href}
+                        className="text-base px-3 py-2 text-primary/50 hover:text-primary !cursor-pointer font-medium"
+                      >
+                        {label}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuGroup>
+
+                {user && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-foreground">Account</DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href={`/profile/${user.username}`}
+                        className="text-base px-3 py-2 text-primary/50 hover:text-primary !cursor-pointer font-medium"
+                      >
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+
+                {user?.isAdmin && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Admin</DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href="/admin"
+                        className="text-base px-3 py-2 text-primary/50 hover:text-primary !cursor-pointer font-medium"
+                      >
+                        Admin
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-        {/* Categories navigation (below navbar) */}
+        {/* SECONDARY NAVIGATION (Categories) — only visible on desktop */}
         <div className="hidden md:flex w-full mt-2">
           <SearchCategories />
         </div>
