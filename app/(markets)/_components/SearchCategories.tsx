@@ -15,8 +15,7 @@ export function SearchCategories() {
   return (
     <div className="flex items-start gap-6 overflow-x-auto">
       {categories.map((cat:any) => (
-        <Link href={`/category/${encodeURIComponent(cat)}`}>
-
+        <Link key={cat} href={`/category/${encodeURIComponent(cat)}`}>
         <Button
           key={cat}
           size="lg"
