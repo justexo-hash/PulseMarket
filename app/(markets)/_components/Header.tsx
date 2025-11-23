@@ -138,6 +138,10 @@ export function Header() {
                 </div>
 
                 <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm font-medium text-muted-foreground">Theme</span>
+                    <ModeToggle />
+                  </div>
                   {NAV_LINKS.filter(({ requiresAuth }) => {
                     if (!requiresAuth) return true;
                     return Boolean(user);
