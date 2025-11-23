@@ -65,12 +65,14 @@ export function MarketListView({ categoryFilter }: { categoryFilter?: string }) 
                 </Link>
               </Button>
             )}
-            <Button size="lg"  className="gap-2" asChild>
-              <Link href="/create">
-                <Users className="h-5 w-5" />
-                Private Wager
-              </Link>
-            </Button>
+            {user && (
+              <Button size="lg" className="gap-2" asChild>
+                <Link href="/create">
+                  <Users className="h-5 w-5" />
+                  Private Wager
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
 

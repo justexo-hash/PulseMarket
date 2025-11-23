@@ -14,8 +14,9 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useSolanaConnection, getSOLBalance } from "@/lib/solana";
 import HowItWorksButton from "@/components/HowItWorks";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import clsx from "clsx";
+import { ModeToggle } from "@/components/theme-toggle";
 
 import {
   Dialog,
@@ -40,6 +41,10 @@ export function Header() {
   const wallet = useWallet();
   const connection = useSolanaConnection();
   const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const { data: onChainBalance } = useQuery({
     queryKey: ["wallet-balance", wallet.publicKey?.toBase58()],
@@ -70,6 +75,11 @@ export function Header() {
     if (!address) return "";
     return `${address.slice(0, 4)}...${address.slice(-4)}`;
   };
+
+  const isAuthenticated = Boolean(user);
+  const canShowWalletActions = Boolean(
+    isAuthenticated && wallet.connected && wallet.publicKey
+  );
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background">
@@ -120,8 +130,9 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-3">
+            <ModeToggle />
             {/** LOGGED */}
-            {wallet.connected && wallet.publicKey && (
+            {canShowWalletActions && (
               <>
                 <Button variant="secondary" asChild>
                   <Link href="/deposit">Deposit</Link>
