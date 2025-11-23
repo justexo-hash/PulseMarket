@@ -32,7 +32,7 @@ export function MarketSearchBar() {
     : [];
 
   return (
-    <div ref={wrapperRef} className="relative w-[550px]">
+    <div ref={wrapperRef} className="relative hidden lg:block w-full md:w-[550px]">
       {/* SEARCHBAR (STATIC, ALWAYS VISIBLE) */}
       <div className="relative w-full" onClick={() => setOpen(true)}>
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground outline-none pointer-events-none" />
@@ -58,7 +58,7 @@ export function MarketSearchBar() {
         <div
           className="
           absolute left-0 top-full z-50 
-          min-w-[400px] w-full 
+          w-full md:min-w-[400px]
           bg-background rounded-t-none rounded-lg overflow-hidden shadow-md 
           border border-muted-foreground/20 border-t-0
         "
@@ -79,7 +79,7 @@ export function MarketSearchBar() {
                       onClick={() => setOpen(false)}
                       className="
                       w-full flex items-center gap-3 px-4 py-2 
-                      hover:bg-secondary border text-md border-transparent font-medium text-foreground
+                      hover:bg-secondary border border-transparent font-medium text-foreground
                     
                       "
                     >
