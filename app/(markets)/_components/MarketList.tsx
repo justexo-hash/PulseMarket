@@ -5,7 +5,6 @@ import { MarketCard } from "./MarketCard";
 import { Button } from "@/components/ui/button";
 import { Plus, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { MarketSearchBar } from "./Searchbar";
 import { useMarketSearchContext } from "../_context/MarketSearchContext";
 import Link from "next/link";
 
@@ -26,15 +25,12 @@ export function MarketListView({ categoryFilter }: { categoryFilter?: string }) 
   } = useMarketSearchContext();
 
   const filteredMarkets = markets.filter((m) => {
-    const matchSearch =
-      m.question.toLowerCase().includes(searchQuery.toLowerCase());
-
     const matchCategory =
       categoryFilter
         ? m.category === categoryFilter
         : selectedCategory === "All" || m.category === selectedCategory;
 
-    return matchSearch && matchCategory;
+    return matchCategory;
   });
 
   if (error) {
@@ -77,8 +73,6 @@ export function MarketListView({ categoryFilter }: { categoryFilter?: string }) 
             </Button>
           </div>
         </div>
-
-        <MarketSearchBar />
 
         {filteredMarkets.length === 0 ? (
           <div className="text-center py-20">

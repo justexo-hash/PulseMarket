@@ -74,8 +74,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full bg-background">
       <div className="container mx-auto sm:px-6 md:px-0 border-b border-muted-foreground/20">
-        <div className="flex h-16 items-center justify-between gap-4">
-          <div className="flex items-center gap-8">
+        <div className="flex h-16 items-center justify-between gap-3">
+          <div className="flex items-center justify-center gap-6">
             <Link
               href="/"
               data-testid="link-home"
@@ -86,6 +86,7 @@ export function Header() {
                 PulseMarket
               </span>
             </Link>
+            <MarketSearchBar/>
             <nav className="hidden md:flex items-center gap-1">
               <HowItWorksButton />
               {NAV_LINKS.filter(({ requiresAuth }) => {

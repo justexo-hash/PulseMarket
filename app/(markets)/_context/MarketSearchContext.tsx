@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { createContext, useContext, useState, useMemo } from "react";
@@ -10,6 +8,7 @@ interface MarketSearchContextType {
   setSearchQuery: (v: string) => void;
 
   categories: string[];
+  markets: Market[];
   selectedCategory: string;
   setSelectedCategory: (v: string) => void;
 }
@@ -38,6 +37,7 @@ export function MarketSearchProvider({
     setSearchQuery,
 
     categories,
+    markets,
     selectedCategory,
     setSelectedCategory,
   };
