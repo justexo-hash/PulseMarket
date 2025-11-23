@@ -15,6 +15,7 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useSolanaConnection, getSOLBalance } from "@/lib/solana";
 import HowItWorksButton from "@/components/HowItWorks";
 import { useState } from "react";
+import { useEffect } from "react";
 import clsx from "clsx";
 
 import {
@@ -40,6 +41,9 @@ export function Header() {
   const wallet = useWallet();
   const connection = useSolanaConnection();
   const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const { data: onChainBalance } = useQuery({
     queryKey: ["wallet-balance", wallet.publicKey?.toBase58()],
