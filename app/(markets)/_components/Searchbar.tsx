@@ -7,7 +7,8 @@ import Link from "next/link";
 import { useMarketSearchContext } from "../_context/MarketSearchContext";
 
 export function MarketSearchBar() {
-  const { searchQuery, setSearchQuery, categories, markets } = useMarketSearchContext();
+  const { searchQuery, setSearchQuery, categories, markets } =
+    useMarketSearchContext();
 
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -32,12 +33,8 @@ export function MarketSearchBar() {
 
   return (
     <div ref={wrapperRef} className="relative w-[550px]">
-
       {/* SEARCHBAR (STATIC, ALWAYS VISIBLE) */}
-      <div
-        className="relative w-full"
-        onClick={() => setOpen(true)}
-      >
+      <div className="relative w-full" onClick={() => setOpen(true)}>
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground outline-none pointer-events-none" />
         <Input
           type="text"
@@ -49,23 +46,29 @@ export function MarketSearchBar() {
           }}
           className={
             "pl-9 text-foreground w-full  bg-secondary cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none " +
-            (open ? "bg-background rounded-t-md rounded-b-none border border-muted-foreground/20" : "rounded-md")
+            (open
+              ? "bg-background rounded-t-md rounded-b-none border border-muted-foreground/20"
+              : "rounded-md")
           }
         />
       </div>
 
       {/* DROPDOWN (ABSOLUTE, POLYMARKET STYLE) */}
       {open && (
-        <div className="
+        <div
+          className="
           absolute left-0 top-full z-50 
           min-w-[400px] w-full 
           bg-background rounded-t-none rounded-lg overflow-hidden shadow-md 
           border border-muted-foreground/20 border-t-0
-        ">
- {/* LIVE RESULTS SECTION */}
- {searchQuery.trim().length > 0 && (
+        "
+        >
+          {/* LIVE RESULTS SECTION */}
+          {searchQuery.trim().length > 0 && (
             <div className="flex flex-col gap-2 py-2 border-b">
-              <p className="text-xs font-medium px-3 text-muted-foreground uppercase">Results</p>
+              <p className="text-xs font-medium px-3 text-muted-foreground uppercase">
+                Results
+              </p>
 
               {filteredResults.length > 0 ? (
                 <div className="fflex flex-col gap-2 p-4 border-b border-muted-foreground/20">
@@ -107,39 +110,12 @@ export function MarketSearchBar() {
             </div>
           )}
 
-          {/* BROWSE SECTION */}
-          {searchQuery.trim().length === 0 && (
-            <div className="flex flex-col gap-2 p-4 border-b border-muted-foreground/20">
-              <p className="text-xs font-medium text-muted-foreground uppercase">Browse</p>
-              <div className="flex gap-2 flex-wrap">
-                {[
-                  { name: "New", href: "/search?_sort=newest" },
-                  { name: "Trending", href: "/search" },
-                  { name: "Popular", href: "/search?_sort=volume" },
-                  { name: "Liquid", href: "/search?_sort=liquidity" },
-                  { name: "Ending Soon", href: "/search?_sort=ending_soon" },
-                  { name: "Competitive", href: "/search?_sort=competitive" },
-                ].map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className="
-                      w-full flex items-center gap-3 px-4 py-2 
-                      hover:bg-secondary border border-transparent
-                    "
-                  >
-                    <span className="text-sm font-medium">{item.name}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-         
           {/* TOPICS SECTION */}
           {searchQuery.trim().length === 0 && (
             <div className="flex flex-col gap-2 p-4">
-              <p className="text-xs font-medium text-muted-foreground uppercase">Topics</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase">
+                Topics
+              </p>
 
               <div className="grid grid-cols-1 gap-2">
                 {categories.map((cat) => (
@@ -153,13 +129,45 @@ export function MarketSearchBar() {
                     "
                   >
                     <span className="capitalize">{cat}</span>
-                    <span className="text-muted-foreground text-xs">View →</span>
+                    <span className="text-muted-foreground text-xs">
+                      View →
+                    </span>
                   </Link>
                 ))}
               </div>
             </div>
           )}
-
+          {/* BROWSE SECTION */}
+          {searchQuery.trim().length === 0 && (
+            <div className="flex flex-col gap-2 p-4 border-b border-muted-foreground/20  pointer-events-none select-none">
+              <p className="text-xs font-medium text-muted-foreground uppercase">
+                Browse{" "}
+                <span className="text-chart-3 animate-pulse">(soon)</span>
+              </p>
+              <div className="flex gap-2 flex-wrap opacity-15">
+                {[
+                  { name: "New", href: "/search?_sort=newest" },
+                  { name: "Trending", href: "/search" },
+                  { name: "Popular", href: "/search?_sort=volume" },
+                  { name: "Liquid", href: "/search?_sort=liquidity" },
+                  { name: "Ending Soon", href: "/search?_sort=ending_soon" },
+                  { name: "Competitive", href: "/search?_sort=competitive" },
+                ].map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    aria-disabled="true"
+                    className="
+                      w-full flex items-center gap-3 px-4 py-2 
+                      border border-transparent
+                    "
+                  >
+                    <span className="font-medium">{item.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
