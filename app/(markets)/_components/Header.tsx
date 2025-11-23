@@ -26,6 +26,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { MarketSearchBar } from "./Searchbar";
+import { SearchCategories } from "./SearchCategories";
 
 const NAV_LINKS = [
   { href: "/", label: "Discover" },
@@ -39,7 +40,6 @@ export function Header() {
   const wallet = useWallet();
   const connection = useSolanaConnection();
   const [isMounted, setIsMounted] = useState(false);
-
 
   const { data: onChainBalance } = useQuery({
     queryKey: ["wallet-balance", wallet.publicKey?.toBase58()],
@@ -71,10 +71,9 @@ export function Header() {
     return `${address.slice(0, 4)}...${address.slice(-4)}`;
   };
 
-
   return (
     <header className="sticky top-0 z-50 w-full bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 border-b border-muted-foreground/20">
         <div className="flex h-16 items-center justify-between gap-4">
           <div className="flex items-center gap-8">
             <Link
@@ -117,21 +116,15 @@ export function Header() {
                 </Button>
               )}
             </nav>
-         
           </div>
 
-
-
           <div className="flex items-center gap-3">
-
-            
-
             {/** LOGGED */}
             {wallet.connected && wallet.publicKey && (
               <>
-                          <Button variant="secondary" asChild>
-              <Link href="/deposit">Deposit</Link>
-            </Button>
+                <Button variant="secondary" asChild>
+                  <Link href="/deposit">Deposit</Link>
+                </Button>
                 <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg border border-border/50">
                   <Image
                     src="/solana.webp"
@@ -154,16 +147,11 @@ export function Header() {
 
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="ghost">
-                  Log in
-                </Button>
+                <Button variant="ghost">Log in</Button>
               </DialogTrigger>
               <DialogTrigger asChild>
-                <Button>
-                  Sign Up
-                </Button>
+                <Button>Sign Up</Button>
               </DialogTrigger>
-
 
               <DialogContent>
                 <DialogHeader>
@@ -176,7 +164,12 @@ export function Header() {
                 {isMounted ? (
                   <WalletMultiButton className="!h-9 !rounded-lg w-full" />
                 ) : (
-                  <Button size="sm" disabled aria-hidden="true" className="w-full">
+                  <Button
+                    size="sm"
+                    disabled
+                    aria-hidden="true"
+                    className="w-full"
+                  >
                     Loading
                   </Button>
                 )}
@@ -193,8 +186,11 @@ export function Header() {
                 )}
               </DialogContent>
             </Dialog>
-     
           </div>
+        </div>
+        {/* Categories navigation (below navbar) */}
+        <div className="hidden md:flex items-center justify-center w-full mt-2">
+          <SearchCategories />
         </div>
       </div>
     </header>

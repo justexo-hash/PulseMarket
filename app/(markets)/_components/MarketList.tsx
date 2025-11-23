@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { MarketSearchBar } from "./Searchbar";
-import { useMarketSearch } from "../_hooks/useMarketSearch";
+import { useMarketSearchContext } from "../_context/MarketSearchContext";
 import Link from "next/link";
 
 export function MarketListView() {
@@ -22,14 +22,16 @@ export function MarketListView() {
 
   const {
     searchQuery,
-    setSearchQuery,
-    sortBy,
-    setSortBy,
     selectedCategory,
-    setSelectedCategory,
-    categories,
-    filteredMarkets,
-  } = useMarketSearch(markets);
+  } = useMarketSearchContext();
+
+  const filteredMarkets = markets.filter((m) => {
+    const matchSearch =
+      m.question.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchCategory =
+      selectedCategory === "All" || m.category === selectedCategory;
+    return matchSearch && matchCategory;
+  });
 
   if (error) {
     return (
@@ -46,14 +48,14 @@ export function MarketListView() {
 
   return (
     <div className="relative min-h-screen">
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="relative z-10 container mx-auto px-4 lg:px-0 py-3">
         <div className="mb-6 flex items-start justify-between">
-          <div>
+          {/* <div>
             <h1 className="text-4xl font-bold text-white mb-2">Discover</h1>
             <p className="text-white/80 text-lg">
               Explore prediction markets and place your bets on future events
             </p>
-          </div>
+          </div> */}
           <div className="flex gap-2">
             {user?.isAdmin && (
               <Button size="lg" className="gap-2" asChild>
@@ -72,15 +74,7 @@ export function MarketListView() {
           </div>
         </div>
 
-        <MarketSearchBar
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          categories={categories}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-        />
+        <MarketSearchBar />
 
         {filteredMarkets.length === 0 ? (
           <div className="text-center py-20">
