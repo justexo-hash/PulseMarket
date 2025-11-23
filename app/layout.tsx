@@ -5,17 +5,43 @@ import "./globals.css";
 import { AppProviders } from "./providers";
 
 export const metadata: Metadata = {
-  title: "PulseMarket - Memecoin Prediction Markets",
+  title: "PulseMarket | World largest memecoin prediction markets",
   description:
     "Building the future of memecoin prediction markets.",
   icons: {
     icon: "/favicon.png",
   },
   openGraph: {
-    title: "PulseMarket - Memecoin Prediction Markets",
+    title: "PulseMarket | World largest memecoin prediction markets",
     description: "Building the future of memecoin prediction markets.",
     url: "https://pulsemarket.fun",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "PulseMarket | World largest memecoin prediction markets",
+    description: "Predict memecoin markets, track sentiment and trade probabilities instantly.",
+    creator: "@pulsemkt",
+    images: ["/og-image.png"],
+  },
+  keywords: [
+    "memecoin",
+    "prediction market",
+    "crypto predictions",
+    "solana",
+    "yes/no markets",
+    "crypto betting",
+    "pulsemarket",
+    "web3 trading",
+    "onchain markets",
+  ],
+  authors: [
+    { name: "PulseMarket Team", url: "https://pulsemarket.fun" }
+  ],
+  category: "finance",
+  applicationName: "PulseMarket",
+  generator: "Next.js",
+  referrer: "origin-when-cross-origin",
+  metadataBase: new URL("https://pulsemarket.fun"),
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -35,4 +61,3 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     </html>
   );
 }
-

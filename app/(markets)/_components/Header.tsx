@@ -14,7 +14,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useSolanaConnection, getSOLBalance } from "@/lib/solana";
 import HowItWorksButton from "@/components/HowItWorks";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import clsx from "clsx";
 
 import {
@@ -71,9 +71,6 @@ export function Header() {
     return `${address.slice(0, 4)}...${address.slice(-4)}`;
   };
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background">

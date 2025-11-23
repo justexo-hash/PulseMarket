@@ -7,7 +7,9 @@ import { useEffect, useState } from "react";
 import { type Market } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, CheckCircle2, Clock } from "lucide-react";
-
+import { ProbabilityGauge } from "./ProbabilityGauge";
+import { Bookmark } from "lucide-react";
+// --- Countdown badge displayed when market has an expiration date ---
 interface MarketCardProps {
   market: Market;
 }
@@ -75,7 +77,9 @@ function CountdownTimer({ expiresAt }: { expiresAt: Date | string | null }) {
   );
 }
 
+// --- Main market card component ---
 export function MarketCard({ market }: MarketCardProps) {
+  // Compute market resolution state and probability
   const isResolved = market.status === "resolved";
   const resolvedOutcome = market.resolvedOutcome;
   const volume =
@@ -101,16 +105,41 @@ export function MarketCard({ market }: MarketCardProps) {
   return (
     <Link href={marketPath} data-testid={`card-market-${market.id}`}>
       <div
-        className={`group bg-secondary rounded-lg p-6 shadow-lg hover-elevate active-elevate-2 transition-all duration-200 cursor-pointer h-full flex flex-col ${
-          isResolved ? "opacity-75" : ""
-        }`}
+        className={`group bg-secondary rounded-lg border border-muted-foreground/10 p-3 gap-4 shadow-lg hover-elevate active-elevate-2 transition-all duration-200 cursor-pointer h-full flex flex-col justify-between`}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-start justify-between gap-2 mb-4">
-            <div className="flex flex-wrap gap-2">
+        {/* ========================================================= */}
+        {/* SECTION 1 — HEADER (Category, Status, Countdown, Gauge)   */}
+        {/* ========================================================= */}
+        <div className="flex items-start justify-between min-h-[56px] w-full mb-3">
+        <div className="flex gap-4 items-start w-full">
+          <div className="flex flex-col flex-1 gap-4">
+            <div className="flex gap-3 items-center">
+              <div className="flex-shrink-0 w-1/2 gap-2 max-w-[35px] flex items-center justify-center">
+                <div className="w-full rounded-sm overflow-hidden">
+                  <img
+                    src={market.image || "/placeholder.png"}
+                    alt={market.question}
+                    className="w-full h-auto object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = "/placeholder.png";
+                    }}
+                  />
+                </div>
+              </div>
+              <h2
+                className="text-sm font-semibold text-foreground"
+                data-testid={`text-question-${market.id}`}
+              >
+                {market.question}
+              </h2>
+            </div>
+          </div>
+        </div>
+          <div className="flex flex-col gap-3">
+            {/* <div className="gap-4 flex">
               <Badge
                 variant="secondary"
-                className="bg-primary/20 text-primary border-primary/30 uppercase text-xs font-semibold tracking-wide"
+                className="bg-primary text-primary-foreground uppercase text-xs font-semibold tracking-wide"
                 data-testid={`badge-category-${market.id}`}
               >
                 {market.category}
@@ -134,75 +163,50 @@ export function MarketCard({ market }: MarketCardProps) {
               {!isResolved && market.expiresAt && (
                 <CountdownTimer expiresAt={market.expiresAt} />
               )}
-            </div>
-            {!isResolved && displayProbability > 50 && (
+            </div> */}
+            {/* {!isResolved && displayProbability > 50 && (
               <TrendingUp className="h-4 w-4 text-chart-2" />
-            )}
+            )} */}
           </div>
+
+          {/* Probability Gauge */}
+          <ProbabilityGauge
+            value={displayProbability}
+            resolved={isResolved}
+            outcome={resolvedOutcome as "yes" | "no"}
+          />
         </div>
 
-        <div className="flex gap-4 flex-grow items-center">
-          <div className="flex-1 min-w-0 flex flex-col">
-            <div className="flex items-center gap-4">
-              {market.image && (
-                <div className="flex-shrink-0 w-1/2 max-w-[50px] flex items-center justify-center">
-                  <div className="w-full rounded-md overflow-hidden">
-                    <img
-                      src={market.image}
-                      alt={market.question}
-                      className="w-full h-auto object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-              <h2
-                className="text-md font-semibold text-foreground mb-2 line-clamp-2"
-                data-testid={`text-question-${market.id}`}
+        {/* ========================================================= */}
+        {/* SECTION 2 — IMAGE & QUESTION TITLE                        */}
+        {/* ========================================================= */}
+        
+        {/* ========================================================= */}
+        {/* SECTION 3 — ACTION BUTTONS (UI Only)                      */}
+        {/* ========================================================= */}
+        <div className="flex gap-4 w-full">
+          <button className="flex-1 py-2 rounded-md bg-green-400/20 text-green-400 font-semibold hover:bg-green-700/40 transition">
+            Yes
+          </button>
+          <button className="flex-1 py-2 rounded-md bg-red-400/20 text-red-400 font-semibold hover:bg-red-700/40 transition">
+            No
+          </button>
+        </div>
+
+        {/* ========================================================= */}
+        {/* SECTION 4 — VOLUME INFO                                   */}
+        {/* ========================================================= */}
+        <div className="flex items-center w-full justify-between text-xs text-muted-foreground mt-auto">
+          <span>{volume.toFixed(2)} SOL Vol.</span>
+          <div className="flex items-center gap-1.5">
+            {isResolved &&  <Badge
+                variant="secondary"
+                className="bg-red-400/20 text-red-400 uppercase text-xs font-semibold tracking-wide"
+                data-testid={`badge-category-${market.id}`}
               >
-                {market.question}
-              </h2>
-            </div>
-            <div className="flex items-center text-xs text-muted-foreground mb-4">
-              <span>Volume: {volume.toFixed(2)} SOL</span>
-            </div>
-
-            <div className="mt-auto space-y-3">
-              <div className="flex items-end justify-between mb-3">
-                <div className="flex flex-col">
-                  <span className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">
-                    {isResolved ? "Final Result" : "Probability"}
-                  </span>
-                  <span
-                    className={`text-4xl font-bold ${
-                      isResolved
-                        ? resolvedOutcome === "yes"
-                          ? "text-chart-2"
-                          : "text-red-400"
-                        : "text-chart-2"
-                    }`}
-                    data-testid={`text-probability-${market.id}`}
-                  >
-                    {displayProbability}%
-                  </span>
-                </div>
-              </div>
-
-              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-300 ${
-                    isResolved
-                      ? resolvedOutcome === "yes"
-                        ? "bg-chart-2"
-                        : "bg-red-400"
-                      : "bg-chart-2"
-                  }`}
-                  style={{ width: `${displayProbability}%` }}
-                />
-              </div>
-            </div>
+                Resolved
+              </Badge>}
+          <Bookmark size="18" />
           </div>
         </div>
       </div>

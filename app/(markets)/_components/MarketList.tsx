@@ -47,7 +47,7 @@ export function MarketListView() {
   return (
     <div className="relative min-h-screen">
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8 flex items-start justify-between">
+        <div className="mb-6 flex items-start justify-between">
           <div>
             <h1 className="text-4xl font-bold text-white mb-2">Discover</h1>
             <p className="text-white/80 text-lg">
@@ -96,7 +96,7 @@ export function MarketListView() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredMarkets.map((market) => (
               <MarketCard key={market.id} market={market} />
             ))}

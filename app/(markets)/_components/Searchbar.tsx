@@ -49,16 +49,16 @@ export function MarketSearchBar({
           placeholder="Search market"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9 text-foreground w-full"
+          className="pl-9 text-foreground w-full border border-muted-foreground/10"
         />
       </div>
 
     <div className="flex items-center gap-4 flex-1 justify-end">
 
       {/* Sort */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 ">
         <Select value={sortBy} onValueChange={(val) => setSortBy(val as SortOption)}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[150px] border-muted-foreground/10">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
