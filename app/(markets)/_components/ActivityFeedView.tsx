@@ -186,9 +186,8 @@ export function ActivityFeedView() {
   if (activities.isLoading || markets.length === 0) {
     return (
       <div className="relative min-h-screen">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" />
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h1 className="text-4xl font-bold text-white mb-8">Activity Feed</h1>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <h1 className="text-4xl font-bold text-foreground mb-8">Activity Feed</h1>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <Card key={i} className="p-6 animate-pulse h-32" />
@@ -201,24 +200,10 @@ export function ActivityFeedView() {
 
   return (
     <div className="relative min-h-screen">
-      {/* Background Image with Dark Overlay */}
-      <div 
-        className="fixed inset-0 z-0"
-        style={{
-          backgroundImage: 'url(/IMG_8113.PNG)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" />
-      </div>
-      
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Activity Feed</h1>
-          <p className="text-white/80 text-lg">
+          <h1 className="text-4xl font-bold text-foreground mb-2">Activity Feed</h1>
+          <p className="text-muted-foreground text-lg">
             See recent bets, market resolutions, and new markets
           </p>
         </div>
@@ -227,12 +212,12 @@ export function ActivityFeedView() {
         <div className="mb-8 space-y-4">
           <div className="flex flex-wrap gap-4 items-center">
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-white/70" />
-              <span className="text-sm text-white/70">Filters:</span>
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Filters:</span>
             </div>
             
             <Select value={activityType} onValueChange={(value) => setActivityType(value as ActivityType)}>
-              <SelectTrigger className="w-[180px] bg-black/30 backdrop-blur-sm border-white/20 text-white">
+              <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Activity type" />
               </SelectTrigger>
               <SelectContent>
@@ -244,7 +229,7 @@ export function ActivityFeedView() {
             </Select>
 
             <Select value={dateFilter} onValueChange={(value) => setDateFilter(value as DateFilter)}>
-              <SelectTrigger className="w-[180px] bg-black/30 backdrop-blur-sm border-white/20 text-white">
+              <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Date range" />
               </SelectTrigger>
               <SelectContent>
@@ -256,7 +241,7 @@ export function ActivityFeedView() {
             </Select>
 
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[180px] bg-black/30 backdrop-blur-sm border-white/20 text-white">
+              <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
@@ -278,7 +263,7 @@ export function ActivityFeedView() {
                   setDateFilter("all");
                   setCategoryFilter("all");
                 }}
-                className="bg-black/30 border-white/20 text-white hover:bg-white/20"
+                className=""
               >
                 Clear Filters
               </Button>
@@ -287,13 +272,13 @@ export function ActivityFeedView() {
         </div>
 
         {filteredActivities.length === 0 ? (
-          <Card className="p-12 text-center bg-black/30 backdrop-blur-sm border-white/20">
-            <p className="text-xl text-white mb-2">
+          <Card className="p-12 text-center bg-background border border-border">
+            <p className="text-xl text-foreground mb-2">
               {activitiesData && activitiesData.length > 0 
                 ? "No activity matches your filters" 
                 : "No activity yet"}
             </p>
-            <p className="text-white/70">
+            <p className="text-muted-foreground">
               {activitiesData && activitiesData.length > 0
                 ? "Try adjusting your filters"
                 : "Check back later for updates!"}
@@ -319,12 +304,12 @@ export function ActivityFeedView() {
                     }
                     className="block"
                   >
-                    <Card className="p-6 bg-black/30 backdrop-blur-sm border-white/20 hover:bg-white/10 transition-colors cursor-pointer">
+                    <Card className="p-6 bg-background border border-border cursor-pointer">
                       <div className="flex items-start gap-4">
                         <div className={`p-3 rounded-full ${
                           bet.position === "yes" 
-                            ? "bg-primary/20 text-primary" 
-                            : "bg-destructive/20 text-destructive"
+                            ? "text-primary"
+                            : "text-destructive"
                         }`}>
                           {bet.position === "yes" ? (
                             <TrendingUp className="h-5 w-5" />
@@ -335,27 +320,27 @@ export function ActivityFeedView() {
                         <div className="flex-1">
                           <div className="flex items-start justify-between gap-4 mb-2">
                             <div>
-                              <p className="text-white font-semibold">
+                              <p className="text-foreground font-semibold">
                                 Bet placed on {bet.market.question}
                               </p>
-                              <p className="text-white/60 text-sm mt-1">
+                              <p className="text-muted-foreground text-sm mt-1">
                                 {bet.position.toUpperCase()} • {parseFloat(bet.amount).toFixed(2)} SOL
                                 {bet.probability && ` • ${bet.probability}% probability`}
                               </p>
                             </div>
-                            <Badge variant="outline" className="bg-black/30 text-white/70 border-white/20">
+                            <Badge variant="outline" className="">
                               <Clock className="h-3 w-3 mr-1" />
                               {timeAgo}
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-white/60">
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span>Market Volume: {volume.toFixed(2)} SOL</span>
-                            <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">
+                            <Badge variant="secondary" className="text-xs">
                               {bet.market.category}
                             </Badge>
                           </div>
                         </div>
-                        <ArrowRight className="h-5 w-5 text-white/40 flex-shrink-0 mt-1" />
+                        <ArrowRight className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-1" />
                       </div>
                     </Card>
                   </Link>
@@ -376,42 +361,42 @@ export function ActivityFeedView() {
                     }
                     className="block"
                   >
-                    <Card className="p-6 bg-black/30 backdrop-blur-sm border-white/20 hover:bg-white/10 transition-colors cursor-pointer">
+                    <Card className="p-6 bg-secondary hover:bg-secondary/70 hover-elevate active-elevate-2 transition-all duration-200 cursor-pointer border border-border cursor-pointer">
                       <div className="flex items-start gap-4">
                         <div className={`p-3 rounded-full ${
                           market.resolvedOutcome === "yes"
-                            ? "bg-chart-2/20 text-chart-2"
-                            : "bg-destructive/20 text-destructive"
+                            ? "text-chart-2"
+                            : "text-destructive"
                         }`}>
                           <Target className="h-5 w-5" />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-start justify-between gap-4 mb-2">
                             <div>
-                              <p className="text-white font-semibold">
+                              <p className="text-foreground font-semibold">
                                 Market resolved: {market.question}
                               </p>
-                              <p className="text-white/60 text-sm mt-1">
-                                Outcome: <span className="font-semibold text-white">{market.resolvedOutcome?.toUpperCase()}</span>
+                              <p className="text-muted-foreground text-sm mt-1">
+                                Outcome: <span className="font-semibold text-foreground">{market.resolvedOutcome?.toUpperCase()}</span>
                               </p>
                             </div>
                             <Badge 
                               variant={market.resolvedOutcome === "yes" ? "default" : "destructive"}
-                              className={`text-xs ${market.resolvedOutcome === "yes" ? "bg-green-600 text-white border-green-500" : ""}`}
+                              className={`text-xs ${market.resolvedOutcome === "yes" ? "bg-green-400/20 text-green-400" : ""}`}
                             >
                               RESOLVED
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-white/60">
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span>
                               Final Probability: {market.probability}%
                             </span>
-                            <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">
+                            <Badge variant="secondary" className="text-xs">
                               {market.category}
                             </Badge>
                           </div>
                         </div>
-                        <ArrowRight className="h-5 w-5 text-white/40 flex-shrink-0 mt-1" />
+                        <ArrowRight className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-1" />
                       </div>
                     </Card>
                   </Link>
@@ -433,34 +418,34 @@ export function ActivityFeedView() {
                     }
                     className="block"
                   >
-                    <Card className="p-6 bg-black/30 backdrop-blur-sm border-white/20 hover:bg-white/10 transition-colors cursor-pointer">
+                    <Card className="p-6 bg-secondary hover:bg-secondary/50 hover-elevate active-elevate-2 transition-all duration-200 cursor-pointer border border-border cursor-pointer">
                       <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-full bg-primary/20 text-primary">
+                        <div className="p-3 rounded-full text-primary">
                           <Target className="h-5 w-5" />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-start justify-between gap-4 mb-2">
                             <div>
-                              <p className="text-white font-semibold">
+                              <p className="text-foreground font-semibold">
                                 New market: {market.question}
                               </p>
-                              <p className="text-white/60 text-sm mt-1">
+                              <p className="text-muted-foreground text-sm mt-1">
                                 Starting probability: {market.probability}%
                               </p>
                             </div>
-                            <Badge variant="outline" className="bg-black/30 text-white/70 border-white/20">
+                            <Badge variant="outline" className="">
                               <Clock className="h-3 w-3 mr-1" />
                               {timeAgo}
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-white/60">
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span>Volume: {volume.toFixed(2)} SOL</span>
-                            <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">
+                            <Badge variant="secondary" className="text-xs">
                               {market.category}
                             </Badge>
                           </div>
                         </div>
-                        <ArrowRight className="h-5 w-5 text-white/40 flex-shrink-0 mt-1" />
+                        <ArrowRight className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-1" />
                       </div>
                     </Card>
                   </Link>
