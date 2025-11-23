@@ -226,24 +226,14 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-card border border-card-border rounded-lg p-8 shadow-xl animate-pulse">
-            <div className="h-8 w-32 bg-muted rounded mb-4" />
-            <div className="h-12 bg-muted rounded mb-8" />
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="h-48 bg-muted rounded" />
-              <div className="h-48 bg-muted rounded" />
-            </div>
-          </div>
-        </div>
-      </div>
+      /** TODO */
+     "loading"
     );
   }
 
   if (!displayMarket && !isLoading) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center py-20">
           <h2 className="text-3xl font-bold text-foreground mb-4">Market Not Found</h2>
           <p className="text-muted-foreground mb-8">
@@ -310,33 +300,30 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
   const returnMultiplier = potentialWinnings !== null && betAmountNum > 0 ? (potentialWinnings / betAmountNum).toFixed(2) : null;
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <Button variant="ghost" className="mb-6 hover-elevate" asChild>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <Button variant="ghost" className="mb-6" asChild>
         <Link href="/" data-testid="button-back">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Markets
         </Link>
       </Button>
 
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-card border border-card-border rounded-lg p-8 shadow-xl">
-          <div className="mb-6">
+      <div className="market">
             <div className="flex items-center gap-2 mb-4">
               <Badge
-                variant="secondary"
-                className="bg-primary/20 text-primary border-primary/30 uppercase text-xs font-semibold tracking-wide"
+                className="uppercase text-xs font-semibold tracking-wide"
                 data-testid="badge-category"
               >
                 {displayMarket.category}
               </Badge>
               {displayMarket.isPrivate === 1 && (
-                <Badge variant="outline" className="bg-muted border-muted-foreground/20">
+                <Badge className="uppercase text-xs font-semibold tracking-wide">
                   <Shield className="h-3 w-3 mr-1" />
                   Private Wager
                 </Badge>
               )}
               {displayMarket.payoutType === "winner-takes-all" && (
-                <Badge variant="outline" className="bg-chart-2/10 text-chart-2 border-green-500/20">
+                <Badge className="uppercase text-xs font-semibold tracking-wide">
                   Winner Takes All
                 </Badge>
               )}
@@ -372,7 +359,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
             
             {/* Show invite code for private wagers */}
             {displayMarket.isPrivate === 1 && displayMarket.inviteCode && (
-              <Card className="p-4 bg-primary/5 border-primary/20 mb-4">
+              <Card className="p-4  mb-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">Invite Code</p>
@@ -409,7 +396,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 mb-8">
-            <div className="bg-muted/50 rounded-lg p-6 border border-border">
+            <div className="rounded-lg p-6">
               <div className="text-center">
                 <p className="text-sm text-muted-foreground uppercase tracking-wide font-medium mb-2">
                   Yes Probability
@@ -417,7 +404,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                 <p className="text-6xl font-bold text-chart-2 mb-4" data-testid="text-yes-probability">
                   {displayProbability}%
                 </p>
-                <div className="w-full h-3 bg-background rounded-full overflow-hidden mb-4">
+                <div className="w-full h-3 rounded-full overflow-hidden mb-4">
                   <div
                     className="h-full bg-chart-2 rounded-full transition-all"
                     style={{ width: `${displayProbability}%` }}
@@ -431,7 +418,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
               </div>
             </div>
 
-            <div className="bg-muted/50 rounded-lg p-6 border border-border">
+            <div className="rounded-lg p-6">
               <div className="text-center">
                 <p className="text-sm text-muted-foreground uppercase tracking-wide font-medium mb-2">
                   No Probability
@@ -439,7 +426,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                 <p className="text-6xl font-bold text-destructive mb-4" data-testid="text-no-probability">
                   {noProbability}%
                 </p>
-                <div className="w-full h-3 bg-background rounded-full overflow-hidden mb-4">
+                <div className="w-full h-3 rounded-full overflow-hidden mb-4">
                   <div
                     className="h-full bg-destructive rounded-full transition-all"
                     style={{ width: `${noProbability}%` }}
@@ -454,7 +441,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
             </div>
           </div>
 
-          <div className="border-t border-border pt-8">
+          <div className="pt-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-foreground">Place Your Bet</h2>
               {user && (
@@ -514,23 +501,19 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
               {/* Reserve space to prevent layout shift */}
               <div className="mt-4 min-h-[100px]">
                 {betAmountNum > 0 && hoveredOption && potentialWinnings !== null && (
-                  <div className={`rounded-lg p-4 border transition-all ${
-                    hoveredOption === "yes" 
-                      ? "bg-primary/10 border-primary/20" 
-                      : "bg-destructive/10 border-destructive/20"
-                  }`}>
+                  <div
+                    className={`rounded-lg p-4 transition-all ${
+                      hoveredOption === "yes"
+                        ? "bg-green-400/20 text-green-400"
+                        : "bg-red-400/20 text-red-400"
+                    }`}
+                  >
                     <div className="flex items-center justify-between mb-2">
-                      <span className={`text-sm font-medium ${
-                        hoveredOption === "yes" ? "text-primary" : "text-destructive"
-                      }`}>
+                      <span className="text-sm font-medium">
                         If {hoveredOption.toUpperCase()} Wins:
                       </span>
                       {returnMultiplier && (
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          hoveredOption === "yes"
-                            ? "bg-primary/20 text-primary"
-                            : "bg-destructive/20 text-destructive"
-                        }`}>
+                        <span className="text-xs px-2 py-1 rounded">
                           {returnMultiplier}x return
                         </span>
                       )}
@@ -538,15 +521,13 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                     <div className="space-y-1">
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">You win:</span>
-                        <span className={`font-semibold ${
-                          hoveredOption === "yes" ? "text-primary" : "text-destructive"
-                        }`}>
+                        <span className="font-semibold">
                           {potentialWinnings.toFixed(4)} SOL
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Profit:</span>
-                        <span className={`font-semibold ${potentialProfit! >= 0 ? 'text-chart-2' : 'text-red-400'}`}>
+                        <span className={`font-semibold ${potentialProfit! >= 0 ? '' : ''}`}>
                           {potentialProfit! >= 0 ? '+' : ''}{potentialProfit!.toFixed(4)} SOL
                         </span>
                       </div>
@@ -563,7 +544,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
               >
                 <Button
                   size="lg"
-                  className="h-auto py-6 text-lg font-semibold w-full bg-green-600 hover:bg-green-700 text-white border-green-500"
+                  className="h-auto py-6 text-lg font-semibold w-full bg-green-400/20 text-green-400"
                   onClick={() => handleBet("yes")}
                   disabled={placeBet.isPending || displayMarket.status !== "active"}
                   data-testid="button-bet-yes"
@@ -578,8 +559,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
               >
                 <Button
                   size="lg"
-                  variant="destructive"
-                  className="h-auto py-6 text-lg font-semibold w-full"
+                  className="h-auto py-6 text-lg font-semibold w-full bg-red-400/20 text-red-400"
                   onClick={() => handleBet("no")}
                   disabled={placeBet.isPending || displayMarket.status !== "active"}
                   data-testid="button-bet-no"
@@ -596,8 +576,8 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
 
           {/* Market Resolution Section - Show resolved status to all, but only show resolution buttons to admins */}
           {displayMarket.status === "resolved" ? (
-            <div className="border-t border-border pt-8 space-y-6">
-              <Card className="p-6 bg-muted/30">
+            <div className="pt-8 space-y-6">
+              <Card className="p-6">
                 <div className="flex items-center justify-center gap-3">
                   <CheckCircle2 className="h-6 w-6 text-primary" />
                   <div className="text-center">
@@ -605,7 +585,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                       Market Resolved
                     </p>
                     <p className="text-2xl font-bold text-foreground" data-testid="text-resolved-outcome">
-                      Outcome: <span className={displayMarket.resolvedOutcome === "yes" ? "text-chart-2" : "text-destructive"}>
+                      Outcome: <span className={displayMarket.resolvedOutcome === "yes" ? "text-green-400" : "text-red-400"}>
                         {displayMarket.resolvedOutcome?.toUpperCase()}
                       </span>
                     </p>
@@ -615,7 +595,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
 
               {/* Provably Fair Verification */}
               {displayMarket.commitmentHash && (
-                <Card className="p-6 bg-primary/5 border-primary/20">
+                <Card className="p-6">
                   <div className="flex items-center gap-2 mb-4">
                     <Shield className="h-5 w-5 text-primary" />
                     <h3 className="text-lg font-semibold text-foreground">Provably Fair Verification</h3>
@@ -627,7 +607,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                         Commitment Hash
                       </label>
                       <div className="flex items-center gap-2">
-                        <code className="flex-1 text-xs font-mono bg-muted p-3 rounded-lg break-all">
+                        <code className="flex-1 text-xs font-mono p-3 rounded-lg break-all">
                           {displayMarket.commitmentHash}
                         </code>
                         <Button
@@ -649,7 +629,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                           Revealed Secret
                         </label>
                         <div className="flex items-center gap-2">
-                          <code className="flex-1 text-xs font-mono bg-muted p-3 rounded-lg break-all">
+                          <code className="flex-1 text-xs font-mono p-3 rounded-lg break-all">
                             {displayMarket.commitmentSecret}
                           </code>
                           <Button
@@ -667,20 +647,20 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                     )}
 
                     {displayMarket.commitmentHash && displayMarket.commitmentSecret && displayMarket.resolvedOutcome && (
-                      <div className="p-4 bg-chart-2/10 border border-green-500/20 rounded-lg">
+                      <div className="p-4 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
                             {verificationResult === true ? (
-                              <CheckCircle2 className="h-4 w-4 text-chart-2" />
+                              <CheckCircle2 className="h-4 w-4 text-green-400" />
                             ) : verificationResult === false ? (
                               <XCircle className="h-4 w-4 text-red-400" />
                             ) : (
                               <Shield className="h-4 w-4 text-muted-foreground" />
                             )}
                             <span className={`text-sm font-medium ${
-                              verificationResult === true ? "text-chart-2" :
+                              verificationResult === true ? "text-green-400" :
                               verificationResult === false ? "text-red-400" :
-                              "text-muted-foreground"
+                              ""
                             }`}>
                               {verificationResult === true ? "Verified ✓" :
                                verificationResult === false ? "Verification Failed" :
@@ -722,16 +702,16 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                             {isVerifying ? "Verifying..." : "Verify Hash"}
                           </Button>
                         </div>
-                          <p className="text-xs text-muted-foreground">
-                            Verify by computing: SHA256(&quot;{displayMarket.resolvedOutcome}:{displayMarket.commitmentSecret}:{displayMarket.id}&quot;)
-                          </p>
+                        <p className="text-xs text-muted-foreground">
+                          Verify by computing: SHA256(&quot;{displayMarket.resolvedOutcome}:{displayMarket.commitmentSecret}:{displayMarket.id}&quot;)
+                        </p>
                         <p className="text-xs text-muted-foreground mt-1 font-mono">
                           Expected: {displayMarket.commitmentHash}
                         </p>
                       </div>
                     )}
 
-                    <div className="pt-2 border-t border-border">
+                    <div className="pt-2">
                       <Button variant="outline" size="sm" className="w-full" asChild>
                         <Link href="/transparency">
                           <Shield className="h-4 w-4 mr-2" />
@@ -745,7 +725,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
             </div>
           ) : (
             (user?.isAdmin || (displayMarket.isPrivate === 1 && displayMarket.createdBy === user?.id)) && (
-              <div className="border-t border-border pt-8">
+              <div className="pt-8">
                 <h2 className="text-2xl font-bold text-foreground mb-6">
                   {displayMarket.isPrivate === 1 && displayMarket.createdBy === user?.id 
                     ? "Resolve Private Wager" 
@@ -757,39 +737,39 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                     : "Admin only: Resolve this market with the actual outcome or refund all bets if the market cannot be determined."}
                 </p>
                 <div className="grid sm:grid-cols-3 gap-4">
-                  <Button
-                    size="lg"
-                    variant="default"
-                    className="h-auto py-6 text-lg font-semibold"
-                    onClick={() => handleResolve("yes")}
-                    disabled={resolveMarket.isPending}
-                    data-testid="button-resolve-yes"
-                  >
-                    <CheckCircle2 className="mr-2 h-5 w-5" />
-                    {resolveMarket.isPending ? "Resolving..." : "Resolve YES"}
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="destructive"
-                    className="h-auto py-6 text-lg font-semibold"
-                    onClick={() => handleResolve("no")}
-                    disabled={resolveMarket.isPending}
-                    data-testid="button-resolve-no"
-                  >
-                    <CheckCircle2 className="mr-2 h-5 w-5" />
-                    {resolveMarket.isPending ? "Resolving..." : "Resolve NO"}
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="h-auto py-6 text-lg font-semibold"
-                    onClick={() => handleRefund()}
-                    disabled={refundMarket.isPending}
-                    data-testid="button-refund"
-                  >
-                    <ArrowLeft className="mr-2 h-5 w-5" />
-                    {refundMarket.isPending ? "Refunding..." : "Refund All"}
-                  </Button>
+                <Button
+                  size="lg"
+                  variant="default"
+                  className="h-auto py-6 text-lg font-semibold"
+                  onClick={() => handleResolve("yes")}
+                  disabled={resolveMarket.isPending}
+                  data-testid="button-resolve-yes"
+                >
+                  <CheckCircle2 className="mr-2 h-5 w-5" />
+                  {resolveMarket.isPending ? "Resolving..." : "Resolve YES"}
+                </Button>
+                <Button
+                  size="lg"
+                  variant="destructive"
+                  className="h-auto py-6 text-lg font-semibold"
+                  onClick={() => handleResolve("no")}
+                  disabled={resolveMarket.isPending}
+                  data-testid="button-resolve-no"
+                >
+                  <CheckCircle2 className="mr-2 h-5 w-5" />
+                  {resolveMarket.isPending ? "Resolving..." : "Resolve NO"}
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-auto py-6 text-lg font-semibold"
+                  onClick={() => handleRefund()}
+                  disabled={refundMarket.isPending}
+                  data-testid="button-refund"
+                >
+                  <ArrowLeft className="mr-2 h-5 w-5" />
+                  {refundMarket.isPending ? "Refunding..." : "Refund All"}
+                </Button>
                 </div>
                 <p className="text-sm text-muted-foreground text-center mt-4">
                   Resolving a market is permanent. Use &quot;Refund All&quot; for markets that cannot be determined.
@@ -797,8 +777,6 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
               </div>
             )
           )}
-        </div>
-      </div>
       
       {/* P&L Sidebar */}
       <PnLSidebar isOpen={isPnLSidebarOpen} onClose={() => setIsPnLSidebarOpen(false)} />
