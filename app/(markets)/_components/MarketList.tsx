@@ -9,7 +9,7 @@ import { MarketSearchBar } from "./Searchbar";
 import { useMarketSearchContext } from "../_context/MarketSearchContext";
 import Link from "next/link";
 
-export function MarketListView() {
+export function MarketListView({ categoryFilter }: { categoryFilter?: string }) {
   const { user } = useAuth();
 
   const {
@@ -28,8 +28,12 @@ export function MarketListView() {
   const filteredMarkets = markets.filter((m) => {
     const matchSearch =
       m.question.toLowerCase().includes(searchQuery.toLowerCase());
+
     const matchCategory =
-      selectedCategory === "All" || m.category === selectedCategory;
+      categoryFilter
+        ? m.category === categoryFilter
+        : selectedCategory === "All" || m.category === selectedCategory;
+
     return matchSearch && matchCategory;
   });
 

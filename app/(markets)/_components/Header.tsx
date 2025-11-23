@@ -73,7 +73,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 border-b border-muted-foreground/20">
+      <div className="container mx-auto sm:px-6 md:px-0 border-b border-muted-foreground/20">
         <div className="flex h-16 items-center justify-between gap-4">
           <div className="flex items-center gap-8">
             <Link
@@ -189,7 +189,7 @@ export function Header() {
           </div>
         </div>
         {/* Categories navigation (below navbar) */}
-        <div className="hidden md:flex items-center justify-center w-full mt-2">
+        <div className="hidden md:flex w-full mt-2">
           <SearchCategories />
         </div>
       </div>
