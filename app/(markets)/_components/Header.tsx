@@ -102,7 +102,7 @@ export function Header() {
   // =========================
   return (
     // Top-level sticky header wrapper
-    <header className="sticky top-0 z-50 w-full">
+    <header className="z-50 w-full">
       <div className="container mx-auto sm:px-6 lg:px-0 border-b border-muted-foreground/20 px-3 md:px-0">
         {/* LEFT SIDE: Logo + Searchbar + Mobile Burger Menu */}
         <div className="flex h-16 items-center justify-between gap-3">
