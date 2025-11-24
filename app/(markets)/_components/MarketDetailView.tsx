@@ -235,7 +235,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center py-20">
-          <h2 className="text-3xl font-bold text-foreground mb-4">Market Not Found</h2>
+          <h2 className="text-3xl font-bold text-primary  mb-4">Market Not Found</h2>
           <p className="text-muted-foreground mb-8">
             {error ? `Error: ${error.message}` : "The market you're looking for doesn't exist."}
           </p>
@@ -329,7 +329,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
               )}
             </div>
             <div className="flex items-start justify-between gap-4 mb-2">
-              <h1 className="text-4xl font-bold text-foreground" data-testid="text-question">
+              <h1 className="text-4xl font-bold text-primary " data-testid="text-question">
                 {displayMarket.question}
               </h1>
             </div>
@@ -363,7 +363,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">Invite Code</p>
-                    <code className="text-lg font-mono text-foreground">{displayMarket.inviteCode}</code>
+                    <code className="text-lg font-mono text-primary ">{displayMarket.inviteCode}</code>
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -443,7 +443,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
 
           <div className="pt-8">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-foreground">Place Your Bet</h2>
+              <h2 className="text-2xl font-bold text-primary ">Place Your Bet</h2>
               {user && (
                 <Button
                   variant="outline"
@@ -584,7 +584,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                     <p className="text-sm text-muted-foreground font-medium mb-1">
                       Market Resolved
                     </p>
-                    <p className="text-2xl font-bold text-foreground" data-testid="text-resolved-outcome">
+                    <p className="text-2xl font-bold text-primary " data-testid="text-resolved-outcome">
                       Outcome: <span className={displayMarket.resolvedOutcome === "yes" ? "text-green-400" : "text-red-400"}>
                         {displayMarket.resolvedOutcome?.toUpperCase()}
                       </span>
@@ -598,7 +598,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                 <Card className="p-6">
                   <div className="flex items-center gap-2 mb-4">
                     <Shield className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-semibold text-foreground">Provably Fair Verification</h3>
+                    <h3 className="text-lg font-semibold text-primary ">Provably Fair Verification</h3>
                   </div>
                   
                   <div className="space-y-4">
@@ -726,7 +726,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
           ) : (
             (user?.isAdmin || (displayMarket.isPrivate === 1 && displayMarket.createdBy === user?.id)) && (
               <div className="pt-8">
-                <h2 className="text-2xl font-bold text-foreground mb-6">
+                <h2 className="text-2xl font-bold text-primary  mb-6">
                   {displayMarket.isPrivate === 1 && displayMarket.createdBy === user?.id 
                     ? "Resolve Private Wager" 
                     : "Admin: Resolve Market"}

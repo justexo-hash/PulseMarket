@@ -47,7 +47,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
             </Avatar>
             <div>
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-4xl font-bold text-foreground">
+                <h1 className="text-4xl font-bold text-primary ">
                   {user.displayName}
                 </h1>
                 <Badge variant="secondary" className="text-sm">
@@ -217,7 +217,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                         {(bucket.winRate * 100).toFixed(1)}%
                       </span>
                     </div>
-                    <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
+                    <div className="mt-2 h-2 bg-secondary rounded-full overflow-hidden">
                       <div
                         className="h-full bg-primary transition-all"
                         style={{ width: `${bucket.winRate * 100}%` }}
@@ -274,7 +274,7 @@ function StatPill({ label, value }: { label: string; value: string }) {
       <p className="text-xs uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
-      <p className="text-xl font-semibold text-foreground">{value}</p>
+      <p className="text-xl font-semibold text-primary ">{value}</p>
     </div>
   );
 }
@@ -296,7 +296,7 @@ function MetricCard({
         {icon}
         <span>{label}</span>
       </div>
-      <p className="text-2xl font-bold text-foreground">{value}</p>
+      <p className="text-2xl font-bold text-primary ">{value}</p>
       {helper && <p className="text-xs text-muted-foreground">{helper}</p>}
     </Card>
   );

@@ -16,12 +16,12 @@ export default function TermsPage() {
       </Button>
 
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold text-foreground mb-4">Terms of Service</h1>
+        <h1 className="text-4xl font-bold text-primary  mb-4">Terms of Service</h1>
 
         <Card className="p-8 space-y-6">
           <section>
             <p className="text-sm text-muted-foreground mb-6">Last updated: {lastUpdated}</p>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">1. Acceptance of Terms</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">1. Acceptance of Terms</h2>
             <p className="text-muted-foreground leading-relaxed">
               By accessing and using PulseMarket, you accept and agree to be bound by these Terms of Service.
               If you do not agree with these terms, please do not use our platform.
@@ -29,7 +29,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">2. Eligibility</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">2. Eligibility</h2>
             <p className="text-muted-foreground leading-relaxed">
               You must be at least 18 years old to use PulseMarket. You are responsible for ensuring that your
               use of the platform complies with all applicable laws in your jurisdiction.
@@ -37,7 +37,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">3. Platform Use</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">3. Platform Use</h2>
             <p className="text-muted-foreground leading-relaxed">
               PulseMarket provides a decentralized prediction market platform. You are responsible for your account
               security and all activities that occur under your wallet address. We do not store your private keys.
@@ -45,7 +45,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">4. Betting and Markets</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">4. Betting and Markets</h2>
             <p className="text-muted-foreground leading-relaxed">
               All bets are final once confirmed on the Solana blockchain. Market outcomes are determined according
               to their resolution criteria. Payouts are calculated proportionally based on the total pool and your bet amount.
@@ -53,7 +53,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">5. Prohibited Activities</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">5. Prohibited Activities</h2>
             <ul className="list-disc list-inside space-y-2 text-muted-foreground">
               <li>Creating markets that violate applicable laws</li>
               <li>Attempting to manipulate market outcomes</li>
@@ -63,7 +63,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">6. Disclaimer</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">6. Disclaimer</h2>
             <p className="text-muted-foreground leading-relaxed">
               PulseMarket is provided &quot;as is&quot; without warranties of any kind. We do not guarantee the accuracy
               of market information or outcomes. You participate in markets at your own risk.
@@ -71,7 +71,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">7. Limitation of Liability</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">7. Limitation of Liability</h2>
             <p className="text-muted-foreground leading-relaxed">
               To the maximum extent permitted by law, PulseMarket and its operators shall not be liable for any damages
               arising from your use of the platform.

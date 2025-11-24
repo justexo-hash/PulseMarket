@@ -32,10 +32,10 @@ export function MarketSearchBar() {
     : [];
 
   return (
-    <div ref={wrapperRef} className="relative hidden lg:block w-full md:w-[550px]">
+    <div ref={wrapperRef} className="relative md:min-w-[400px]">
       {/* SEARCHBAR (STATIC, ALWAYS VISIBLE) */}
       <div className="relative w-full" onClick={() => setOpen(true)}>
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground outline-none pointer-events-none" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary  outline-none pointer-events-none" />
         <Input
           type="text"
           placeholder="Search markets..."
@@ -45,7 +45,7 @@ export function MarketSearchBar() {
             setOpen(true);
           }}
           className={
-            "pl-9 text-foreground w-full  bg-secondary cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none " +
+            "pl-9 text-primary  w-full  bg-secondary cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none " +
             (open
               ? "bg-background rounded-t-md rounded-b-none border border-muted-foreground/20"
               : "rounded-md")
@@ -79,7 +79,7 @@ export function MarketSearchBar() {
                       onClick={() => setOpen(false)}
                       className="
                       w-full flex items-center gap-3 px-4 py-2 
-                      hover:bg-secondary border border-transparent font-medium text-foreground
+                      hover:bg-background border border-transparent font-medium text-primary 
                     
                       "
                     >
@@ -96,7 +96,7 @@ export function MarketSearchBar() {
                         <span>{m.question}</span>
                       </div>
 
-                      <span className="text-md font-medium text-foreground">
+                      <span className="text-md font-medium text-primary ">
                         {Math.round(m.probability)}%
                       </span>
                     </Link>
@@ -125,7 +125,7 @@ export function MarketSearchBar() {
                     onClick={() => setOpen(false)}
                     className="
                       w-full flex items-center gap-3 px-4 py-2 
-                      hover:bg-secondary border border-transparent
+                      hover:bg-background border border-transparent
                     "
                   >
                     <span className="capitalize">{cat}</span>

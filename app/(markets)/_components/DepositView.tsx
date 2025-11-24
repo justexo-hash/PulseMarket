@@ -186,7 +186,7 @@ export function DepositView() {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-2xl mx-auto text-center space-y-6 py-24">
-          <h1 className="text-4xl font-bold text-foreground">Deposits Restricted</h1>
+          <h1 className="text-4xl font-bold text-primary ">Deposits Restricted</h1>
           <p className="text-muted-foreground text-lg">
             Deposits require an authenticated account with a connected Solana wallet. Connect your wallet using the header button to continue.
           </p>
@@ -210,7 +210,7 @@ export function DepositView() {
 
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Deposit SOL</h1>
+          <h1 className="text-4xl font-bold text-primary  mb-2">Deposit SOL</h1>
           <p className="text-muted-foreground text-lg">
             Add SOL to your wallet to start placing bets
           </p>

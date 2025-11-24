@@ -107,7 +107,7 @@ export default function PortfolioPage() {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-2xl mx-auto text-center py-24 space-y-6">
-          <h1 className="text-4xl font-bold text-foreground">Portfolio Restricted</h1>
+          <h1 className="text-4xl font-bold text-primary ">Portfolio Restricted</h1>
           <p className="text-muted-foreground text-lg">
             Your betting history and balances are only available after you log in and connect your Solana wallet.
           </p>
@@ -131,7 +131,7 @@ export default function PortfolioPage() {
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-foreground mb-2">My Portfolio</h1>
+          <h1 className="text-4xl font-bold text-primary  mb-2">My Portfolio</h1>
           <p className="text-muted-foreground text-lg">
             Track your betting history and portfolio performance
           </p>
@@ -155,7 +155,7 @@ export default function PortfolioPage() {
             <p className="text-sm text-muted-foreground font-medium">Total Bets</p>
             <Target className="h-4 w-4 text-muted-foreground" />
           </div>
-          <p className="text-3xl font-bold text-foreground" data-testid="text-total-bets">
+          <p className="text-3xl font-bold text-primary " data-testid="text-total-bets">
             {bets.length}
           </p>
         </Card>
@@ -165,7 +165,7 @@ export default function PortfolioPage() {
             <p className="text-sm text-muted-foreground font-medium">Amount Invested</p>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </div>
-          <p className="text-3xl font-bold text-foreground" data-testid="text-amount-invested">
+          <p className="text-3xl font-bold text-primary " data-testid="text-amount-invested">
             {totalBet.toFixed(4)} SOL
           </p>
         </Card>
@@ -220,7 +220,7 @@ export default function PortfolioPage() {
 
         <TabsContent value="bets">
           <div>
-            <h2 className="text-2xl font-bold text-foreground mb-6">Betting History</h2>
+            <h2 className="text-2xl font-bold text-primary  mb-6">Betting History</h2>
             
             {bets.length === 0 ? (
               <Card className="p-12">
@@ -256,7 +256,7 @@ export default function PortfolioPage() {
                               {format(new Date(bet.createdAt), "MMM d, yyyy 'at' h:mm a")}
                             </p>
                           </div>
-                          <p className="text-lg font-semibold text-foreground mb-1" data-testid={`text-question-${bet.id}`}>
+                          <p className="text-lg font-semibold text-primary  mb-1" data-testid={`text-question-${bet.id}`}>
                             {market?.question || `Market #${bet.marketId}`}
                           </p>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -287,7 +287,7 @@ export default function PortfolioPage() {
 
         <TabsContent value="transactions">
           <div>
-            <h2 className="text-2xl font-bold text-foreground mb-6">Transaction History</h2>
+            <h2 className="text-2xl font-bold text-primary  mb-6">Transaction History</h2>
             
             {transactions.length === 0 ? (
               <Card className="p-12">
@@ -331,7 +331,7 @@ export default function PortfolioPage() {
                               {format(new Date(transaction.createdAt), "MMM d, yyyy 'at' h:mm a")}
                             </p>
                           </div>
-                          <p className="text-lg font-semibold text-foreground mb-1">
+                          <p className="text-lg font-semibold text-primary  mb-1">
                             {transaction.description || `${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)} transaction`}
                           </p>
                           

@@ -127,7 +127,7 @@ export function MarketCard({ market }: MarketCardProps) {
                 </div>
               </div>
               <h2
-                className="text-sm font-semibold text-foreground"
+                className="text-sm font-semibold text-primary "
                 data-testid={`text-question-${market.id}`}
               >
                 {market.question}

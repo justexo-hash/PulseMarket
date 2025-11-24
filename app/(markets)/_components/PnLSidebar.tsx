@@ -105,14 +105,14 @@ export function PnLSidebar({ isOpen, onClose }: PnLSidebarProps) {
           <div className="flex items-center justify-between p-4 border-b border-border">
             <div className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-bold text-foreground">Active Bets P&L</h2>
+              <h2 className="text-xl font-bold text-primary ">Active Bets P&L</h2>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
           </div>
 
-          <div className="p-4 border-b border-border bg-muted/30">
+          <div className="p-4 border-b border-border bg-secondary/30">
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Unrealized P&L</span>
@@ -132,8 +132,8 @@ export function PnLSidebar({ isOpen, onClose }: PnLSidebarProps) {
                 </span>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-border">
-                <span className="text-sm font-medium text-foreground">Total Active Bets</span>
-                <span className="text-lg font-bold text-foreground">
+                <span className="text-sm font-medium text-primary ">Total Active Bets</span>
+                <span className="text-lg font-bold text-primary ">
                   {activeBetsWithMarkets.length}
                 </span>
               </div>
@@ -189,9 +189,9 @@ export function PnLSidebar({ isOpen, onClose }: PnLSidebarProps) {
 
                 return (
                   <Link key={bet.id} href={marketPath}>
-                    <Card className="p-4 hover:bg-muted/50 transition-colors cursor-pointer">
+                    <Card className="p-4 hover:bg-secondary/50 transition-colors cursor-pointer">
                       <div className="space-y-3">
-                        <p className="text-sm font-semibold text-foreground line-clamp-2">
+                        <p className="text-sm font-semibold text-primary  line-clamp-2">
                           {market.question}
                         </p>
 

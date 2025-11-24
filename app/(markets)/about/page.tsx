@@ -14,11 +14,11 @@ export default function AboutPage() {
       </Button>
 
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold text-foreground mb-4">About Us</h1>
+        <h1 className="text-4xl font-bold text-primary  mb-4">About Us</h1>
 
         <Card className="p-8 space-y-6">
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">What is PulseMarket?</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">What is PulseMarket?</h2>
             <p className="text-muted-foreground leading-relaxed">
               PulseMarket is a decentralized prediction market platform built on Solana.
               We enable users to bet on future events with complete transparency and
@@ -27,7 +27,7 @@ export default function AboutPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">Our Mission</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">Our Mission</h2>
             <p className="text-muted-foreground leading-relaxed">
               We believe in democratizing access to prediction markets and creating
               a transparent, fair platform where anyone can participate in forecasting
@@ -37,7 +37,7 @@ export default function AboutPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">Key Features</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">Key Features</h2>
             <ul className="list-disc list-inside space-y-2 text-muted-foreground">
               <li>Provably fair outcomes with commitment hashes</li>
               <li>On-chain transaction transparency</li>
@@ -48,7 +48,7 @@ export default function AboutPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">Technology</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">Technology</h2>
             <p className="text-muted-foreground leading-relaxed">
               PulseMarket is built on the Solana blockchain, ensuring fast transactions
               and low fees. All deposits, bets, and payouts are handled on-chain with

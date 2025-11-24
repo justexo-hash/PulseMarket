@@ -16,12 +16,12 @@ export default function PrivacyPage() {
       </Button>
 
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold text-foreground mb-4">Privacy Policy</h1>
+        <h1 className="text-4xl font-bold text-primary  mb-4">Privacy Policy</h1>
 
         <Card className="p-8 space-y-6">
           <section>
             <p className="text-sm text-muted-foreground mb-6">Last updated: {lastUpdated}</p>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">1. Overview</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">1. Overview</h2>
             <p className="text-muted-foreground leading-relaxed">
               PulseMarket respects your privacy. This Privacy Policy explains how we collect, use, and protect
               your information when you use our platform.
@@ -29,7 +29,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">2. Information We Collect</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">2. Information We Collect</h2>
             <p className="text-muted-foreground leading-relaxed mb-2">
               We collect the following information:
             </p>
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">3. How We Use Your Information</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">3. How We Use Your Information</h2>
             <p className="text-muted-foreground leading-relaxed">We use your information to:</p>
             <ul className="list-disc list-inside space-y-2 text-muted-foreground">
               <li>Provide and maintain the platform</li>
@@ -53,7 +53,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">4. Blockchain Transparency</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">4. Blockchain Transparency</h2>
             <p className="text-muted-foreground leading-relaxed">
               All transactions on PulseMarket are conducted on the Solana blockchain, which is public and transparent.
               Your wallet address and transaction history are visible on-chain. We cannot and do not hide this information.
@@ -61,7 +61,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">5. Data Storage</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">5. Data Storage</h2>
             <p className="text-muted-foreground leading-relaxed">
               We store your wallet address, betting history, and transaction signatures in our database. We do not store private
               keys or sensitive authentication data. Session data is stored securely using industry-standard practices.
@@ -69,7 +69,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">6. Security</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">6. Security</h2>
             <p className="text-muted-foreground leading-relaxed">
               We implement security measures to protect your information, including secure session management and encrypted data
               transmission. However, no system is completely secure, and we cannot guarantee absolute security.
@@ -77,7 +77,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">7. Cookies</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">7. Cookies</h2>
             <p className="text-muted-foreground leading-relaxed">
               We use session cookies to maintain your authentication state. These cookies are essential for the platform to function
               and do not contain personally identifiable information beyond your wallet address.
@@ -85,7 +85,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">8. Your Rights</h2>
+            <h2 className="text-2xl font-semibold text-primary  mb-3">8. Your Rights</h2>
             <p className="text-muted-foreground leading-relaxed">
               You have the right to access, correct, or delete your account information. However, blockchain transactions are permanent
               and cannot be deleted.

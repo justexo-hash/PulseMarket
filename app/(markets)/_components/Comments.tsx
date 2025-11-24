@@ -24,25 +24,25 @@ export default function Comments() {
 
         {/* Placeholder Comment */}
         <div className="flex gap-3 p-4 rounded-lg bg-secondary">
-          <div className="h-10 w-10 rounded-full bg-secondary-foreground/20" />
+          <div className="h-10 w-10 rounded-full bg-background-foreground/20" />
           <div className="flex flex-col flex-1 gap-1">
             <div className="flex items-center gap-2">
-              <span className="h-4 w-24 rounded bg-secondary-foreground/20"></span>
-              <span className="h-3 w-12 rounded bg-secondary-foreground/10"></span>
+              <span className="h-4 w-24 rounded bg-background-foreground/20"></span>
+              <span className="h-3 w-12 rounded bg-background-foreground/10"></span>
             </div>
-            <p className="h-4 w-3/4 rounded bg-secondary-foreground/20"></p>
+            <p className="h-4 w-3/4 rounded bg-background-foreground/20"></p>
           </div>
         </div>
 
         {/* Placeholder Comment */}
         <div className="flex gap-3 p-4 rounded-lg bg-secondary">
-          <div className="h-10 w-10 rounded-full bg-secondary-foreground/20" />
+          <div className="h-10 w-10 rounded-full bg-background-foreground/20" />
           <div className="flex flex-col flex-1 gap-1">
             <div className="flex items-center gap-2">
-              <span className="h-4 w-24 rounded bg-secondary-foreground/20"></span>
-              <span className="h-3 w-12 rounded bg-secondary-foreground/10"></span>
+              <span className="h-4 w-24 rounded bg-background-foreground/20"></span>
+              <span className="h-3 w-12 rounded bg-background-foreground/10"></span>
             </div>
-            <p className="h-4 w-1/2 rounded bg-secondary-foreground/20"></p>
+            <p className="h-4 w-1/2 rounded bg-background-foreground/20"></p>
           </div>
         </div>
 

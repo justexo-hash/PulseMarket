@@ -8,7 +8,7 @@ export default function CategoryPage({ params }: { params: { category: string } 
     <MarketSearchProviderClient>
       <div className="container mx-auto px-4 lg:px-0 py-6">
         
-        <h1 className="text-3xl font-bold mb-6 capitalize text-foreground">
+        <h1 className="text-3xl font-bold mb-6 capitalize text-primary ">
           {category}
         </h1>
 

@@ -41,7 +41,7 @@ export default function TransparencyPage() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
           <Shield className="h-8 w-8 text-primary" />
-          <h1 className="text-4xl font-bold text-foreground">Transparency & Verification</h1>
+          <h1 className="text-4xl font-bold text-primary ">Transparency & Verification</h1>
         </div>
         <p className="text-muted-foreground text-lg">
           Verify all transactions and market resolutions on-chain. Everything is provably fair and transparent.
@@ -51,7 +51,7 @@ export default function TransparencyPage() {
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Provably Fair Markets */}
         <div>
-          <h2 className="text-2xl font-bold text-foreground mb-6">Provably Fair Markets</h2>
+          <h2 className="text-2xl font-bold text-primary  mb-6">Provably Fair Markets</h2>
           
           {resolvedMarkets.length === 0 ? (
             <Card className="p-8">
@@ -67,7 +67,7 @@ export default function TransparencyPage() {
                 return (
                   <Card key={market.id} className="p-6">
                     <div className="mb-4">
-                      <h3 className="text-lg font-semibold text-foreground mb-2">{market.question}</h3>
+                      <h3 className="text-lg font-semibold text-primary  mb-2">{market.question}</h3>
                       <div className="flex items-center gap-2 mb-2">
                         <Badge 
                           variant={market.resolvedOutcome === "yes" ? "default" : market.resolvedOutcome === "no" ? "destructive" : "secondary"}
@@ -83,7 +83,7 @@ export default function TransparencyPage() {
 
                     {market.commitmentHash && (
                       <div className="space-y-3">
-                        <div className="bg-muted/50 rounded-lg p-4">
+                        <div className="bg-secondary/50 rounded-lg p-4">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-medium text-muted-foreground">Commitment Hash</span>
                             <Button
@@ -95,13 +95,13 @@ export default function TransparencyPage() {
                               <Copy className={`h-3 w-3 ${copiedHash === market.commitmentHash ? 'text-primary' : ''}`} />
                             </Button>
                           </div>
-                          <code className="text-xs font-mono break-all text-foreground">
+                          <code className="text-xs font-mono break-all text-primary ">
                             {market.commitmentHash}
                           </code>
                         </div>
 
                         {market.commitmentSecret && (
-                          <div className="bg-muted/50 rounded-lg p-4">
+                          <div className="bg-secondary/50 rounded-lg p-4">
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-sm font-medium text-muted-foreground">Revealed Secret</span>
                               <Button
@@ -113,7 +113,7 @@ export default function TransparencyPage() {
                                 <Copy className={`h-3 w-3 ${copiedHash === market.commitmentSecret ? 'text-primary' : ''}`} />
                               </Button>
                             </div>
-                            <code className="text-xs font-mono break-all text-foreground">
+                            <code className="text-xs font-mono break-all text-primary ">
                               {market.commitmentSecret}
                             </code>
                           </div>
@@ -138,7 +138,7 @@ export default function TransparencyPage() {
 
         {/* On-Chain Transactions */}
         <div>
-          <h2 className="text-2xl font-bold text-foreground mb-6">On-Chain Transactions</h2>
+          <h2 className="text-2xl font-bold text-primary  mb-6">On-Chain Transactions</h2>
           
           {transactions.filter(t => {
             // Filter out deposits and withdrawals (private transactions)
@@ -183,7 +183,7 @@ export default function TransparencyPage() {
                       </div>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-foreground">
+                        <span className="text-sm font-medium text-primary ">
                           {parseFloat(transaction.amount.replace(/^-/, "")).toFixed(4)} SOL
                         </span>
                         
@@ -209,21 +209,21 @@ export default function TransparencyPage() {
 
       {/* Verification Instructions */}
       <Card className="mt-8 p-6 bg-primary/5 border-primary/20">
-        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-primary  mb-4 flex items-center gap-2">
           <Shield className="h-5 w-5 text-primary" />
           How to Verify
         </h3>
         <div className="space-y-3 text-sm text-muted-foreground">
           <p>
-            <strong className="text-foreground">Provably Fair Markets:</strong> The commitment hash is generated using SHA256(outcome + secret + marketId). 
+            <strong className="text-primary ">Provably Fair Markets:</strong> The commitment hash is generated using SHA256(outcome + secret + marketId). 
             After resolution, the secret is revealed. Anyone can verify the hash matches by computing the same hash function.
           </p>
           <p>
-            <strong className="text-foreground">On-Chain Transactions:</strong> All deposits, payouts, and refunds include Solana transaction signatures. 
+            <strong className="text-primary ">On-Chain Transactions:</strong> All deposits, payouts, and refunds include Solana transaction signatures. 
             Click any signature link to verify the transaction on Solscan.
           </p>
           <p className="pt-2 border-t border-border">
-            <strong className="text-foreground">Transparency:</strong> All market resolutions and financial transactions are recorded on-chain 
+            <strong className="text-primary ">Transparency:</strong> All market resolutions and financial transactions are recorded on-chain 
             and can be independently verified by anyone.
           </p>
         </div>

@@ -23,28 +23,28 @@ export default function MarketDetailPage({ params }: MarketDetailPageProps) {
       {/* RIGHT: SIDEBAR (Polymarket-style) */}
       <aside className="w-full lg:w-[360px] shrink-0">
         <div className="sticky top-24 rounded-xl p-4">
-          <div className="w-full flex flex-col gap-4 rounded-xl p-4 bg-secondary">
+          <div className="w-full flex flex-col gap-4 rounded-xl p-4 bg-background">
 
             {/* DATE TITLE */}
             <h3 className="text-base font-semibold">November 30</h3>
 
             {/* BUY / SELL TABS */}
             <div className="flex items-center gap-4 text-sm">
-              <button className="text-foreground font-medium">Buy</button>
+              <button className="text-primary  font-medium">Buy</button>
               <button className="text-muted-foreground">Sell</button>
               <div className="ml-auto flex items-center gap-1 text-sm text-muted-foreground">
                 Limit <span>▾</span>
               </div>
             </div>
 
-            <div className="h-px w-full bg-muted-foreground/20" />
+            <div className="h-px w-full bg-secondary-foreground/20" />
 
             {/* YES / NO BUTTONS */}
             <div className="grid grid-cols-2 gap-3">
               <button className="rounded-md py-2 bg-green-400/20 text-green-400 font-semibold text-sm">
                 Yes 0.8¢
               </button>
-              <button className="rounded-md py-2 bg-muted text-muted-foreground font-semibold text-sm">
+              <button className="rounded-md py-2 bg-secondary text-muted-foreground font-semibold text-sm">
                 No 99.4¢
               </button>
             </div>
@@ -53,9 +53,9 @@ export default function MarketDetailPage({ params }: MarketDetailPageProps) {
             <div className="flex flex-col gap-1 text-sm">
               <span className="text-muted-foreground">Limit Price</span>
               <div className="flex items-center gap-3">
-                <button className="h-9 w-10 bg-muted rounded-md text-lg">−</button>
+                <button className="h-9 w-10 bg-secondary rounded-md text-lg">−</button>
                 <div className="text-base font-semibold">0.9¢</div>
-                <button className="h-9 w-10 bg-muted rounded-md text-lg">+</button>
+                <button className="h-9 w-10 bg-secondary rounded-md text-lg">+</button>
               </div>
             </div>
 
@@ -64,7 +64,7 @@ export default function MarketDetailPage({ params }: MarketDetailPageProps) {
               <span className="text-muted-foreground">Shares</span>
               <div className="flex gap-3 items-center">
                 <input
-                  className="flex-1 h-9 rounded-md bg-muted px-3"
+                  className="flex-1 h-9 rounded-md bg-secondary px-3"
                   value="0"
                   readOnly
                 />
@@ -72,17 +72,17 @@ export default function MarketDetailPage({ params }: MarketDetailPageProps) {
 
               {/* SHARE QUICK BUTTONS */}
               <div className="flex items-center gap-2">
-                <button className="px-3 py-1 rounded-md bg-muted text-sm text-muted-foreground">-100</button>
-                <button className="px-3 py-1 rounded-md bg-muted text-sm text-muted-foreground">-10</button>
-                <button className="px-3 py-1 rounded-md bg-muted text-sm text-muted-foreground">+10</button>
-                <button className="px-3 py-1 rounded-md bg-muted text-sm text-muted-foreground">+100</button>
+                <button className="px-3 py-1 rounded-md bg-secondary text-sm text-muted-foreground">-100</button>
+                <button className="px-3 py-1 rounded-md bg-secondary text-sm text-muted-foreground">-10</button>
+                <button className="px-3 py-1 rounded-md bg-secondary text-sm text-muted-foreground">+10</button>
+                <button className="px-3 py-1 rounded-md bg-secondary text-sm text-muted-foreground">+100</button>
               </div>
             </div>
 
             {/* EXPIRATION */}
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground text-sm">Set Expiration</span>
-              <div className="h-5 w-10 bg-muted rounded-full" />
+              <div className="h-5 w-10 bg-secondary rounded-full" />
             </div>
 
             {/* TOTAL */}

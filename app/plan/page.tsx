@@ -23,11 +23,11 @@ export default function PlanPage() {
         <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
           Documentation
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight text-foreground">
+        <h1 className="text-4xl font-semibold tracking-tight text-primary ">
           Next.js Migration Plan
         </h1>
         <p className="text-muted-foreground">
-          Source: <code className="rounded bg-muted px-1 py-0.5">NEXT_MIGRATION_PLAN.md</code>
+          Source: <code className="rounded bg-secondary px-1 py-0.5">NEXT_MIGRATION_PLAN.md</code>
         </p>
         <Link
           href="/"
@@ -36,7 +36,7 @@ export default function PlanPage() {
           ← Back to placeholder page
         </Link>
       </div>
-      <pre className="whitespace-pre-wrap rounded-lg border border-border bg-card p-6 text-left text-sm leading-relaxed text-foreground/90 shadow-md">
+      <pre className="whitespace-pre-wrap rounded-lg border border-border bg-card p-6 text-left text-sm leading-relaxed text-primary /90 shadow-md">
         {plan}
       </pre>
     </div>

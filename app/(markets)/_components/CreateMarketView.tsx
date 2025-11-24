@@ -366,7 +366,7 @@ export function CreateMarketView() {
 
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">
+          <h1 className="text-4xl font-bold text-primary  mb-2">
             {isAdmin ? "Create New Market" : "Create Private Wager"}
           </h1>
           <p className="text-muted-foreground text-lg">
@@ -578,7 +578,7 @@ export function CreateMarketView() {
                                 className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                                   dragActive
                                     ? "border-primary bg-primary/5"
-                                    : "border-card-border bg-muted/30"
+                                    : "border-card-border bg-secondary/30"
                                 } ${isUploading ? "opacity-50 pointer-events-none" : "cursor-pointer hover:border-primary/50"}`}
                               >
                                 <input
@@ -598,7 +598,7 @@ export function CreateMarketView() {
                                   ) : (
                                     <div className="flex flex-col items-center gap-2">
                                       <Upload className="h-8 w-8 text-muted-foreground" />
-                                      <p className="text-sm font-medium text-foreground">
+                                      <p className="text-sm font-medium text-primary ">
                                         Drag and drop an image here, or click to select
                                       </p>
                                       <p className="text-xs text-muted-foreground">

@@ -105,7 +105,7 @@ export function Footer() {
   });
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-secondary">
+    <footer className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
@@ -114,7 +114,7 @@ export function Footer() {
               className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
               <TrendingUp className="h-5 w-5 text-primary" />
-              <span className="text-lg font-bold text-foreground">
+              <span className="text-lg font-bold text-primary ">
                 PulseMarket
               </span>
             </Link>
@@ -126,21 +126,21 @@ export function Footer() {
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <Link
               href="/about"
-              className="hover:text-foreground transition-colors"
+              className="hover:text-primary  transition-colors"
             >
               About Us
             </Link>
             <span className="text-muted-foreground/50">•</span>
             <Link
               href="/terms"
-              className="hover:text-foreground transition-colors"
+              className="hover:text-primary  transition-colors"
             >
               Terms of Service
             </Link>
             <span className="text-muted-foreground/50">•</span>
             <Link
               href="/privacy"
-              className="hover:text-foreground transition-colors"
+              className="hover:text-primary  transition-colors"
             >
               Privacy Policy
             </Link>
@@ -149,7 +149,7 @@ export function Footer() {
           <div className="flex items-center gap-4 min-w-0">
             {wallet.connected && (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-secondary/50 rounded-lg">
                   <Image
                     src="/solana.webp"
                     alt="SOL"
@@ -157,7 +157,7 @@ export function Footer() {
                     height={16}
                     className="rounded-full object-cover"
                   />
-                  <span className="text-xs font-medium text-foreground whitespace-nowrap">
+                  <span className="text-xs font-medium text-primary  whitespace-nowrap">
                     $
                     {solPrice?.price
                       ? solPrice.price.toLocaleString(undefined, {
@@ -168,7 +168,7 @@ export function Footer() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-secondary/50 rounded-lg">
                   <Image
                     src="/eth-logo.webp"
                     alt="ETH"
@@ -176,7 +176,7 @@ export function Footer() {
                     height={16}
                     className="rounded-full object-cover"
                   />
-                  <span className="text-xs font-medium text-foreground whitespace-nowrap">
+                  <span className="text-xs font-medium text-primary  whitespace-nowrap">
                     $
                     {ethPrice?.price
                       ? ethPrice.price.toLocaleString(undefined, {
@@ -187,7 +187,7 @@ export function Footer() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-secondary/50 rounded-lg">
                   <Image
                     src="/btc-logo.webp"
                     alt="BTC"
@@ -195,7 +195,7 @@ export function Footer() {
                     height={16}
                     className="rounded-full object-cover"
                   />
-                  <span className="text-xs font-medium text-foreground whitespace-nowrap">
+                  <span className="text-xs font-medium text-primary  whitespace-nowrap">
                     $
                     {btcPrice?.price
                       ? btcPrice.price.toLocaleString(undefined, {
@@ -219,10 +219,10 @@ export function Footer() {
               href="https://twitter.com/PulseMarket"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-muted/50 transition-colors"
+              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-secondary/50 transition-colors"
               aria-label="X (Twitter)"
             >
-              <Twitter className="h-5 w-5 text-foreground" />
+              <Twitter className="h-5 w-5 text-primary " />
             </a>
           </div>
         </div>
