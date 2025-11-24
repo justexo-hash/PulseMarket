@@ -7,6 +7,8 @@ interface MarketDetailPageProps {
 
 export default function MarketDetailPage({ params }: MarketDetailPageProps) {
   return (
+    <div className="container mx-auto px-4 lg:px-0 py-6">
+
     <div className="w-full flex flex-col lg:flex-row gap-6">
       {/* LEFT: MARKET DETAIL */}
       <div className="flex-1 min-w-0 flex flex-col gap-6">
@@ -107,6 +109,8 @@ export default function MarketDetailPage({ params }: MarketDetailPageProps) {
         </div>
       </aside>
     </div>
+    </div>
+
   );
 }
 
