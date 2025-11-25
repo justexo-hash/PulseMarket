@@ -42,7 +42,7 @@ export function HeaderDesktop(props: any) {
       <div className="container mx-auto pt-3  flex flex-col gap-3">
         {/* LEFT SIDE: Logo + Searchbar + Mobile Burger Menu */}
         <div className="flex items-center justify-between gap-3">
-          <div className="flex justify-between md:justify-start w-full gap-3 desktop">
+          <div className="flex justify-between md:justify-start gap-3 desktop">
             {/* App logo linking to homepage */}
             <Link
               href="/"
@@ -73,7 +73,7 @@ export function HeaderDesktop(props: any) {
                     Deposit
                   </Link>
                 </Button>
-                <div className="items-center gap-2 px-3 py-1.5 bg-secondary/50 rounded-lg border border-border/50">
+                <div className="items-center gap-1.5 px-1.5 py-1.5 bg-secondary flex rounded-md">
                   <Image
                     src="/solana.webp"
                     alt="SOL"
