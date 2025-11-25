@@ -106,7 +106,7 @@ export function WithdrawView() {
                 href={explorerUrl} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="underline text-primary mt-1 inline-flex items-center gap-1"
+                className="underline text-secondary-foreground mt-1 inline-flex items-center gap-1"
               >
                 View on Solscan <ExternalLink className="h-3 w-3" />
               </a>
@@ -181,7 +181,7 @@ export function WithdrawView() {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-2xl mx-auto text-center space-y-6 py-24">
-          <h1 className="text-4xl font-bold text-primary ">Withdrawals Restricted</h1>
+          <h1 className="text-4xl font-bold text-secondary-foreground ">Withdrawals Restricted</h1>
           <p className="text-muted-foreground text-lg">
             To withdraw SOL you need to be logged in and have your Solana wallet connected. Connect your wallet using the button in the header to continue.
           </p>
@@ -207,7 +207,7 @@ export function WithdrawView() {
 
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-primary  mb-2">Withdraw SOL</h1>
+          <h1 className="text-4xl font-bold text-secondary-foreground  mb-2">Withdraw SOL</h1>
           <p className="text-muted-foreground text-lg">
             Withdraw SOL from your portfolio to your connected wallet
           </p>
@@ -225,7 +225,7 @@ export function WithdrawView() {
 
           {wallet.connected && (
             <Alert className="mb-6 border-primary/20 bg-primary/5">
-              <Wallet className="h-4 w-4 text-primary" />
+              <Wallet className="h-4 w-4 text-secondary-foreground" />
               <AlertDescription>
                 <strong>Withdrawal:</strong> SOL will be sent from the PulseMarket treasury to your connected wallet ({wallet.publicKey?.toBase58().slice(0, 8)}...).
               </AlertDescription>
@@ -251,7 +251,7 @@ export function WithdrawView() {
                   }`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline text-primary inline-flex items-center gap-1"
+                  className="underline text-secondary-foreground inline-flex items-center gap-1"
                 >
                   View on Solscan <ExternalLink className="h-3 w-3" />
                 </a>
@@ -262,7 +262,7 @@ export function WithdrawView() {
           <div className="mb-6 p-4 bg-secondary/50 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Available Balance</span>
-              <span className="text-2xl font-bold text-primary ">{currentBalance.toFixed(4)} SOL</span>
+              <span className="text-2xl font-bold text-secondary-foreground ">{currentBalance.toFixed(4)} SOL</span>
             </div>
           </div>
 

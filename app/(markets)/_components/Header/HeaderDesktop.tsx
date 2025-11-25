@@ -50,7 +50,7 @@ export function HeaderDesktop(props: any) {
               className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
             >
               <img src="../logo-white.png" className="w-8 h-8" alt="" />
-              <span className="text-xl font-bold text-primary ">
+              <span className="text-xl font-bold text-secondary-foreground ">
                 PulseMarket
               </span>
             </Link>
@@ -81,7 +81,7 @@ export function HeaderDesktop(props: any) {
                     height={20}
                     className="rounded-full object-cover"
                   />
-                  <span className="text-sm font-bold text-primary">
+                  <span className="text-sm font-bold text-secondary-foreground">
                     {(props.onChainBalance ?? 0).toFixed(2)}
                   </span>
                 </div>
@@ -145,10 +145,10 @@ export function HeaderDesktop(props: any) {
               </DropdownMenuTrigger>
 
               <DropdownMenuContent
-                className="w-56 bg-background text-primary-foreground border-none shadow-lg"
+                className="w-56 bg-background text-secondary-foreground-foreground border-none shadow-lg"
                 align="end"
               >
-                <DropdownMenuLabel className="text-primary ">
+                <DropdownMenuLabel className="text-secondary-foreground ">
                   Navigation
                 </DropdownMenuLabel>
                 <DropdownMenuGroup>
@@ -163,7 +163,7 @@ export function HeaderDesktop(props: any) {
                     >
                       <Link
                         href={href}
-                        className="text-base px-3 py-2 text-primary/50 hover:text-primary !cursor-pointer font-bold"
+                        className="text-base px-3 py-2 text-secondary-foreground/50 hover:text-secondary-foreground !cursor-pointer font-bold"
                       >
                         {label}
                       </Link>
@@ -174,13 +174,13 @@ export function HeaderDesktop(props: any) {
                 {props.user && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuLabel className="text-primary ">
+                    <DropdownMenuLabel className="text-secondary-foreground ">
                       Account
                     </DropdownMenuLabel>
                     <DropdownMenuItem asChild>
                       <Link
                         href={`/profile/${props.user.username}`}
-                        className="text-base px-3 py-2 text-primary/50 hover:text-primary !cursor-pointer font-bold"
+                        className="text-base px-3 py-2 text-secondary-foreground/50 hover:text-secondary-foreground !cursor-pointer font-bold"
                       >
                         Profile
                       </Link>
@@ -195,7 +195,7 @@ export function HeaderDesktop(props: any) {
                     <DropdownMenuItem asChild>
                       <Link
                         href="/admin"
-                        className="text-base px-3 py-2 text-primary/50 hover:text-primary !cursor-pointer font-bold"
+                        className="text-base px-3 py-2 text-secondary-foreground/50 hover:text-secondary-foreground !cursor-pointer font-bold"
                       >
                         Admin
                       </Link>

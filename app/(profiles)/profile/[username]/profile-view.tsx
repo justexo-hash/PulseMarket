@@ -47,7 +47,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
             </Avatar>
             <div>
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-4xl font-bold text-primary ">
+                <h1 className="text-4xl font-bold text-secondary-foreground ">
                   {user.displayName}
                 </h1>
                 <Badge variant="secondary" className="text-sm">
@@ -85,25 +85,25 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <MetricCard
-          icon={<TrendingUp className="h-5 w-5 text-primary" />}
+          icon={<TrendingUp className="h-5 w-5 text-secondary-foreground" />}
           label="Realized PnL"
           value={`${formatNumber(stats.realizedPnl)} SOL`}
           helper="Settled outcomes only"
         />
         <MetricCard
-          icon={<Target className="h-5 w-5 text-primary" />}
+          icon={<Target className="h-5 w-5 text-secondary-foreground" />}
           label="Total Predictions"
           value={stats.totalPredictions.toString()}
           helper={`${stats.resolvedPredictions} resolved`}
         />
         <MetricCard
-          icon={<Trophy className="h-5 w-5 text-primary" />}
+          icon={<Trophy className="h-5 w-5 text-secondary-foreground" />}
           label="Win Rate"
           value={`${(stats.winRate * 100).toFixed(1)}%`}
           helper={`${stats.correctPredictions}/${stats.resolvedPredictions} resolved wins`}
         />
         <MetricCard
-          icon={<Users className="h-5 w-5 text-primary" />}
+          icon={<Users className="h-5 w-5 text-secondary-foreground" />}
           label="Calibration Score"
           value={
             stats.calibrationBuckets.length > 0
@@ -169,7 +169,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">Amount</p>
-                    <p className="text-xl font-bold text-primary">
+                    <p className="text-xl font-bold text-secondary-foreground">
                       {formatNumber(bet.amount)} SOL
                     </p>
                     {bet.marketStatus === "resolved" && (
@@ -213,7 +213,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                     </div>
                     <div className="text-sm text-muted-foreground">
                       Realized win rate{" "}
-                      <span className="font-semibold text-primary">
+                      <span className="font-semibold text-secondary-foreground">
                         {(bucket.winRate * 100).toFixed(1)}%
                       </span>
                     </div>
@@ -274,7 +274,7 @@ function StatPill({ label, value }: { label: string; value: string }) {
       <p className="text-xs uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
-      <p className="text-xl font-semibold text-primary ">{value}</p>
+      <p className="text-xl font-semibold text-secondary-foreground ">{value}</p>
     </div>
   );
 }
@@ -296,7 +296,7 @@ function MetricCard({
         {icon}
         <span>{label}</span>
       </div>
-      <p className="text-2xl font-bold text-primary ">{value}</p>
+      <p className="text-2xl font-bold text-secondary-foreground ">{value}</p>
       {helper && <p className="text-xs text-muted-foreground">{helper}</p>}
     </Card>
   );

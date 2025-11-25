@@ -23,7 +23,7 @@ export default function PlanPage() {
         <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
           Documentation
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight text-primary ">
+        <h1 className="text-4xl font-semibold tracking-tight text-secondary-foreground ">
           Next.js Migration Plan
         </h1>
         <p className="text-muted-foreground">
@@ -31,12 +31,12 @@ export default function PlanPage() {
         </p>
         <Link
           href="/"
-          className="inline-flex w-fit items-center gap-2 text-sm font-medium text-primary hover:text-primary/80"
+          className="inline-flex w-fit items-center gap-2 text-sm font-medium text-secondary-foreground hover:text-secondary-foreground/80"
         >
           ← Back to placeholder page
         </Link>
       </div>
-      <pre className="whitespace-pre-wrap rounded-lg border border-border bg-card p-6 text-left text-sm leading-relaxed text-primary /90 shadow-md">
+      <pre className="whitespace-pre-wrap rounded-lg border border-border bg-card p-6 text-left text-sm leading-relaxed text-secondary-foreground /90 shadow-md">
         {plan}
       </pre>
     </div>

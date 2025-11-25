@@ -187,7 +187,7 @@ export function ActivityFeedView() {
     return (
       <div className="relative min-h-screen">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h1 className="text-4xl font-bold text-primary  mb-8">Activity Feed</h1>
+          <h1 className="text-4xl font-bold text-secondary-foreground  mb-8">Activity Feed</h1>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <Card key={i} className="p-6 animate-pulse h-32" />
@@ -202,7 +202,7 @@ export function ActivityFeedView() {
     <div className="relative min-h-screen">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-primary  mb-2">Activity Feed</h1>
+          <h1 className="text-4xl font-bold text-secondary-foreground  mb-2">Activity Feed</h1>
           <p className="text-muted-foreground text-lg">
             See recent bets, market resolutions, and new markets
           </p>
@@ -273,7 +273,7 @@ export function ActivityFeedView() {
 
         {filteredActivities.length === 0 ? (
           <Card className="p-12 text-center bg-secondary border border-border">
-            <p className="text-xl text-primary  mb-2">
+            <p className="text-xl text-secondary-foreground  mb-2">
               {activitiesData && activitiesData.length > 0 
                 ? "No activity matches your filters" 
                 : "No activity yet"}
@@ -308,7 +308,7 @@ export function ActivityFeedView() {
                       <div className="flex items-start gap-4">
                         <div className={`p-3 rounded-full ${
                           bet.position === "yes" 
-                            ? "text-primary"
+                            ? "text-secondary-foreground"
                             : "text-destructive"
                         }`}>
                           {bet.position === "yes" ? (
@@ -320,7 +320,7 @@ export function ActivityFeedView() {
                         <div className="flex-1">
                           <div className="flex items-start justify-between gap-4 mb-2">
                             <div>
-                              <p className="text-primary  font-semibold">
+                              <p className="text-secondary-foreground  font-semibold">
                                 Bet placed on {bet.market.question}
                               </p>
                               <p className="text-muted-foreground text-sm mt-1">
@@ -373,11 +373,11 @@ export function ActivityFeedView() {
                         <div className="flex-1">
                           <div className="flex items-start justify-between gap-4 mb-2">
                             <div>
-                              <p className="text-primary  font-semibold">
+                              <p className="text-secondary-foreground  font-semibold">
                                 Market resolved: {market.question}
                               </p>
                               <p className="text-muted-foreground text-sm mt-1">
-                                Outcome: <span className="font-semibold text-primary ">{market.resolvedOutcome?.toUpperCase()}</span>
+                                Outcome: <span className="font-semibold text-secondary-foreground ">{market.resolvedOutcome?.toUpperCase()}</span>
                               </p>
                             </div>
                             <Badge 
@@ -420,13 +420,13 @@ export function ActivityFeedView() {
                   >
                     <Card className="p-6 bg-secondary hover:bg-background/50 hover-elevate active-elevate-2 transition-all duration-200 cursor-pointer border border-border cursor-pointer">
                       <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-full text-primary">
+                        <div className="p-3 rounded-full text-secondary-foreground">
                           <Target className="h-5 w-5" />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-start justify-between gap-4 mb-2">
                             <div>
-                              <p className="text-primary  font-semibold">
+                              <p className="text-secondary-foreground  font-semibold">
                                 New market: {market.question}
                               </p>
                               <p className="text-muted-foreground text-sm mt-1">

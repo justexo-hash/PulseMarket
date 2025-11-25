@@ -5,6 +5,7 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useMarketSearchContext } from "../_context/MarketSearchContext";
+import { Badge } from "@/components/ui/badge";
 
 export function MarketSearchBar() {
   const { searchQuery, setSearchQuery, categories, markets } =
@@ -35,7 +36,7 @@ export function MarketSearchBar() {
     <div ref={wrapperRef} className="relative md:min-w-[600px]">
       {/* SEARCHBAR (STATIC, ALWAYS VISIBLE) */}
       <div className="relative w-full" onClick={() => setOpen(true)}>
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary  outline-none pointer-events-none" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary-foreground  outline-none pointer-events-none" />
         <Input
           type="text"
           placeholder="Search markets..."
@@ -45,7 +46,7 @@ export function MarketSearchBar() {
             setOpen(true);
           }}
           className={
-            "pl-9 text-primary  w-full  bg-secondary cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none " +
+            "pl-9 text-secondary-foreground  w-full  bg-secondary cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none " +
             (open
               ? "bg-background rounded-t-md rounded-b-none border border-muted-foreground/20"
               : "rounded-md")
@@ -79,7 +80,7 @@ export function MarketSearchBar() {
                       onClick={() => setOpen(false)}
                       className="
                       w-full flex items-center gap-3 px-4 py-2 
-                      hover:bg-background border border-transparent font-medium text-primary 
+                      hover:bg-background border border-transparent font-medium text-secondary-foreground 
                     
                       "
                     >
@@ -96,7 +97,7 @@ export function MarketSearchBar() {
                         <span>{m.question}</span>
                       </div>
 
-                      <span className="text-md font-medium text-primary ">
+                      <span className="text-md font-medium text-secondary-foreground ">
                         {Math.round(m.probability)}%
                       </span>
                     </Link>
@@ -117,21 +118,16 @@ export function MarketSearchBar() {
                 Topics
               </p>
 
-              <div className="grid grid-cols-1 gap-2">
+              <div className="flex flex-wrap gap-3">
                 {categories.map((cat) => (
                   <Link
                     key={cat}
                     href={`/category/${encodeURIComponent(cat)}`}
                     onClick={() => setOpen(false)}
-                    className="
-                      w-full flex items-center gap-3 px-4 py-2 
-                      hover:bg-background border border-transparent
-                    "
                   >
-                    <span className="capitalize">{cat}</span>
-                    <span className="text-muted-foreground text-xs">
-                      View →
-                    </span>
+                    <Badge variant="ghost">
+                    <span className="capitalize text-lg">{cat}</span>
+                    </Badge>
                   </Link>
                 ))}
               </div>
@@ -157,12 +153,11 @@ export function MarketSearchBar() {
                     key={item.name}
                     href={item.href}
                     aria-disabled="true"
-                    className="
-                      w-full flex items-center gap-3 px-4 py-2 
-                      border border-transparent
-                    "
                   >
-                    <span className="font-medium">{item.name}</span>
+                     <Badge variant="ghost">
+
+                    <span className="font-medium text-lg">{item.name}</span>
+                     </Badge>
                   </Link>
                 ))}
               </div>

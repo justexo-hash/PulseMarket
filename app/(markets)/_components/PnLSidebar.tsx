@@ -104,8 +104,8 @@ export function PnLSidebar({ isOpen, onClose }: PnLSidebarProps) {
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b border-border">
             <div className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-bold text-primary ">Active Bets P&L</h2>
+              <DollarSign className="h-5 w-5 text-secondary-foreground" />
+              <h2 className="text-xl font-bold text-secondary-foreground ">Active Bets P&L</h2>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
@@ -118,7 +118,7 @@ export function PnLSidebar({ isOpen, onClose }: PnLSidebarProps) {
                 <span className="text-sm text-muted-foreground">Unrealized P&L</span>
                 <span
                   className={`text-lg font-bold ${
-                    totalUnrealizedPnL >= 0 ? "text-primary" : "text-destructive"
+                    totalUnrealizedPnL >= 0 ? "text-secondary-foreground" : "text-destructive"
                   }`}
                 >
                   {totalUnrealizedPnL >= 0 ? "+" : ""}
@@ -127,13 +127,13 @@ export function PnLSidebar({ isOpen, onClose }: PnLSidebarProps) {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Potential Profit</span>
-                <span className="text-lg font-bold text-primary">
+                <span className="text-lg font-bold text-secondary-foreground">
                   +{totalPotentialProfit.toFixed(4)} SOL
                 </span>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-border">
-                <span className="text-sm font-medium text-primary ">Total Active Bets</span>
-                <span className="text-lg font-bold text-primary ">
+                <span className="text-sm font-medium text-secondary-foreground ">Total Active Bets</span>
+                <span className="text-lg font-bold text-secondary-foreground ">
                   {activeBetsWithMarkets.length}
                 </span>
               </div>
@@ -191,7 +191,7 @@ export function PnLSidebar({ isOpen, onClose }: PnLSidebarProps) {
                   <Link key={bet.id} href={marketPath}>
                     <Card className="p-4 hover:bg-secondary/50 transition-colors cursor-pointer">
                       <div className="space-y-3">
-                        <p className="text-sm font-semibold text-primary  line-clamp-2">
+                        <p className="text-sm font-semibold text-secondary-foreground  line-clamp-2">
                           {market.question}
                         </p>
 
@@ -233,14 +233,14 @@ export function PnLSidebar({ isOpen, onClose }: PnLSidebarProps) {
                             </span>
                             <div className="flex items-center gap-1">
                               {unrealizedPnL >= 0 ? (
-                                <TrendingUp className="h-3 w-3 text-primary" />
+                                <TrendingUp className="h-3 w-3 text-secondary-foreground" />
                               ) : (
                                 <TrendingDown className="h-3 w-3 text-destructive" />
                               )}
                               <span
                                 className={`text-sm font-bold ${
                                   unrealizedPnL >= 0
-                                    ? "text-primary"
+                                    ? "text-secondary-foreground"
                                     : "text-destructive"
                                 }`}
                               >
@@ -250,7 +250,7 @@ export function PnLSidebar({ isOpen, onClose }: PnLSidebarProps) {
                               <span
                                 className={`text-xs ${
                                   unrealizedPnL >= 0
-                                    ? "text-primary"
+                                    ? "text-secondary-foreground"
                                     : "text-destructive"
                                 }`}
                               >
@@ -261,7 +261,7 @@ export function PnLSidebar({ isOpen, onClose }: PnLSidebarProps) {
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-muted-foreground">If Won:</span>
-                            <span className="text-xs font-medium text-primary">
+                            <span className="text-xs font-medium text-secondary-foreground">
                               +{potentialProfit.toFixed(4)} SOL
                             </span>
                           </div>

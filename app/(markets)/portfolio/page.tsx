@@ -107,13 +107,13 @@ export default function PortfolioPage() {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-2xl mx-auto text-center py-24 space-y-6">
-          <h1 className="text-4xl font-bold text-primary ">Portfolio Restricted</h1>
+          <h1 className="text-4xl font-bold text-secondary-foreground ">Portfolio Restricted</h1>
           <p className="text-muted-foreground text-lg">
             Your betting history and balances are only available after you log in and connect your Solana wallet.
           </p>
           <p className="text-muted-foreground">
             Use the wallet button in the header to connect, or{" "}
-            <Link href="/deposit" className="text-primary underline">
+            <Link href="/deposit" className="text-secondary-foreground underline">
               head to the deposit page
             </Link>{" "}
             once you&apos;re authenticated.
@@ -131,7 +131,7 @@ export default function PortfolioPage() {
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-primary  mb-2">My Portfolio</h1>
+          <h1 className="text-4xl font-bold text-secondary-foreground  mb-2">My Portfolio</h1>
           <p className="text-muted-foreground text-lg">
             Track your betting history and portfolio performance
           </p>
@@ -155,7 +155,7 @@ export default function PortfolioPage() {
             <p className="text-sm text-muted-foreground font-medium">Total Bets</p>
             <Target className="h-4 w-4 text-muted-foreground" />
           </div>
-          <p className="text-3xl font-bold text-primary " data-testid="text-total-bets">
+          <p className="text-3xl font-bold text-secondary-foreground " data-testid="text-total-bets">
             {bets.length}
           </p>
         </Card>
@@ -165,7 +165,7 @@ export default function PortfolioPage() {
             <p className="text-sm text-muted-foreground font-medium">Amount Invested</p>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </div>
-          <p className="text-3xl font-bold text-primary " data-testid="text-amount-invested">
+          <p className="text-3xl font-bold text-secondary-foreground " data-testid="text-amount-invested">
             {totalBet.toFixed(4)} SOL
           </p>
         </Card>
@@ -175,7 +175,7 @@ export default function PortfolioPage() {
             <p className="text-sm text-muted-foreground font-medium">Current Balance</p>
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </div>
-          <p className="text-3xl font-bold text-primary" data-testid="text-current-balance">
+          <p className="text-3xl font-bold text-secondary-foreground" data-testid="text-current-balance">
             {currentBalance.toFixed(4)} SOL
           </p>
           <p className="text-xs text-muted-foreground mt-1">Available for betting</p>
@@ -185,7 +185,7 @@ export default function PortfolioPage() {
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm text-muted-foreground font-medium">Profit/Loss</p>
             {profitLoss >= 0 ? (
-              <TrendingUp className="h-4 w-4 text-primary" />
+              <TrendingUp className="h-4 w-4 text-secondary-foreground" />
             ) : (
               <TrendingDown className="h-4 w-4 text-destructive" />
             )}
@@ -193,7 +193,7 @@ export default function PortfolioPage() {
           <div>
             <p
               className={`text-3xl font-bold ${
-                profitLoss >= 0 ? "text-primary" : "text-destructive"
+                profitLoss >= 0 ? "text-secondary-foreground" : "text-destructive"
               }`}
               data-testid="text-profit-loss"
             >
@@ -201,7 +201,7 @@ export default function PortfolioPage() {
             </p>
             <p
               className={`text-sm ${
-                profitLoss >= 0 ? "text-primary" : "text-destructive"
+                profitLoss >= 0 ? "text-secondary-foreground" : "text-destructive"
               }`}
               data-testid="text-profit-loss-percent"
             >
@@ -220,7 +220,7 @@ export default function PortfolioPage() {
 
         <TabsContent value="bets">
           <div>
-            <h2 className="text-2xl font-bold text-primary  mb-6">Betting History</h2>
+            <h2 className="text-2xl font-bold text-secondary-foreground  mb-6">Betting History</h2>
             
             {bets.length === 0 ? (
               <Card className="p-12">
@@ -256,7 +256,7 @@ export default function PortfolioPage() {
                               {format(new Date(bet.createdAt), "MMM d, yyyy 'at' h:mm a")}
                             </p>
                           </div>
-                          <p className="text-lg font-semibold text-primary  mb-1" data-testid={`text-question-${bet.id}`}>
+                          <p className="text-lg font-semibold text-secondary-foreground  mb-1" data-testid={`text-question-${bet.id}`}>
                             {market?.question || `Market #${bet.marketId}`}
                           </p>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -269,7 +269,7 @@ export default function PortfolioPage() {
                           <p className="text-sm text-muted-foreground mb-1">Current Value</p>
                           <p
                             className={`text-xl font-bold ${
-                              valueChange >= 0 ? "text-primary" : "text-destructive"
+                              valueChange >= 0 ? "text-secondary-foreground" : "text-destructive"
                             }`}
                             data-testid={`text-value-change-${bet.id}`}
                           >
@@ -287,7 +287,7 @@ export default function PortfolioPage() {
 
         <TabsContent value="transactions">
           <div>
-            <h2 className="text-2xl font-bold text-primary  mb-6">Transaction History</h2>
+            <h2 className="text-2xl font-bold text-secondary-foreground  mb-6">Transaction History</h2>
             
             {transactions.length === 0 ? (
               <Card className="p-12">
@@ -311,9 +311,9 @@ export default function PortfolioPage() {
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            {transaction.type === "deposit" && <ArrowUp className="h-4 w-4 text-primary" />}
+                            {transaction.type === "deposit" && <ArrowUp className="h-4 w-4 text-secondary-foreground" />}
                             {transaction.type === "bet" && <ArrowDown className="h-4 w-4 text-destructive" />}
-                            {transaction.type === "payout" && <ArrowUp className="h-4 w-4 text-primary" />}
+                            {transaction.type === "payout" && <ArrowUp className="h-4 w-4 text-secondary-foreground" />}
                             {transaction.type === "refund" && <ArrowUp className="h-4 w-4 text-muted-foreground" />}
                             <Badge
                               variant={
@@ -331,7 +331,7 @@ export default function PortfolioPage() {
                               {format(new Date(transaction.createdAt), "MMM d, yyyy 'at' h:mm a")}
                             </p>
                           </div>
-                          <p className="text-lg font-semibold text-primary  mb-1">
+                          <p className="text-lg font-semibold text-secondary-foreground  mb-1">
                             {transaction.description || `${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)} transaction`}
                           </p>
                           
@@ -346,7 +346,7 @@ export default function PortfolioPage() {
                                     href={getSolscanUrl(txSig)}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-xs font-mono text-primary hover:underline inline-flex items-center gap-1"
+                                    className="text-xs font-mono text-secondary-foreground hover:underline inline-flex items-center gap-1"
                                   >
                                     {truncateSignature(txSig)}
                                     <ExternalLink className="h-3 w-3" />
@@ -362,7 +362,7 @@ export default function PortfolioPage() {
                         <div className="text-right">
                           <p
                             className={`text-xl font-bold ${
-                              isPositive ? "text-primary" : "text-destructive"
+                              isPositive ? "text-secondary-foreground" : "text-destructive"
                             }`}
                             data-testid={`text-transaction-amount-${transaction.id}`}
                           >

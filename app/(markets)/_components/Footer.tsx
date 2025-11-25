@@ -113,8 +113,8 @@ export function Footer() {
               href="/"
               className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <span className="text-lg font-bold text-primary ">
+              <TrendingUp className="h-5 w-5 text-secondary-foreground" />
+              <span className="text-lg font-bold text-secondary-foreground ">
                 PulseMarket
               </span>
             </Link>
@@ -126,21 +126,21 @@ export function Footer() {
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <Link
               href="/about"
-              className="hover:text-primary  transition-colors"
+              className="hover:text-secondary-foreground  transition-colors"
             >
               About Us
             </Link>
             <span className="text-muted-foreground/50">•</span>
             <Link
               href="/terms"
-              className="hover:text-primary  transition-colors"
+              className="hover:text-secondary-foreground  transition-colors"
             >
               Terms of Service
             </Link>
             <span className="text-muted-foreground/50">•</span>
             <Link
               href="/privacy"
-              className="hover:text-primary  transition-colors"
+              className="hover:text-secondary-foreground  transition-colors"
             >
               Privacy Policy
             </Link>
@@ -157,7 +157,7 @@ export function Footer() {
                     height={16}
                     className="rounded-full object-cover"
                   />
-                  <span className="text-xs font-medium text-primary  whitespace-nowrap">
+                  <span className="text-xs font-medium text-secondary-foreground  whitespace-nowrap">
                     $
                     {solPrice?.price
                       ? solPrice.price.toLocaleString(undefined, {
@@ -176,7 +176,7 @@ export function Footer() {
                     height={16}
                     className="rounded-full object-cover"
                   />
-                  <span className="text-xs font-medium text-primary  whitespace-nowrap">
+                  <span className="text-xs font-medium text-secondary-foreground  whitespace-nowrap">
                     $
                     {ethPrice?.price
                       ? ethPrice.price.toLocaleString(undefined, {
@@ -195,7 +195,7 @@ export function Footer() {
                     height={16}
                     className="rounded-full object-cover"
                   />
-                  <span className="text-xs font-medium text-primary  whitespace-nowrap">
+                  <span className="text-xs font-medium text-secondary-foreground  whitespace-nowrap">
                     $
                     {btcPrice?.price
                       ? btcPrice.price.toLocaleString(undefined, {
@@ -222,7 +222,7 @@ export function Footer() {
               className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-secondary/50 transition-colors"
               aria-label="X (Twitter)"
             >
-              <Twitter className="h-5 w-5 text-primary " />
+              <Twitter className="h-5 w-5 text-secondary-foreground " />
             </a>
           </div>
         </div>

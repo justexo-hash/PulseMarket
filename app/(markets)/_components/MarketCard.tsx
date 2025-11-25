@@ -68,7 +68,7 @@ function CountdownTimer({ expiresAt }: { expiresAt: Date | string | null }) {
       className={`text-xs flex items-center gap-1 ${
         isUrgent
           ? "bg-destructive/20 text-destructive border-destructive/30"
-          : "bg-primary/20 text-primary border-primary/30"
+          : "bg-primary/20 text-secondary-foreground border-primary/30"
       }`}
     >
       <Clock className="h-3 w-3" />
@@ -127,7 +127,7 @@ export function MarketCard({ market }: MarketCardProps) {
                 </div>
               </div>
               <h2
-                className="text-sm font-semibold text-primary "
+                className="text-sm font-semibold text-secondary-foreground "
                 data-testid={`text-question-${market.id}`}
               >
                 {market.question}
@@ -139,7 +139,7 @@ export function MarketCard({ market }: MarketCardProps) {
             {/* <div className="gap-4 flex">
               <Badge
                 variant="secondary"
-                className="bg-primary text-primary-foreground uppercase text-xs font-semibold tracking-wide"
+                className="bg-primary text-secondary-foreground-foreground uppercase text-xs font-semibold tracking-wide"
                 data-testid={`badge-category-${market.id}`}
               >
                 {market.category}

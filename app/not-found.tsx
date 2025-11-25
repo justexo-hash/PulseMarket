@@ -13,7 +13,7 @@ export default function NotFound() {
           <div className="flex items-center gap-3">
             <AlertCircle className="h-8 w-8 text-destructive" />
             <div>
-              <h1 className="text-2xl font-bold text-primary ">404 Page Not Found</h1>
+              <h1 className="text-2xl font-bold text-secondary-foreground ">404 Page Not Found</h1>
               <p className="text-sm text-muted-foreground">
                 Did you forget to add the page to the router?
               </p>

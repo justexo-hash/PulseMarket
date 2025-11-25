@@ -149,7 +149,7 @@ export default function AdminPanelPage() {
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <Shield className="h-8 w-8 text-primary" />
+            <Shield className="h-8 w-8 text-secondary-foreground" />
             <h1 className="text-4xl font-bold text-white">Admin Panel</h1>
           </div>
           <p className="text-white/80 text-lg">
@@ -161,7 +161,7 @@ export default function AdminPanelPage() {
         <Card className="p-6 bg-black/30 backdrop-blur-sm border-white/20 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <Wallet className="h-6 w-6 text-primary" />
+              <Wallet className="h-6 w-6 text-secondary-foreground" />
               <h2 className="text-2xl font-bold text-white">Treasury Balance</h2>
             </div>
             <Button
@@ -191,7 +191,7 @@ export default function AdminPanelPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <p className="text-sm text-white/60 mb-1">Total Balance (On-Chain)</p>
-                <p className="text-3xl font-bold text-primary">
+                <p className="text-3xl font-bold text-secondary-foreground">
                   {treasuryBalance.balanceFormatted} SOL
                 </p>
               </div>
@@ -249,7 +249,7 @@ export default function AdminPanelPage() {
                   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-start gap-3 mb-3">
-                        <Badge variant="secondary" className="bg-primary/20 text-primary">
+                        <Badge variant="secondary" className="bg-primary/20 text-secondary-foreground">
                           {market.category}
                         </Badge>
                         {market.expiresAt && (
@@ -257,7 +257,7 @@ export default function AdminPanelPage() {
                             Expires: {formatDistanceToNow(new Date(market.expiresAt), { addSuffix: true })}
                           </Badge>
                         )}
-                        <Badge variant="outline" className="bg-primary/10 text-primary">
+                        <Badge variant="outline" className="bg-primary/10 text-secondary-foreground">
                           Volume: {volume.toFixed(2)} SOL
                         </Badge>
                       </div>

@@ -30,7 +30,7 @@ export default function MarketDetailPage({ params }: MarketDetailPageProps) {
 
             {/* BUY / SELL TABS */}
             <div className="flex items-center gap-4 text-sm">
-              <button className="text-primary  font-medium">Buy</button>
+              <button className="text-secondary-foreground  font-medium">Buy</button>
               <button className="text-muted-foreground">Sell</button>
               <div className="ml-auto flex items-center gap-1 text-sm text-muted-foreground">
                 Limit <span>▾</span>

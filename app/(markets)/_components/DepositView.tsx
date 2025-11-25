@@ -112,7 +112,7 @@ export function DepositView() {
               href={explorerUrl} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="underline text-primary mt-1 inline-flex items-center gap-1"
+              className="underline text-secondary-foreground mt-1 inline-flex items-center gap-1"
             >
               View on Solscan <ExternalLink className="h-3 w-3" />
             </a>
@@ -186,7 +186,7 @@ export function DepositView() {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-2xl mx-auto text-center space-y-6 py-24">
-          <h1 className="text-4xl font-bold text-primary ">Deposits Restricted</h1>
+          <h1 className="text-4xl font-bold text-secondary-foreground ">Deposits Restricted</h1>
           <p className="text-muted-foreground text-lg">
             Deposits require an authenticated account with a connected Solana wallet. Connect your wallet using the header button to continue.
           </p>
@@ -210,7 +210,7 @@ export function DepositView() {
 
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-primary  mb-2">Deposit SOL</h1>
+          <h1 className="text-4xl font-bold text-secondary-foreground  mb-2">Deposit SOL</h1>
           <p className="text-muted-foreground text-lg">
             Add SOL to your wallet to start placing bets
           </p>
@@ -228,7 +228,7 @@ export function DepositView() {
 
           {wallet.connected && (
             <Alert className="mb-6 border-primary/20 bg-primary/5">
-              <Wallet className="h-4 w-4 text-primary" />
+              <Wallet className="h-4 w-4 text-secondary-foreground" />
               <AlertDescription>
                 <strong>Real blockchain deposit:</strong> SOL will be sent from your connected wallet ({wallet.publicKey?.toBase58().slice(0, 8)}...) to the PulseMarket treasury.
               </AlertDescription>
@@ -245,7 +245,7 @@ export function DepositView() {
                   }`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline text-primary inline-flex items-center gap-1"
+                  className="underline text-secondary-foreground inline-flex items-center gap-1"
                 >
                   View on Solscan <ExternalLink className="h-3 w-3" />
                 </a>

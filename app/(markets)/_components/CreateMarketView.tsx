@@ -366,7 +366,7 @@ export function CreateMarketView() {
 
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-primary  mb-2">
+          <h1 className="text-4xl font-bold text-secondary-foreground  mb-2">
             {isAdmin ? "Create New Market" : "Create Private Wager"}
           </h1>
           <p className="text-muted-foreground text-lg">
@@ -484,7 +484,7 @@ export function CreateMarketView() {
               {isPrivate && (
                 <Card className="p-4 bg-primary/5 border-primary/20">
                   <div className="flex items-start gap-2">
-                    <Shield className="h-5 w-5 text-primary mt-0.5" />
+                    <Shield className="h-5 w-5 text-secondary-foreground mt-0.5" />
                     <div className="text-sm text-muted-foreground">
                       <p className="font-medium mb-1">Private Wager Details:</p>
                       <ul className="list-disc list-inside space-y-1">
@@ -592,13 +592,13 @@ export function CreateMarketView() {
                                 <label htmlFor="image-upload" className="cursor-pointer">
                                   {isUploading ? (
                                     <div className="flex flex-col items-center gap-2">
-                                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                      <Loader2 className="h-8 w-8 animate-spin text-secondary-foreground" />
                                       <p className="text-sm text-muted-foreground">Uploading...</p>
                                     </div>
                                   ) : (
                                     <div className="flex flex-col items-center gap-2">
                                       <Upload className="h-8 w-8 text-muted-foreground" />
-                                      <p className="text-sm font-medium text-primary ">
+                                      <p className="text-sm font-medium text-secondary-foreground ">
                                         Drag and drop an image here, or click to select
                                       </p>
                                       <p className="text-xs text-muted-foreground">

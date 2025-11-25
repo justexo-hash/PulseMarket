@@ -33,7 +33,7 @@ export function PrivateWagerClient({ inviteCode }: PrivateWagerClientProps) {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center py-20">
-          <h2 className="text-3xl font-bold text-primary  mb-4">Invalid Invite Code</h2>
+          <h2 className="text-3xl font-bold text-secondary-foreground  mb-4">Invalid Invite Code</h2>
           <p className="text-muted-foreground mb-8">
             The invite code format is invalid. Invite codes are 8 characters (uppercase letters and numbers).
           </p>
@@ -65,7 +65,7 @@ export function PrivateWagerClient({ inviteCode }: PrivateWagerClientProps) {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center py-20 max-w-2xl mx-auto space-y-6">
-          <h2 className="text-3xl font-bold text-primary ">Private Wager Restricted</h2>
+          <h2 className="text-3xl font-bold text-secondary-foreground ">Private Wager Restricted</h2>
           <p className="text-muted-foreground text-lg">
             Private wagers are only available to authenticated users with a connected wallet.
             Please log in and connect your Solana wallet using the button in the header to continue.
@@ -88,7 +88,7 @@ export function PrivateWagerClient({ inviteCode }: PrivateWagerClientProps) {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center py-20">
-          <h2 className="text-3xl font-bold text-primary  mb-4">Private Wager Not Found</h2>
+          <h2 className="text-3xl font-bold text-secondary-foreground  mb-4">Private Wager Not Found</h2>
           <p className="text-muted-foreground mb-8">
             The private wager with this invite code doesn&apos;t exist or may have been deleted.
           </p>
