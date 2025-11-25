@@ -20,7 +20,7 @@ export function SearchCategories() {
           key={cat}
           size="lg"
           variant={activeCategory === cat.toLowerCase() ? "selected" : "ghost"}
-          className="whitespace-nowrap px-0 capitalize font-bold text-sm"
+          className="whitespace-nowrap px-0 capitalize font-bold text-base"
         >
           {cat}
         </Button>

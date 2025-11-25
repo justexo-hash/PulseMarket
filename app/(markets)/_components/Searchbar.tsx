@@ -36,7 +36,7 @@ export function MarketSearchBar() {
     <div ref={wrapperRef} className="relative md:min-w-[600px]">
       {/* SEARCHBAR (STATIC, ALWAYS VISIBLE) */}
       <div className="relative w-full" onClick={() => setOpen(true)}>
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary-foreground  outline-none pointer-events-none" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground  outline-none pointer-events-none" />
         <Input
           type="text"
           placeholder="Search markets..."
@@ -46,7 +46,7 @@ export function MarketSearchBar() {
             setOpen(true);
           }}
           className={
-            "pl-9 text-secondary-foreground  w-full  bg-secondary cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none " +
+            "pl-9 text-muted-foreground w-full  bg-secondary cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none " +
             (open
               ? "bg-background rounded-t-md rounded-b-none border border-muted-foreground/20"
               : "rounded-md")
@@ -93,18 +93,18 @@ export function MarketSearchBar() {
                         }}
                       />
 
-                      <div className="flex flex-col flex-1">
+                      <div className="flex flex-col flex-1 text-base font-medium">
                         <span>{m.question}</span>
                       </div>
 
-                      <span className="text-md font-medium text-secondary-foreground ">
+                      <span className="text-lg font-medium text-secondary-foreground ">
                         {Math.round(m.probability)}%
                       </span>
                     </Link>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground italic pl-3">
+                <p className="text-base font-medium text-muted-foreground italic pl-3">
                   No results for “{searchQuery}”
                 </p>
               )}
@@ -126,7 +126,7 @@ export function MarketSearchBar() {
                     onClick={() => setOpen(false)}
                   >
                     <Badge variant="ghost">
-                    <span className="capitalize text-lg">{cat}</span>
+                    <span className="capitalize text-base font-medium">{cat}</span>
                     </Badge>
                   </Link>
                 ))}
@@ -156,7 +156,7 @@ export function MarketSearchBar() {
                   >
                      <Badge variant="ghost">
 
-                    <span className="font-medium text-lg">{item.name}</span>
+                    <span className="font-medium text-base font-medium">{item.name}</span>
                      </Badge>
                   </Link>
                 ))}

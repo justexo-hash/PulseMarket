@@ -3,6 +3,34 @@ import type { ReactNode } from "react";
 import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css";
 import { AppProviders } from "./providers";
+import localFont from "next/font/local";
+
+const openSauce = localFont({
+  src: [
+    {
+      path: "../public/fonts/OpenSauceOne-Regular.woff",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/OpenSauceOne-Medium.woff",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/OpenSauceOne-SemiBold.woff",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/OpenSauceOne-Bold.woff",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-open-sauce",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "PulseMarket | World largest memecoin prediction markets",
@@ -46,8 +74,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen bg-background text-secondary-foreground  antialiased">
+    <html lang="en"  className={openSauce.variable} suppressHydrationWarning>
+      <body className="min-h-screen bg-background font-openSauce text-secondary-foreground  antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

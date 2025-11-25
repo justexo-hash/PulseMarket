@@ -43,7 +43,7 @@ export function ProbabilityGauge({
       </svg>
 
       <div className="-mt-[18px] text-center">
-        <span className="text-md font-semibold">{value}%</span>
+        <span className="font-semibold">{value}%</span>
         {!resolved && (
           <div className="text-[10px] text-muted-foreground">chance</div>
         )}
