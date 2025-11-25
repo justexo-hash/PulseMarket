@@ -1,6 +1,5 @@
 import { MarketListView } from "../../_components/MarketList";
 import MarketSearchProviderClient from "../../_components/MarketSearchProviderClient";
-import { GradientText } from "@/components/ui/shadcn-io/gradient-text";
 
 export default function CategoryPage({
   params,
