@@ -49,7 +49,7 @@ export function HeaderDesktop(props: any) {
               data-testid="link-home"
               className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
             >
-              <img src="../logo-white.png" className="w-8 h-8" alt="" />
+              <img src="/logo-white.png" className="w-8 h-8" alt="" />
               <span className="text-xl font-bold text-secondary-foreground ">
                 PulseMarket
               </span>
