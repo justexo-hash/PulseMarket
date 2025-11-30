@@ -28,6 +28,8 @@ interface WalletDropdownProps {
   triggerVariant?: ButtonProps["variant"];
   triggerSize?: ButtonProps["size"];
   onDisconnect?: () => void;
+  onChainBalance?: number | null;
+  solPriceUsd?: number | null;
 }
 
 const READY_STATE_LABEL: Record<WalletReadyState, string> = {
@@ -45,6 +47,8 @@ export function WalletDropdown({
   triggerVariant = "default",
   triggerSize = "sm",
   onDisconnect,
+  onChainBalance,
+  solPriceUsd,
 }: WalletDropdownProps) {
   const { toast } = useToast();
   const [pendingWallet, setPendingWallet] = useState<WalletName | null>(null);
@@ -191,6 +195,12 @@ export function WalletDropdown({
         ? truncateAddress(connectedAddress)
         : "Connect Wallet";
 
+  const personalBalance = onChainBalance ?? 0;
+  const personalUsdValue =
+    typeof solPriceUsd === "number"
+      ? personalBalance * solPriceUsd
+      : null;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -225,6 +235,25 @@ export function WalletDropdown({
                 </Badge>
               )}
             </DropdownMenuLabel>
+            <div className="px-3 pb-3">
+              <p className="text-xs uppercase text-muted-foreground">
+                Personal Wallet Balance
+              </p>
+              <div className="mt-1 flex items-baseline justify-between">
+                <span className="text-lg font-semibold text-secondary-foreground">
+                  {personalBalance.toFixed(4)} SOL
+                </span>
+                {personalUsdValue !== null && (
+                  <span className="text-xs text-muted-foreground">
+                    ≈ $
+                    {personalUsdValue.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                )}
+              </div>
+            </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleCopyAddress}>
               <Copy className="mr-2 h-4 w-4" />

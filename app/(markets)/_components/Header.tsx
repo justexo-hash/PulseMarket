@@ -7,10 +7,9 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useSolanaConnection, getSOLBalance } from "@/lib/solana";
 import { useEffect, useState } from "react";
 
-
 import { useMediaQuery } from "../_hooks/useMediaQuery";
 import { HeaderDesktop } from "./Header/HeaderDesktop";
-import { HeaderMobile} from "./Header/HeaderMobile";
+import { HeaderMobile } from "./Header/HeaderMobile";
 
 // Main Header component — responsive navbar + wallet + search + menus
 export function Header() {
@@ -45,6 +44,22 @@ export function Header() {
     refetchInterval: 30000,
   });
 
+  const { data: solPriceUsd } = useQuery<number>({
+    queryKey: ["sol-price-header"],
+    queryFn: async () => {
+      const response = await fetch("/api/coinmarketcap/quotes?symbol=SOL");
+      if (!response.ok) {
+        const { error } = await response.json().catch(() => ({ error: null }));
+        throw new Error(error || "Failed to fetch SOL price");
+      }
+      const json = await response.json();
+      const quote = json?.data?.SOL?.quote?.USD;
+      return quote?.price ?? 0;
+    },
+    enabled: !!wallet.connected,
+    refetchInterval: 60000,
+  });
+
   const handleLogout = () => {
     logout();
     toast({
@@ -64,6 +79,9 @@ export function Header() {
   );
 
   const isDesktop = useMediaQuery("(min-width: 1280px)");
+  const platformBalance = balanceData
+    ? parseFloat(balanceData.balance || "0")
+    : 0;
 
   if (isDesktop) {
     return (
@@ -71,6 +89,8 @@ export function Header() {
         user={user}
         wallet={wallet}
         onChainBalance={onChainBalance}
+        platformBalance={platformBalance}
+        solPriceUsd={solPriceUsd}
         isMounted={isMounted}
         handleLogout={handleLogout}
       />
@@ -81,6 +101,8 @@ export function Header() {
       user={user}
       wallet={wallet}
       onChainBalance={onChainBalance}
+      platformBalance={platformBalance}
+      solPriceUsd={solPriceUsd}
       handleLogout={handleLogout}
       isMounted={isMounted}
     />

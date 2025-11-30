@@ -44,6 +44,8 @@ export function HeaderMobile(props: any) {
                 align="end"
                 triggerVariant="secondary"
                 triggerClassName="min-w-[120px]"
+                onChainBalance={props.onChainBalance}
+                solPriceUsd={props.solPriceUsd}
                 onDisconnect={props.handleLogout}
               />
               <Sheet>
@@ -69,7 +71,7 @@ export function HeaderMobile(props: any) {
                           className="rounded-full object-cover"
                         />
                         <span className="text-sm font-bold text-secondary-foreground ">
-                          {(props.onChainBalance ?? 0).toFixed(2)}
+                          {(props.platformBalance ?? 0).toFixed(2)}
                         </span>
                       </div>
                     </div>

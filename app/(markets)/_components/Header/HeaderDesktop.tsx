@@ -74,7 +74,7 @@ export function HeaderDesktop(props: any) {
                     className="rounded-full object-cover"
                   />
                   <span className="text-sm font-bold text-secondary-foreground">
-                    {(props.onChainBalance ?? 0).toFixed(2)}
+                    {(props.platformBalance ?? 0).toFixed(2)}
                   </span>
                 </div>
 
@@ -88,6 +88,8 @@ export function HeaderDesktop(props: any) {
             <WalletDropdown
               wallet={props.wallet}
               isMounted={props.isMounted}
+              onChainBalance={props.onChainBalance}
+              solPriceUsd={props.solPriceUsd}
               onDisconnect={props.handleLogout}
             />
             {/* DESKTOP DROPDOWN MENU */}
