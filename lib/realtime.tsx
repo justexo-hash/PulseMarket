@@ -8,17 +8,6 @@ import type { RealtimeEvent } from "@shared/realtime";
 
 const GLOBAL_CHANNEL = "pulse-global";
 
-type Channel = ReturnType<Realtime["channels"]["get"]>;
-
-function safeDetach(channel: Channel | null) {
-  if (!channel) return;
-  try {
-    channel.detach().catch(() => {});
-  } catch {
-    // Connection might already be closed; ignore
-  }
-}
-
 export function useRealtime(userId?: number | null) {
   const clientRef = useRef<Realtime | null>(null);
   const globalChannelRef = useRef<Channel | null>(null);
@@ -97,13 +86,16 @@ export function useRealtime(userId?: number | null) {
     const globalChannel = client.channels.get(GLOBAL_CHANNEL);
     globalChannelRef.current = globalChannel;
     globalChannel.subscribe(handleEvent).catch((error) => {
+      const state = client.connection.state;
+      if (state === "closing" || state === "closed") {
+        return;
+      }
       console.error("[Realtime] Failed to subscribe to global channel", error);
     });
 
     return () => {
       client.connection.off(handleStateChange);
       globalChannel.unsubscribe();
-      safeDetach(globalChannel);
       globalChannelRef.current = null;
       client.close();
       clientRef.current = null;
@@ -119,7 +111,6 @@ export function useRealtime(userId?: number | null) {
     if (!userId) {
       if (userChannelRef.current) {
         userChannelRef.current.unsubscribe();
-        safeDetach(userChannelRef.current);
         userChannelRef.current = null;
       }
       return;
@@ -129,12 +120,15 @@ export function useRealtime(userId?: number | null) {
     userChannelRef.current = channel;
 
     channel.subscribe(handleEvent).catch((error) => {
+      const state = client.connection.state;
+      if (state === "closing" || state === "closed") {
+        return;
+      }
       console.error("[Realtime] Failed to subscribe to user channel", error);
     });
 
     return () => {
       channel.unsubscribe();
-      safeDetach(channel);
       if (userChannelRef.current === channel) {
         userChannelRef.current = null;
       }
