@@ -24,8 +24,13 @@ const updateProfileSchema = z.object({
   avatarUrl: z
     .string()
     .trim()
-    .url("Avatar must be a valid URL")
-    .or(z.literal(""))
+    .refine(
+      (val) => {
+        if (!val) return true;
+        return /^https?:\/\//.test(val) || val.startsWith("/");
+      },
+      { message: "Avatar must be a valid URL or start with /uploads" }
+    )
     .optional(),
 });
 
