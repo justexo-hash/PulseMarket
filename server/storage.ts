@@ -1,8 +1,9 @@
-import { 
+import {
   type Market, type InsertMarket, markets, 
   type User, type InsertUser, users,
   type Bet, type InsertBet, bets,
-  type Transaction, transactions
+  type Transaction, transactions,
+  walletNonces
 } from "@shared/schema";
 import { db } from "../db";
 import { eq, and, sql, desc } from "drizzle-orm";
@@ -57,6 +58,10 @@ export interface IStorage {
   
   // Admin methods
   refundMarketBets(marketId: number, onChainRefunds?: Array<{ walletAddress: string; amountSOL: number; txSignature?: string }>): Promise<void>;
+
+  // Wallet nonce helpers
+  upsertWalletNonce(walletAddress: string, nonce: string, expiresAt: Date): Promise<void>;
+  consumeWalletNonce(walletAddress: string, nonce: string): Promise<boolean>;
 }
 
 export class DbStorage implements IStorage {
@@ -675,6 +680,35 @@ export class DbStorage implements IStorage {
       .update(markets)
       .set(updates)
       .where(eq(markets.id, id));
+  }
+
+  async upsertWalletNonce(walletAddress: string, nonce: string, expiresAt: Date): Promise<void> {
+    await db
+      .insert(walletNonces)
+      .values({ walletAddress, nonce, expiresAt })
+      .onConflictDoUpdate({
+        target: walletNonces.walletAddress,
+        set: { nonce, expiresAt },
+      });
+  }
+
+  async consumeWalletNonce(walletAddress: string, nonce: string): Promise<boolean> {
+    const record = await db
+      .select()
+      .from(walletNonces)
+      .where(eq(walletNonces.walletAddress, walletAddress))
+      .limit(1);
+
+    if (!record[0]) {
+      return false;
+    }
+
+    const isMatch = record[0].nonce === nonce;
+    const isExpired = record[0].expiresAt && record[0].expiresAt < new Date();
+
+    await db.delete(walletNonces).where(eq(walletNonces.walletAddress, walletAddress));
+
+    return isMatch && !isExpired;
   }
 }
 

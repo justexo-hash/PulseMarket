@@ -9,7 +9,7 @@ interface RouteParams {
 }
 
 export async function GET(_request: Request, { params }: RouteParams) {
-  const session = getSession();
+  const session = await getSession();
   const viewerId = session?.userId;
 
   const username = params.username?.toLowerCase();

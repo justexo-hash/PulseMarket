@@ -14,7 +14,7 @@ interface RouteParams {
 }
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
-  const session = getSession();
+  const session = await getSession();
   const sessionUserId = session?.userId;
   if (!sessionUserId) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });

@@ -66,7 +66,23 @@ export function Header() {
   const isDesktop = useMediaQuery("(min-width: 1280px)");
 
   if (isDesktop) {
-    return <HeaderDesktop user={user} wallet={wallet} onChainBalance={onChainBalance} isMounted={isMounted} handleLogout={handleLogout} />;
+    return (
+      <HeaderDesktop
+        user={user}
+        wallet={wallet}
+        onChainBalance={onChainBalance}
+        isMounted={isMounted}
+        handleLogout={handleLogout}
+      />
+    );
   }
-  return <HeaderMobile user={user} wallet={wallet} onChainBalance={onChainBalance} handleLogout={handleLogout} />;
+  return (
+    <HeaderMobile
+      user={user}
+      wallet={wallet}
+      onChainBalance={onChainBalance}
+      handleLogout={handleLogout}
+      isMounted={isMounted}
+    />
+  );
 }

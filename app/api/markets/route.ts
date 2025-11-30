@@ -29,7 +29,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = getSession();
+    const session = await getSession();
     const userId = session?.userId;
 
     const body = await request.json();

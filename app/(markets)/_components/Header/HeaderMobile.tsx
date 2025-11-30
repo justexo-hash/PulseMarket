@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Bell, CircleDollarSign, LogOut, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { SearchCategories } from "../SearchCategories";
+import { WalletDropdown } from "./WalletDropdown";
 // Static navigation links for both desktop and mobile menus
 const NAV_LINKS = [
   { href: "/", label: "Discover" },
@@ -28,14 +29,23 @@ export function HeaderMobile(props: any) {
               data-testid="link-home"
               className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo-white.png" className="w-8 h-8" alt="" />
               <span className="text-xl font-bold text-secondary-foreground ">
                 PulseMarket
               </span>
             </Link>
             {/* MOBILE NAVIGATION (Sheet Menu) */}
-            <div className="flex  items-center gap-6">
+            <div className="flex items-center gap-3">
               <HowItWorksButton />
+              <WalletDropdown
+                wallet={props.wallet}
+                isMounted={props.isMounted}
+                align="end"
+                triggerVariant="secondary"
+                triggerClassName="min-w-[120px]"
+                onDisconnect={props.handleLogout}
+              />
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon">
@@ -98,15 +108,6 @@ export function HeaderMobile(props: any) {
                       )}
                     </div>
 
-                    {!props.user && (
-                      <>
-                        <Button variant="ghost" className="w-full">
-                          Log in
-                        </Button>
-                        <Button className="w-full">Sign Up</Button>
-                      </>
-                    )}
-
                     {props.user &&
                       props.wallet.connected &&
                       props.wallet.publicKey && (
@@ -129,15 +130,6 @@ export function HeaderMobile(props: any) {
                       )}
 
 
-                    {props.user && props.wallet.connected && (
-                      <Button
-                        onClick={props.handleLogout}
-                        className="w-full"
-                        variant="destructive"
-                      >
-                        Log out
-                      </Button>
-                    )}
                   </div>
                 </SheetContent>
               </Sheet>
