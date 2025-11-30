@@ -29,10 +29,10 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-      <Card className="p-8 bg-card border border-border shadow-sm">
+      <div className="rounded-2xl border border-muted-foreground/20 bg-secondary shadow-lg p-6 sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-            <Avatar className="h-24 w-24 border border-border/80 shadow-inner">
+            <Avatar className="h-24 w-24 border border-muted-foreground/20 shadow-inner">
               {user.avatarUrl ? (
                 <Image
                   src={user.avatarUrl}
@@ -107,7 +107,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
             </div>
           </div>
         </div>
-      </Card>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <MetricCard
@@ -146,14 +146,29 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
       </div>
 
       <Tabs defaultValue="activity" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-muted/30 lg:w-auto rounded-lg p-1">
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="calibration">Calibration</TabsTrigger>
-          <TabsTrigger value="sectors">Sectors</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 bg-secondary border border-muted-foreground/20 rounded-xl p-1 lg:w-auto">
+          <TabsTrigger
+            value="activity"
+            className="data-[state=active]:bg-muted data-[state=active]:text-secondary-foreground"
+          >
+            Activity
+          </TabsTrigger>
+          <TabsTrigger
+            value="calibration"
+            className="data-[state=active]:bg-muted data-[state=active]:text-secondary-foreground"
+          >
+            Calibration
+          </TabsTrigger>
+          <TabsTrigger
+            value="sectors"
+            className="data-[state=active]:bg-muted data-[state=active]:text-secondary-foreground"
+          >
+            Sectors
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="activity" className="mt-6">
-          <Card className="p-6 space-y-4 bg-card border border-border shadow-sm">
+          <Card className="p-6 space-y-4 bg-secondary border border-muted-foreground/20 shadow-sm">
             {recentBets.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 No betting activity yet.
@@ -213,7 +228,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
         </TabsContent>
 
         <TabsContent value="calibration" className="mt-6">
-          <Card className="p-6 border border-border bg-card shadow-sm">
+          <Card className="p-6 border border-muted-foreground/20 bg-secondary shadow-sm">
             {stats.calibrationBuckets.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 Need more resolved bets to compute calibration.
@@ -223,7 +238,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                 {stats.calibrationBuckets.map((bucket) => (
                   <div
                     key={bucket.bucket}
-                    className="rounded-xl border border-border/60 p-4 bg-card/80"
+                    className="rounded-xl border border-muted-foreground/20 p-4 bg-secondary shadow-sm"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <p className="font-semibold">{bucket.bucket}% bets</p>
@@ -251,7 +266,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
         </TabsContent>
 
         <TabsContent value="sectors" className="mt-6">
-          <Card className="p-6 border border-border bg-card shadow-sm">
+          <Card className="p-6 border border-muted-foreground/20 bg-secondary shadow-sm">
             {stats.sectorSpecialization.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 No sector data yet.
@@ -290,7 +305,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
 
 function StatPill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border/60 bg-card/80 px-4 py-3 text-center">
+    <div className="rounded-xl border border-muted-foreground/20 bg-secondary px-4 py-3 text-center shadow-sm">
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="text-xl font-semibold text-secondary-foreground">{value}</p>
     </div>
@@ -309,7 +324,7 @@ function MetricCard({
   helper?: string;
 }) {
   return (
-    <Card className="p-5 space-y-2 border border-border/60 bg-card shadow-sm">
+    <Card className="p-5 space-y-2 border border-muted-foreground/20 bg-secondary shadow-sm">
       <div className="flex items-center gap-3 text-sm text-muted-foreground">
         {icon}
         <span>{label}</span>
