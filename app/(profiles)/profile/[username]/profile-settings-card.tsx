@@ -17,9 +17,10 @@ interface ProfileSettingsCardProps {
     bio: string | null;
     avatarUrl: string | null;
   };
+  onSuccess?: () => void;
 }
 
-export function ProfileSettingsCard({ user }: ProfileSettingsCardProps) {
+export function ProfileSettingsCard({ user, onSuccess }: ProfileSettingsCardProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [username, setUsername] = useState(user.username);
@@ -56,6 +57,7 @@ export function ProfileSettingsCard({ user }: ProfileSettingsCardProps) {
         description: "Your changes have been saved successfully.",
       });
       router.refresh();
+      onSuccess?.();
     } catch (error: any) {
       toast({
         title: "Update Failed",

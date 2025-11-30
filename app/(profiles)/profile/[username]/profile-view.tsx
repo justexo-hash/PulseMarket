@@ -5,11 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { TrendingUp, Target, Users, Trophy, Sparkles, Shield } from "lucide-react";
+import { TrendingUp, Target, Users, Trophy, Sparkles, Shield, Settings } from "lucide-react";
 import { FollowButton } from "./follow-button";
 import type { PulseProfileSummary } from "@server/profiles";
 import Link from "next/link";
-import { ProfileSettingsCard } from "./profile-settings-card";
+import { ProfileSettingsSheet } from "./profile-settings-sheet";
 
 interface PulseProfileViewProps {
   profile: PulseProfileSummary;
@@ -28,24 +28,9 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#111827] via-[#0f172a] to-[#111827] p-8 shadow-[0_0_45px_rgba(99,102,241,0.35)]">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-60 blur-3xl"
-          style={{
-            background:
-              "radial-gradient(circle at 20% 20%, rgba(99,102,241,0.4), transparent 55%)",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute inset-0 opacity-50 blur-3xl"
-          style={{
-            background:
-              "radial-gradient(circle at 80% 0%, rgba(16,185,129,0.35), transparent 50%)",
-          }}
-        />
-        <div className="relative z-10 flex flex-col gap-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+      <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-background via-background to-muted/20 p-8 shadow-xl">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-6">
               <Avatar className="h-24 w-24 border-2 border-white/40 ring-4 ring-black/20">
                 {user.avatarUrl ? (
                   <Image
@@ -86,7 +71,8 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                 </div>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-4">
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4">
               <div className="grid grid-cols-2 gap-3">
                 <StatPill
                   label="Followers"
@@ -97,13 +83,34 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                   value={followers.followingCount.toLocaleString()}
                 />
               </div>
-              {canFollow && (
+            <div className="flex items-center justify-end gap-3">
+              {canFollow ? (
                 <FollowButton
                   username={user.username}
                   initialIsFollowing={followers.isFollowing}
                 />
-              )}
+              ) : viewerId === user.id ? (
+                <ProfileSettingsSheet
+                  user={{
+                    username: user.username,
+                    displayName: user.displayName,
+                    bio: user.bio,
+                    avatarUrl: user.avatarUrl,
+                  }}
+                >
+                  <Badge
+                    asChild
+                    className="cursor-pointer rounded-full px-4 py-2 text-sm font-medium"
+                  >
+                    <button className="flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      Edit Profile
+                    </button>
+                  </Badge>
+                </ProfileSettingsSheet>
+              ) : null}
             </div>
+          </div>
           </div>
         </div>
       </div>
