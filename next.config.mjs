@@ -5,8 +5,7 @@ const nextConfig = {
     domains: [
       "localhost",
       "127.0.0.1",
-      "pulsemkt.app",
-      "pulsemkt.vercel.app",
+      "pulsemarket.fun",
     ],
     remotePatterns: [
       {
