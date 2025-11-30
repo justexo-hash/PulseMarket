@@ -113,17 +113,6 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
         </div>
       </div>
 
-      {viewerId === user.id && (
-        <ProfileSettingsCard
-          user={{
-            username: user.username,
-            displayName: user.displayName,
-            bio: user.bio,
-            avatarUrl: user.avatarUrl,
-          }}
-        />
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <MetricCard
           icon={<TrendingUp className="h-5 w-5 text-secondary-foreground" />}
