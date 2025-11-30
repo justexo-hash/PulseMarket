@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { TrendingUp, Target, Users, Trophy, Sparkles, Shield, Settings } from "lucide-react";
 import { FollowButton } from "./follow-button";
 import type { PulseProfileSummary } from "@server/profiles";
@@ -28,10 +29,10 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-      <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-background via-background to-muted/20 p-8 shadow-xl">
+      <Card className="p-8 bg-card border border-border/60 shadow-sm">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-            <Avatar className="h-24 w-24 border-2 border-white/40 ring-4 ring-black/20">
+            <Avatar className="h-24 w-24 border border-border/80 shadow-inner">
               {user.avatarUrl ? (
                 <Image
                   src={user.avatarUrl}
@@ -72,7 +73,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
             </div>
           </div>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:w-64">
               <StatPill
                 label="Followers"
                 value={followers.followersCount.toLocaleString()}
@@ -97,21 +98,16 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                     avatarUrl: user.avatarUrl,
                   }}
                 >
-                  <Badge
-                    asChild
-                    className="cursor-pointer rounded-full px-4 py-2 text-sm font-medium"
-                  >
-                    <button className="flex items-center gap-2">
-                      <Settings className="h-4 w-4" />
-                      Edit Profile
-                    </button>
-                  </Badge>
+                  <Button variant="outline" className="gap-2">
+                    <Settings className="h-4 w-4" />
+                    Edit Profile
+                  </Button>
                 </ProfileSettingsSheet>
               ) : null}
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <MetricCard
@@ -150,29 +146,14 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
       </div>
 
       <Tabs defaultValue="activity" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 rounded-2xl border border-white/10 bg-white/5 p-1 lg:w-auto">
-          <TabsTrigger
-            value="activity"
-            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-secondary-foreground"
-          >
-            Activity
-          </TabsTrigger>
-          <TabsTrigger
-            value="calibration"
-            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-secondary-foreground"
-          >
-            Calibration
-          </TabsTrigger>
-          <TabsTrigger
-            value="sectors"
-            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-secondary-foreground"
-          >
-            Sectors
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 bg-muted/30 lg:w-auto rounded-lg p-1">
+          <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsTrigger value="calibration">Calibration</TabsTrigger>
+          <TabsTrigger value="sectors">Sectors</TabsTrigger>
         </TabsList>
 
         <TabsContent value="activity" className="mt-6">
-          <Card className="p-6 space-y-4 border border-white/5 bg-white/5 backdrop-blur">
+          <Card className="p-6 space-y-4 border border-border/60 bg-card shadow-sm">
             {recentBets.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 No betting activity yet.
@@ -238,7 +219,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
         </TabsContent>
 
         <TabsContent value="calibration" className="mt-6">
-          <Card className="p-6 border border-white/5 bg-white/5 backdrop-blur">
+          <Card className="p-6 border border-border/60 bg-card shadow-sm">
             {stats.calibrationBuckets.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 Need more resolved bets to compute calibration.
@@ -248,7 +229,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                 {stats.calibrationBuckets.map((bucket) => (
                   <div
                     key={bucket.bucket}
-                    className="rounded-xl border border-white/10 p-4 bg-background/60"
+                    className="rounded-xl border border-border/60 p-4 bg-card/80"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <p className="font-semibold">{bucket.bucket}% bets</p>
@@ -276,7 +257,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
         </TabsContent>
 
         <TabsContent value="sectors" className="mt-6">
-          <Card className="p-6 border border-white/5 bg-white/5 backdrop-blur">
+          <Card className="p-6 border border-border/60 bg-card shadow-sm">
             {stats.sectorSpecialization.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 No sector data yet.
@@ -315,8 +296,8 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
 
 function StatPill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center backdrop-blur">
-      <p className="text-xs uppercase tracking-wide text-white/70">{label}</p>
+    <div className="rounded-xl border border-border/60 bg-card/80 px-4 py-3 text-center">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="text-xl font-semibold text-secondary-foreground">{value}</p>
     </div>
   );
@@ -334,7 +315,7 @@ function MetricCard({
   helper?: string;
 }) {
   return (
-    <Card className="p-5 space-y-2 border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur">
+    <Card className="p-5 space-y-2 border border-border/60 bg-card shadow-sm">
       <div className="flex items-center gap-3 text-sm text-muted-foreground">
         {icon}
         <span>{label}</span>
