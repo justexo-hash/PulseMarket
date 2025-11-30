@@ -29,60 +29,59 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
       <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-background via-background to-muted/20 p-8 shadow-xl">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-              <Avatar className="h-24 w-24 border-2 border-white/40 ring-4 ring-black/20">
-                {user.avatarUrl ? (
-                  <Image
-                    src={user.avatarUrl}
-                    alt={user.displayName}
-                    width={96}
-                    height={96}
-                    className="object-cover"
-                  />
-                ) : (
-                  <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary">
-                    {user.displayName.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                )}
-              </Avatar>
-              <div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-4xl font-bold text-secondary-foreground">
-                    {user.displayName}
-                  </h1>
-                  <Badge variant="secondary" className="text-sm">
-                    @{user.username}
-                  </Badge>
-                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-wide text-white/80">
-                    <Sparkles className="mr-1 h-3 w-3" />
-                    Pulse Forecaster
-                  </span>
-                </div>
-                <p className="text-muted-foreground mt-3 max-w-2xl leading-relaxed">
-                  {user.bio || "This forecaster hasn’t added a bio yet."}
-                </p>
-                <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                  <span>Joined {format(new Date(user.joinedAt), "MMMM d, yyyy")}</span>
-                  <span className="flex items-center gap-1">
-                    <Shield className="h-3 w-3" />
-                    {user.walletAddress.slice(0, 4)}...{user.walletAddress.slice(-4)}
-                  </span>
-                </div>
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+            <Avatar className="h-24 w-24 border-2 border-white/40 ring-4 ring-black/20">
+              {user.avatarUrl ? (
+                <Image
+                  src={user.avatarUrl}
+                  alt={user.displayName}
+                  width={96}
+                  height={96}
+                  className="object-cover"
+                />
+              ) : (
+                <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary">
+                  {user.displayName.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              )}
+            </Avatar>
+            <div>
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="text-4xl font-bold text-secondary-foreground">
+                  {user.displayName}
+                </h1>
+                <Badge variant="secondary" className="text-sm">
+                  @{user.username}
+                </Badge>
+                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-wide text-white/80">
+                  <Sparkles className="mr-1 h-3 w-3" />
+                  Pulse Forecaster
+                </span>
+              </div>
+              <p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">
+                {user.bio || "This forecaster hasn’t added a bio yet."}
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                <span>Joined {format(new Date(user.joinedAt), "MMMM d, yyyy")}</span>
+                <span className="flex items-center gap-1">
+                  <Shield className="h-3 w-3" />
+                  {user.walletAddress.slice(0, 4)}...{user.walletAddress.slice(-4)}
+                </span>
               </div>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4">
-              <div className="grid grid-cols-2 gap-3">
-                <StatPill
-                  label="Followers"
-                  value={followers.followersCount.toLocaleString()}
-                />
-                <StatPill
-                  label="Following"
-                  value={followers.followingCount.toLocaleString()}
-                />
-              </div>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="grid grid-cols-2 gap-3">
+              <StatPill
+                label="Followers"
+                value={followers.followersCount.toLocaleString()}
+              />
+              <StatPill
+                label="Following"
+                value={followers.followingCount.toLocaleString()}
+              />
+            </div>
             <div className="flex items-center justify-end gap-3">
               {canFollow ? (
                 <FollowButton
@@ -110,7 +109,6 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                 </ProfileSettingsSheet>
               ) : null}
             </div>
-          </div>
           </div>
         </div>
       </div>
