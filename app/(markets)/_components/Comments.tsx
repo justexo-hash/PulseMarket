@@ -23,7 +23,7 @@ interface CommentPayload {
     username: string;
     displayName: string | null;
     avatarUrl: string | null;
-    hasActiveBet?: boolean;
+    activePosition?: "yes" | "no" | null;
   };
 }
 
@@ -150,9 +150,15 @@ export default function Comments({ slug }: CommentsProps) {
                   {comment.user.displayName || comment.user.username}
                 </Link>
                 <span className="text-xs text-muted-foreground">@{comment.user.username}</span>
-                {comment.user.hasActiveBet && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">
-                    Active position
+                {comment.user.activePosition && (
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+                      comment.user.activePosition === "yes"
+                        ? "bg-emerald-500/10 text-emerald-400"
+                        : "bg-red-500/10 text-red-400"
+                    }`}
+                  >
+                    {comment.user.activePosition.toUpperCase()} bet
                   </span>
                 )}
                 <span className="text-xs text-muted-foreground">
