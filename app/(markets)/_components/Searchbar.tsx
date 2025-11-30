@@ -1,18 +1,35 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useMarketSearchContext } from "../_context/MarketSearchContext";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+
+type SearchMode = "markets" | "users";
+
+interface ProfileSearchResult {
+  id: number;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+}
 
 export function MarketSearchBar() {
   const { searchQuery, setSearchQuery, categories, markets } =
     useMarketSearchContext();
 
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<SearchMode>("markets");
+  const [userResults, setUserResults] = useState<ProfileSearchResult[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [userError, setUserError] = useState<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -26,9 +43,54 @@ export function MarketSearchBar() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const filteredResults = searchQuery.trim().length
+  const trimmedQuery = searchQuery.trim();
+
+  useEffect(() => {
+    if (mode !== "users" || trimmedQuery.length === 0) {
+      abortRef.current?.abort();
+      abortRef.current = null;
+      setUserResults([]);
+      setUsersLoading(false);
+      setUserError(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    abortRef.current?.abort();
+    abortRef.current = controller;
+
+    const fetchUsers = async () => {
+      setUsersLoading(true);
+      setUserError(null);
+      try {
+        const response = await fetch(
+          `/api/profiles/search?q=${encodeURIComponent(trimmedQuery)}&limit=6`,
+          { signal: controller.signal }
+        );
+        if (!response.ok) {
+          throw new Error("Failed to search users");
+        }
+        const data = await response.json();
+        setUserResults(data.users ?? []);
+      } catch (error: any) {
+        if (error?.name === "AbortError") {
+          return;
+        }
+        setUserError(error?.message ?? "Failed to search users");
+        setUserResults([]);
+      } finally {
+        setUsersLoading(false);
+      }
+    };
+
+    void fetchUsers();
+
+    return () => controller.abort();
+  }, [mode, trimmedQuery]);
+
+  const filteredResults = trimmedQuery.length
     ? markets.filter((m) =>
-        m.question.toLowerCase().includes(searchQuery.toLowerCase())
+        m.question.toLowerCase().includes(trimmedQuery.toLowerCase())
       )
     : [];
 
@@ -39,7 +101,7 @@ export function MarketSearchBar() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground  outline-none pointer-events-none" />
         <Input
           type="text"
-          placeholder="Search markets..."
+          placeholder="Search markets or users..."
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value);
@@ -65,55 +127,115 @@ export function MarketSearchBar() {
         "
         >
           {/* LIVE RESULTS SECTION */}
-          {searchQuery.trim().length > 0 && (
-            <div className="flex flex-col gap-2 py-2 border-b">
-              <p className="text-xs font-medium px-3 text-muted-foreground uppercase">
-                Results
-              </p>
-
-              {filteredResults.length > 0 ? (
-                <div className="fflex flex-col gap-2 p-4 border-b border-muted-foreground/20">
-                  {filteredResults.map((m) => (
-                    <Link
-                      key={m.id}
-                      href={`/markets/${m.id}`}
-                      onClick={() => setOpen(false)}
-                      className="
-                      w-full flex items-center gap-3 px-4 py-2 
-                      hover:bg-background border border-transparent font-medium text-secondary-foreground 
-                    
-                      "
+          {trimmedQuery.length > 0 && (
+            <div className="flex flex-col gap-2 border-b border-muted-foreground/20">
+              <div className="flex items-center justify-between px-3 py-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase">
+                  Search
+                </p>
+                <div className="inline-flex rounded-full bg-muted/30 p-1 text-xs font-semibold">
+                  {(["markets", "users"] as const).map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setMode(option)}
+                      className={cn(
+                        "px-3 py-1 rounded-full transition",
+                        mode === option
+                          ? "bg-background text-secondary-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-secondary-foreground"
+                      )}
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={m.image || "/placeholder.png"}
-                        alt={m.question}
-                        className="w-10 h-10 rounded-sm object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = "/placeholder.png";
-                        }}
-                      />
-
-                      <div className="flex flex-col flex-1 text-base font-medium">
-                        <span>{m.question}</span>
-                      </div>
-
-                      <span className="text-lg font-medium text-secondary-foreground ">
-                        {Math.round(m.probability)}%
-                      </span>
-                    </Link>
+                      {option === "markets" ? "Markets" : "Users"}
+                    </button>
                   ))}
                 </div>
+              </div>
+
+              {mode === "markets" ? (
+                filteredResults.length > 0 ? (
+                  <div className="flex flex-col gap-2 p-4 border-t border-muted-foreground/10">
+                    {filteredResults.map((m) => (
+                      <Link
+                        key={m.id}
+                        href={`/markets/${m.id}`}
+                        onClick={() => setOpen(false)}
+                        className="
+                        w-full flex items-center gap-3 px-4 py-2 
+                        hover:bg-muted/20 border border-transparent font-medium text-secondary-foreground rounded-lg transition
+                      "
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={m.image || "/placeholder.png"}
+                          alt={m.question}
+                          className="w-10 h-10 rounded-sm object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = "/placeholder.png";
+                          }}
+                        />
+
+                        <div className="flex flex-col flex-1 text-sm font-medium">
+                          <span>{m.question}</span>
+                        </div>
+
+                        <span className="text-lg font-semibold text-secondary-foreground ">
+                          {Math.round(m.probability)}%
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm font-medium text-muted-foreground italic px-4 pb-4">
+                    No market results for “{searchQuery}”
+                  </p>
+                )
               ) : (
-                <p className="text-base font-medium text-muted-foreground italic pl-3">
-                  No results for “{searchQuery}”
-                </p>
+                <div className="flex flex-col gap-2 p-4 border-t border-muted-foreground/10">
+                  {usersLoading ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Searching users...
+                    </div>
+                  ) : userError ? (
+                    <p className="text-sm text-destructive">{userError}</p>
+                  ) : userResults.length > 0 ? (
+                    userResults.map((user) => (
+                      <Link
+                        key={user.id}
+                        href={`/profile/${user.username}`}
+                        onClick={() => setOpen(false)}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-muted/20 transition"
+                      >
+                        <Avatar className="h-9 w-9 border border-muted-foreground/20">
+                          {user.avatarUrl ? (
+                            <AvatarImage src={user.avatarUrl} alt={user.username} />
+                          ) : (
+                            <AvatarFallback>
+                              {(user.displayName || user.username).slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          )}
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-secondary-foreground">
+                            {user.displayName || user.username}
+                          </p>
+                          <p className="text-xs text-muted-foreground">@{user.username}</p>
+                        </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">
+                      No user results for “{searchQuery}”
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           )}
 
           {/* TOPICS SECTION */}
-          {searchQuery.trim().length === 0 && (
+          {trimmedQuery.length === 0 && (
             <div className="flex flex-col gap-2 p-4">
               <p className="text-xs font-medium text-muted-foreground uppercase">
                 Topics
@@ -135,7 +257,7 @@ export function MarketSearchBar() {
             </div>
           )}
           {/* BROWSE SECTION */}
-          {searchQuery.trim().length === 0 && (
+          {trimmedQuery.length === 0 && (
             <div className="flex flex-col gap-2 p-4 border-b border-muted-foreground/20  pointer-events-none select-none">
               <p className="text-xs font-medium text-muted-foreground uppercase">
                 Browse{" "}

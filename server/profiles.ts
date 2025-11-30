@@ -239,6 +239,34 @@ export async function getPulseProfile(
   };
 }
 
+const ESCAPE_LIKE_REGEX = /[%_]/g;
+function buildSearchTerm(query: string) {
+  return `%${query.replace(ESCAPE_LIKE_REGEX, (char) => `\\${char}`)}%`;
+}
+
+export async function searchProfiles(query: string, limit = 5) {
+  if (!query.trim()) {
+    return [];
+  }
+
+  const term = buildSearchTerm(query.trim());
+
+  return db
+    .select({
+      id: users.id,
+      username: users.username,
+      displayName: users.displayName,
+      avatarUrl: users.avatarUrl,
+      bio: users.bio,
+    })
+    .from(users)
+    .where(
+      sql`${users.username} ILIKE ${term} OR ${users.displayName} ILIKE ${term}`
+    )
+    .orderBy(sql`LENGTH(${users.username}) ASC`)
+    .limit(Math.max(1, Math.min(limit, 20)));
+}
+
 export async function followUser(
   followerId: number,
   followeeId: number
