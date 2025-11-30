@@ -4,12 +4,14 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { CldUploadButton, CldUploadWidgetResults } from "next-cloudinary";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface ProfileSettingsCardProps {
   user: {
@@ -30,6 +32,7 @@ export function ProfileSettingsCard({ user, onSuccess }: ProfileSettingsCardProp
   const [bio, setBio] = useState(user.bio ?? "");
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl ?? "");
   const [isSaving, setIsSaving] = useState(false);
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -81,6 +84,24 @@ export function ProfileSettingsCard({ user, onSuccess }: ProfileSettingsCardProp
     }
   };
 
+  const handleUpload = (result: CldUploadWidgetResults) => {
+    const info = result.info;
+    if (typeof info === "object" && info && "secure_url" in info) {
+      const secureUrl = (info as { secure_url: string }).secure_url;
+      setAvatarUrl(secureUrl);
+      toast({
+        title: "Avatar Uploaded",
+        description: "Your new profile picture has been uploaded successfully.",
+      });
+    } else {
+      toast({
+        title: "Upload Failed",
+        description: "Unable to process the uploaded image.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Card className="p-6 border border-white/10 bg-background/70 backdrop-blur">
       <div className="flex flex-col gap-2 mb-6">
@@ -115,8 +136,20 @@ export function ProfileSettingsCard({ user, onSuccess }: ProfileSettingsCardProp
               value={avatarUrl}
               onChange={(event) => setAvatarUrl(event.target.value)}
             />
+            <CldUploadButton
+              uploadPreset={uploadPreset || ""}
+              onUpload={handleUpload}
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "w-full justify-center",
+                !uploadPreset && "pointer-events-none opacity-50"
+              )}
+              disabled={!uploadPreset}
+            >
+              {uploadPreset ? "Upload Image" : "Upload disabled (missing preset)"}
+            </CldUploadButton>
             <p className="text-xs text-muted-foreground text-center">
-              Paste an image URL. For uploads, host the file and paste the link here.
+              Paste an image URL or use the upload button to add a picture from your device.
             </p>
           </div>
 
