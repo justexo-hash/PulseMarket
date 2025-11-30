@@ -1,92 +1,196 @@
 "use client";
 
-import { createContext, useContext, ReactNode, useMemo, useEffect, useCallback } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import {
+  createContext,
+  useContext,
+  ReactNode,
+  useMemo,
+  useEffect,
+  useCallback,
+  useState,
+} from "react";
+import { SessionProvider, signIn, signOut, useSession } from "next-auth/react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import type { User } from "@shared/schema";
+import { Buffer } from "buffer";
+import { queryClient } from "@/lib/queryClient";
+import { getWalletSignMessage } from "@/lib/solanaAuth";
+import { useToast } from "@/hooks/use-toast";
+
+type AuthUser = {
+  id: number;
+  walletAddress: string;
+  username: string;
+  isAdmin: boolean;
+};
 
 interface AuthContextType {
-  user: User | null | undefined;
+  user: AuthUser | null;
   isLoading: boolean;
   logout: () => void;
 }
 
+if (typeof window !== "undefined") {
+  // Ensure Buffer is available when wallet adapters run in the browser
+  (window as any).Buffer = (window as any).Buffer || Buffer;
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+function AuthSyncProvider({ children }: { children: ReactNode }) {
+  const { data: session, status } = useSession();
   const wallet = useWallet();
-  
-  // Authenticate with wallet when wallet connects
-  const walletAuthMutation = useMutation({
-    mutationFn: async (walletAddress: string) => {
-      const response = await apiRequest("POST", "/api/auth/wallet", { walletAddress });
-      return await response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["/api/auth/me"], data);
-    },
-  });
-
-  // Auto-authenticate when wallet connects
-  useEffect(() => {
-    if (wallet.connected && wallet.publicKey && !walletAuthMutation.isPending) {
-      const walletAddress = wallet.publicKey.toBase58();
-      // Only authenticate if we don't already have a user or it's a different wallet
-      const currentUser = queryClient.getQueryData<User | null>(["/api/auth/me"]);
-      if (!currentUser || currentUser.walletAddress !== walletAddress) {
-        walletAuthMutation.mutate(walletAddress);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wallet.connected, wallet.publicKey]);
-
-  const { data: user, isLoading } = useQuery<User | null>({
-    queryKey: ["/api/auth/me"],
-    queryFn: async () => {
-      try {
-        const response = await fetch("/api/auth/me", {
-          credentials: "include",
-        });
-        if (!response.ok) {
-          return null;
-        }
-        return await response.json();
-      } catch (error) {
-        console.error('[Auth] Error fetching user:', error);
-        return null;
-      }
-    },
-    retry: false,
-    // Prevent refetch on mount if we already have data
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-  });
-
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("POST", "/api/auth/logout", {});
-    },
-    onSuccess: () => {
-      queryClient.setQueryData(["/api/auth/me"], null);
-      queryClient.clear();
-    },
-  });
+  const { toast } = useToast();
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [lastAuthenticatedAddress, setLastAuthenticatedAddress] = useState<string | null>(null);
+  const [shouldAuthenticate, setShouldAuthenticate] = useState(false);
 
   const logout = useCallback(() => {
-    logoutMutation.mutate();
-  }, [logoutMutation]);
+    signOut({ redirect: false });
+    queryClient.clear();
+  }, []);
 
-  const contextValue = useMemo(
-    () => ({ user, isLoading, logout }),
-    [user, isLoading, logout]
+  const authenticateWithWallet = useCallback(
+    async (walletAddress: string) => {
+      if (!wallet.signMessage) {
+        toast({
+          title: "Wallet Unsupported",
+          description:
+            "This wallet does not support message signing. Please use a wallet that supports signMessage.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsAuthenticating(true);
+      try {
+        const nonceResponse = await fetch("/api/auth/nonce", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ walletAddress }),
+        });
+
+        if (!nonceResponse.ok) {
+          const error = await nonceResponse.json().catch(() => ({}));
+          throw new Error(error.error || "Failed to fetch nonce.");
+        }
+
+        const { nonce } = await nonceResponse.json();
+        const message = getWalletSignMessage(nonce);
+        const encodedMessage = new TextEncoder().encode(message);
+        const signature = await wallet.signMessage(encodedMessage);
+        const signatureBase64 = Buffer.from(signature).toString("base64");
+
+        const result = await signIn("credentials", {
+          walletAddress,
+          nonce,
+          signature: signatureBase64,
+          redirect: false,
+        });
+
+        if (result?.error) {
+          throw new Error(result.error);
+        }
+
+        setLastAuthenticatedAddress(walletAddress);
+      } catch (error: any) {
+        console.error("[Auth] Wallet authentication failed:", error);
+        toast({
+          title: "Connection Failed",
+          description: error?.message || "Unable to authenticate wallet.",
+          variant: "destructive",
+        });
+        await wallet.disconnect();
+      } finally {
+        setIsAuthenticating(false);
+      }
+    },
+    [toast, wallet]
   );
+
+  useEffect(() => {
+    if (session?.user?.walletAddress) {
+      setLastAuthenticatedAddress(session.user.walletAddress);
+    }
+  }, [session?.user?.walletAddress]);
+
+  useEffect(() => {
+    if (
+      wallet.connected &&
+      wallet.publicKey &&
+      wallet.signMessage &&
+      !isAuthenticating &&
+      status !== "loading"
+    ) {
+      const currentAddress = wallet.publicKey.toBase58();
+      if (session?.user?.walletAddress === currentAddress || lastAuthenticatedAddress === currentAddress) {
+        setShouldAuthenticate(false);
+      } else {
+        setShouldAuthenticate(true);
+      }
+    } else {
+      setShouldAuthenticate(false);
+    }
+  }, [
+    wallet.connected,
+    wallet.publicKey,
+    wallet.signMessage,
+    isAuthenticating,
+    status,
+    session?.user?.walletAddress,
+    lastAuthenticatedAddress,
+  ]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      const currentAddress = wallet.publicKey?.toBase58();
+      if (shouldAuthenticate && currentAddress) {
+        if (session?.user?.walletAddress && session.user.walletAddress !== currentAddress) {
+          await logout();
+        }
+        if (!cancelled) {
+          await authenticateWithWallet(currentAddress);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authenticateWithWallet, logout, session?.user?.walletAddress, shouldAuthenticate, wallet.publicKey]);
+
+  const contextValue = useMemo(() => {
+    const memoUser: AuthUser | null = session?.user
+      ? {
+          id: session.user.id,
+          walletAddress: session.user.walletAddress,
+          username: session.user.username,
+          isAdmin: session.user.isAdmin,
+        }
+      : null;
+
+    return {
+      user: memoUser,
+      isLoading: status === "loading" || isAuthenticating,
+      logout,
+    };
+  }, [session?.user, status, isAuthenticating, logout]);
 
   return (
     <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
+  );
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  return (
+    <SessionProvider>
+      <AuthSyncProvider>{children}</AuthSyncProvider>
+    </SessionProvider>
   );
 }
 
@@ -97,3 +201,4 @@ export function useAuth() {
   }
   return context;
 }
+

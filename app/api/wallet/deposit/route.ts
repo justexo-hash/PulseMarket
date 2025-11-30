@@ -1,38 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
 import { storage } from "@server/storage";
 import { verifyDepositTransaction } from "@server/deposits";
 import { publishToUser } from "@lib/realtime/server";
-import { getSession, setSession } from "../../_utils/session";
+import { getSession } from "../../_utils/session";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
 
-  let session = getSession();
-  let userId = session?.userId;
-  let walletAddress = session?.walletAddress;
+  const session = await getSession();
+  const userId = session?.userId;
+  const walletAddress = session?.walletAddress;
 
-  const providedWalletAddress =
-    typeof body.walletAddress === "string" ? body.walletAddress.trim() : "";
-
-  if (!userId && providedWalletAddress) {
-    const user = await storage.getUserByWalletAddress(providedWalletAddress);
-    if (user) {
-      userId = user.id;
-      walletAddress = user.walletAddress;
-      setSession({ userId: user.id, walletAddress: user.walletAddress });
-    } else {
-      const randomPassword = crypto.randomBytes(32).toString("hex");
-      const newUser = await storage.createUser({
-        walletAddress: providedWalletAddress,
-        password: randomPassword,
-      });
-      userId = newUser.id;
-      walletAddress = newUser.walletAddress;
-      setSession({ userId: newUser.id, walletAddress: newUser.walletAddress });
-    }
+  if (
+    body.walletAddress &&
+    walletAddress &&
+    body.walletAddress.trim() !== walletAddress
+  ) {
+    return NextResponse.json(
+      { error: "Wallet mismatch. Please reconnect your wallet." },
+      { status: 403 }
+    );
   }
 
   if (!userId || !walletAddress) {

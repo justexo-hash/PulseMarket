@@ -10,23 +10,14 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogDescription,
-} from "@/components/ui/dialog";
-
 import { SearchCategories } from "../SearchCategories";
 import { MarketSearchBar } from "../Searchbar";
 import HowItWorksButton from "@/components/HowItWorks";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Bell, CircleDollarSign, LogOut, Menu } from "lucide-react";
+import { Bell, CircleDollarSign, Menu } from "lucide-react";
 import { ModeToggle } from "@/components/theme-toggle";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { WalletDropdown } from "./WalletDropdown";
 
 // Static navigation links for both desktop and mobile menus
 const NAV_LINKS = [
@@ -49,6 +40,7 @@ export function HeaderDesktop(props: any) {
               data-testid="link-home"
               className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo-white.png" className="w-8 h-8" alt="" />
               <span className="text-xl font-bold text-secondary-foreground ">
                 PulseMarket
@@ -93,49 +85,11 @@ export function HeaderDesktop(props: any) {
               </>
             )}
 
-            {/* LOGIN / SIGNUP WALLET MODAL
-              Uses Dialog + WalletMultiButton */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="ghost">Log in</Button>
-              </DialogTrigger>
-              <DialogTrigger asChild>
-                <Button>Sign Up</Button>
-              </DialogTrigger>
-
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Connect your Wallet</DialogTitle>
-                  <DialogDescription>
-                    Choose your preferred wallet provider to connect securely.
-                  </DialogDescription>
-                </DialogHeader>
-
-                {props.isMounted ? (
-                  <WalletMultiButton className="!h-9 !rounded-lg w-full" />
-                ) : (
-                  <Button
-                    size="sm"
-                    disabled
-                    aria-hidden="true"
-                    className="w-full"
-                  >
-                    Loading
-                  </Button>
-                )}
-
-                {props.wallet.connected && props.user && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={props.handleLogout}
-                    className="mt-2"
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </Button>
-                )}
-              </DialogContent>
-            </Dialog>
+            <WalletDropdown
+              wallet={props.wallet}
+              isMounted={props.isMounted}
+              onDisconnect={props.handleLogout}
+            />
             {/* DESKTOP DROPDOWN MENU */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

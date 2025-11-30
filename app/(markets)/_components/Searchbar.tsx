@@ -84,6 +84,7 @@ export function MarketSearchBar() {
                     
                       "
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={m.image || "/placeholder.png"}
                         alt={m.question}

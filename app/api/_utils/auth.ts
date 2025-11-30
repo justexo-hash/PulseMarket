@@ -2,7 +2,7 @@ import { storage } from "@server/storage";
 import { getSession } from "./session";
 
 export async function requireUser() {
-  const session = getSession();
+  const session = await getSession();
   if (!session?.userId) {
     throw new Error("Not authenticated");
   }

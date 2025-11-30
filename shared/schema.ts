@@ -24,6 +24,14 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const walletNonces = pgTable("wallet_nonces", {
+  id: serial("id").primaryKey(),
+  walletAddress: text("wallet_address").notNull().unique(),
+  nonce: text("nonce").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const markets = pgTable("markets", {
   id: serial("id").primaryKey(),
   question: text("question").notNull(),

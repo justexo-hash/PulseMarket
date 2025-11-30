@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
 import { betSchema } from "@shared/schema";
 import { storage } from "@server/storage";
 import { isValidInviteCode } from "@server/inviteCodes";
-import { getSession, setSession } from "../../../_utils/session";
+import { getSession } from "../../../_utils/session";
 import { publishEvent, publishToUser } from "@lib/realtime/server";
 
 interface RouteParams {
@@ -11,45 +10,26 @@ interface RouteParams {
 }
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
-  const session = getSession();
-  let userId = session?.userId;
-  let sessionWalletAddress = session?.walletAddress;
+  const session = await getSession();
+  const userId = session?.userId;
+  const sessionWalletAddress = session?.walletAddress;
 
   const body = await request.json();
-  const providedWalletAddress =
-    typeof body.walletAddress === "string" ? body.walletAddress : undefined;
 
-  if (!userId && providedWalletAddress) {
-    const walletAddress = providedWalletAddress.trim();
-    if (walletAddress.length > 0) {
-      const existingUser = await storage.getUserByWalletAddress(walletAddress);
-      if (existingUser) {
-        userId = existingUser.id;
-        sessionWalletAddress = existingUser.walletAddress;
-        setSession({
-          userId: existingUser.id,
-          walletAddress: existingUser.walletAddress,
-        });
-      } else {
-        const randomPassword = crypto.randomBytes(32).toString("hex");
-        const newUser = await storage.createUser({
-          walletAddress,
-          password: randomPassword,
-        });
-        userId = newUser.id;
-        sessionWalletAddress = newUser.walletAddress;
-        setSession({
-          userId: newUser.id,
-          walletAddress: newUser.walletAddress,
-        });
-      }
-    }
-  }
-
-  if (!userId) {
+  if (!userId || !sessionWalletAddress) {
     return NextResponse.json(
       { error: "Not authenticated. Please connect wallet." },
       { status: 401 }
+    );
+  }
+
+  if (
+    body.walletAddress &&
+    body.walletAddress.trim() !== sessionWalletAddress
+  ) {
+    return NextResponse.json(
+      { error: "Wallet mismatch. Please reconnect your wallet." },
+      { status: 403 }
     );
   }
 

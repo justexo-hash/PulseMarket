@@ -4,7 +4,7 @@ import { createRealtimeTokenRequest } from "@lib/realtime/server";
 
 export async function POST() {
   try {
-    const session = getSession();
+    const session = await getSession();
     const capability: Record<string, Array<"subscribe">> = {
       "pulse-global": ["subscribe"],
     };
