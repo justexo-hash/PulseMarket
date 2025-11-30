@@ -1,17 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { CldUploadButton, CldUploadWidgetResults } from "next-cloudinary";
 import { Card } from "@/components/ui/card";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 
 interface ProfileSettingsCardProps {
   user: {
@@ -32,7 +30,8 @@ export function ProfileSettingsCard({ user, onSuccess }: ProfileSettingsCardProp
   const [bio, setBio] = useState(user.bio ?? "");
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl ?? "");
   const [isSaving, setIsSaving] = useState(false);
-  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -84,21 +83,42 @@ export function ProfileSettingsCard({ user, onSuccess }: ProfileSettingsCardProp
     }
   };
 
-  const handleUpload = (result: CldUploadWidgetResults) => {
-    const info = result.info;
-    if (typeof info === "object" && info && "secure_url" in info) {
-      const secureUrl = (info as { secure_url: string }).secure_url;
-      setAvatarUrl(secureUrl);
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await fetch("/api/profiles/avatar", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error || "Failed to upload image");
+      }
+
+      const data = await response.json();
+      setAvatarUrl(data.url);
       toast({
         title: "Avatar Uploaded",
         description: "Your new profile picture has been uploaded successfully.",
       });
-    } else {
+    } catch (error: any) {
       toast({
         title: "Upload Failed",
-        description: "Unable to process the uploaded image.",
+        description: error?.message || "Unable to upload image. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -131,26 +151,26 @@ export function ProfileSettingsCard({ user, onSuccess }: ProfileSettingsCardProp
               )}
             </div>
             <Input
-              type="url"
-              placeholder="https://example.com/avatar.png"
-              value={avatarUrl}
-              onChange={(event) => setAvatarUrl(event.target.value)}
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+              onChange={handleFileChange}
+              disabled={isUploading}
             />
-            <CldUploadButton
-              uploadPreset={uploadPreset || ""}
-              onUpload={handleUpload}
-              className={cn(
-                buttonVariants({ variant: "outline" }),
-                "w-full justify-center",
-                !uploadPreset && "pointer-events-none opacity-50"
-              )}
-              disabled={!uploadPreset}
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={isUploading}
+              onClick={() => fileInputRef.current?.click()}
             >
-              {uploadPreset ? "Upload Image" : "Upload disabled (missing preset)"}
-            </CldUploadButton>
-            <p className="text-xs text-muted-foreground text-center">
-              Paste an image URL or use the upload button to add a picture from your device.
-            </p>
+              {isUploading ? "Uploading..." : "Choose Image"}
+            </Button>
+            {avatarUrl && (
+              <p className="text-xs text-muted-foreground text-center break-all">
+                Current image: {avatarUrl}
+              </p>
+            )}
           </div>
 
           <div className="space-y-5">
