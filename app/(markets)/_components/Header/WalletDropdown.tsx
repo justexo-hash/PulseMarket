@@ -228,7 +228,12 @@ export function WalletDropdown({
               <span className="text-xs uppercase text-muted-foreground">
                 Connected Wallet
               </span>
-              <span className="font-mono text-sm">{connectedAddress}</span>
+              <span
+                className="font-mono text-sm"
+                title={connectedAddress}
+              >
+                {truncateAddress(connectedAddress)}
+              </span>
               {connectedWalletName && (
                 <Badge variant="secondary" className="w-fit">
                   {connectedWalletName}
