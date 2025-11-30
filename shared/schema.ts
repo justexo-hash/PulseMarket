@@ -81,6 +81,18 @@ export const transactions = pgTable("transactions", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const marketComments = pgTable("market_comments", {
+  id: serial("id").primaryKey(),
+  marketId: integer("market_id")
+    .notNull()
+    .references(() => markets.id, { onDelete: "cascade" }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const userStats = pgTable("user_stats", {
   userId: integer("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
   realizedPnl: numeric("realized_pnl", { precision: 20, scale: 9 }).notNull().default("0"),
@@ -198,6 +210,7 @@ export type Market = typeof markets.$inferSelect;
 export type InsertMarket = z.infer<typeof insertMarketSchema> & {
   expiresAt?: string | Date | null;
 };
+export type MarketComment = typeof marketComments.$inferSelect;
 export type Bet = typeof bets.$inferSelect;
 export type InsertBet = z.infer<typeof betSchema>;
 export type Transaction = typeof transactions.$inferSelect;

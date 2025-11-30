@@ -3,7 +3,8 @@ import {
   type User, type InsertUser, users,
   type Bet, type InsertBet, bets,
   type Transaction, transactions,
-  walletNonces
+  walletNonces,
+  marketComments,
 } from "@shared/schema";
 import { db } from "../db";
 import { eq, and, sql, desc } from "drizzle-orm";
@@ -38,6 +39,34 @@ export interface IStorage {
   getBetsByUser(userId: number): Promise<Bet[]>;
   getBetsByMarket(marketId: number): Promise<Bet[]>;
   getBetsByUserAndMarket(userId: number, marketId: number): Promise<Bet[]>;
+  getMarketComments(marketId: number): Promise<
+    Array<{
+      id: number;
+      content: string;
+      createdAt: Date;
+      user: {
+        id: number;
+        username: string;
+        displayName: string | null;
+        avatarUrl: string | null;
+      };
+    }>
+  >;
+  createMarketComment(params: {
+    marketId: number;
+    userId: number;
+    content: string;
+  }): Promise<{
+    id: number;
+    content: string;
+    createdAt: Date;
+    user: {
+      id: number;
+      username: string;
+      displayName: string | null;
+      avatarUrl: string | null;
+    };
+  }>;
   
   // Pool methods
   updateMarketPools(marketId: number, position: "yes" | "no", amount: string): Promise<Market>;
@@ -468,6 +497,57 @@ export class DbStorage implements IStorage {
       .from(transactions)
       .where(eq(transactions.userId, userId))
       .orderBy(desc(transactions.createdAt));
+  }
+
+  async getMarketComments(marketId: number) {
+    const rows = await db
+      .select({
+        id: marketComments.id,
+        content: marketComments.content,
+        createdAt: marketComments.createdAt,
+        user: {
+          id: users.id,
+          username: users.username,
+          displayName: users.displayName,
+          avatarUrl: users.avatarUrl,
+        },
+      })
+      .from(marketComments)
+      .innerJoin(users, eq(users.id, marketComments.userId))
+      .where(eq(marketComments.marketId, marketId))
+      .orderBy(desc(marketComments.createdAt));
+
+    return rows;
+  }
+
+  async createMarketComment(params: {
+    marketId: number;
+    userId: number;
+    content: string;
+  }) {
+    const inserted = await db
+      .insert(marketComments)
+      .values({
+        marketId: params.marketId,
+        userId: params.userId,
+        content: params.content,
+      })
+      .returning();
+
+    const user = await this.getUserById(params.userId);
+    const comment = inserted[0];
+
+    return {
+      id: comment.id,
+      content: comment.content,
+      createdAt: comment.createdAt,
+      user: {
+        id: user?.id ?? params.userId,
+        username: user?.username ?? "unknown",
+        displayName: user?.displayName ?? user?.username ?? "User",
+        avatarUrl: user?.avatarUrl ?? null,
+      },
+    };
   }
 
 
