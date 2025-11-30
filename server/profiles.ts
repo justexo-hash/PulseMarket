@@ -247,12 +247,22 @@ export async function followUser(
     throw new Error("Cannot follow yourself");
   }
 
-  await db
-    .insert(userFollowers)
-    .values({ followerId, followeeId })
-    .onConflictDoNothing({
-      target: [userFollowers.followerId, userFollowers.followeeId],
-    });
+  const existing = await db
+    .select({ id: userFollowers.id })
+    .from(userFollowers)
+    .where(
+      and(
+        eq(userFollowers.followerId, followerId),
+        eq(userFollowers.followeeId, followeeId)
+      )
+    )
+    .limit(1);
+
+  if (existing.length > 0) {
+    return;
+  }
+
+  await db.insert(userFollowers).values({ followerId, followeeId });
 }
 
 export async function unfollowUser(
