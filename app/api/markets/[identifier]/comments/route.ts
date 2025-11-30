@@ -11,21 +11,29 @@ const commentSchema = z.object({
 });
 
 interface RouteParams {
-  params: { slug: string };
+  params: { identifier: string };
 }
 
 export async function GET(_request: Request, { params }: RouteParams) {
   try {
-    const slug = decodeURIComponent(params.slug);
-    const market = await storage.getMarketBySlug(slug);
+    const identifier = decodeURIComponent(params.identifier);
+    const market = await storage.getMarketBySlug(identifier);
     if (!market) {
+      const numericId = Number(identifier);
+      if (!Number.isNaN(numericId)) {
+        const marketById = await storage.getMarketById(numericId);
+        if (marketById) {
+          const comments = await storage.getMarketComments(marketById.id);
+          return NextResponse.json({ comments });
+        }
+      }
       return NextResponse.json({ error: "Market not found" }, { status: 404 });
     }
 
     const comments = await storage.getMarketComments(market.id);
     return NextResponse.json({ comments });
   } catch (error) {
-    console.error("[GET /api/markets/[slug]/comments]", error);
+    console.error("[GET /api/markets/[identifier]/comments]", error);
     return NextResponse.json(
       { error: "Failed to load comments" },
       { status: 500 }
@@ -36,8 +44,13 @@ export async function GET(_request: Request, { params }: RouteParams) {
 export async function POST(request: Request, { params }: RouteParams) {
   try {
     const user = await requireUser();
-    const slug = decodeURIComponent(params.slug);
-    const market = await storage.getMarketBySlug(slug);
+    const identifier = decodeURIComponent(params.identifier);
+    const market =
+      (await storage.getMarketBySlug(identifier)) ||
+      (Number.isNaN(Number(identifier))
+        ? null
+        : await storage.getMarketById(Number(identifier)));
+
     if (!market) {
       return NextResponse.json({ error: "Market not found" }, { status: 404 });
     }
@@ -62,7 +75,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     if (error?.message === "Not authenticated") {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
-    console.error("[POST /api/markets/[slug]/comments]", error);
+    console.error("[POST /api/markets/[identifier]/comments]", error);
     return NextResponse.json(
       { error: "Failed to post comment" },
       { status: 500 }
