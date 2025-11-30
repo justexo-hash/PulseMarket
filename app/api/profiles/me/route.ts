@@ -38,6 +38,7 @@ export async function GET() {
 export async function PATCH(request: Request) {
   try {
     const viewer = await requireUser();
+    const previousUsername = viewer.username;
     const body = await request.json();
     const payload = updateProfileSchema.parse(body);
 
@@ -81,7 +82,10 @@ export async function PATCH(request: Request) {
     const updatedUser = await storage.updateUserProfile(viewer.id, updates);
     const { password, ...userWithoutPassword } = updatedUser;
 
-    return NextResponse.json({ success: true, user: userWithoutPassword });
+    return NextResponse.json({
+      success: true,
+      user: { ...userWithoutPassword, previousUsername },
+    });
   } catch (error: any) {
     const message = error?.message || "Failed to update profile";
     const status =

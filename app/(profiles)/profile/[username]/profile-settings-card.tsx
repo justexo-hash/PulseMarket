@@ -18,7 +18,7 @@ interface ProfileSettingsCardProps {
     bio: string | null;
     avatarUrl: string | null;
   };
-  onSuccess?: (newUsername?: string) => void;
+  onSuccess?: (newUsername?: string, previousUsername?: string) => void;
 }
 
 export function ProfileSettingsCard({ user, onSuccess }: ProfileSettingsCardProps) {
@@ -59,15 +59,17 @@ export function ProfileSettingsCard({ user, onSuccess }: ProfileSettingsCardProp
         title: "Profile Updated",
         description: "Your changes have been saved successfully.",
       });
+
+      const nextUsername = responseData?.user?.username ?? username;
       await update({
         ...session,
         user: {
           ...(session?.user ?? {}),
-          username: responseData?.user?.username ?? username,
+          username: nextUsername,
         },
       });
       router.refresh();
-      onSuccess?.(responseData?.user?.username || username);
+      onSuccess?.(nextUsername, responseData?.user?.previousUsername);
     } catch (error: any) {
       toast({
         title: "Update Failed",
