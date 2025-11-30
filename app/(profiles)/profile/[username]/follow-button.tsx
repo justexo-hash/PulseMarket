@@ -30,11 +30,9 @@ export function FollowButton({
           const { error } = await response.json();
           throw new Error(error || "Failed to update follow status");
         }
-        setIsFollowing((prev) => {
-          const next = !prev;
-          onToggle?.(next);
-          return next;
-        });
+        const nextState = !isFollowing;
+        setIsFollowing(nextState);
+        onToggle?.(nextState);
         toast({
           title: isFollowing ? "Unfollowed" : "Following",
           description: isFollowing
