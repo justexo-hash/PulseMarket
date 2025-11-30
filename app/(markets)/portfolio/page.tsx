@@ -58,9 +58,7 @@ export default function PortfolioPage() {
   });
 
   const currentBalance = hasPortfolioAccess
-    ? balanceData
-      ? parseFloat(balanceData.balance || "0")
-      : parseFloat(user?.balance || "0")
+    ? parseFloat(balanceData?.balance || "0")
     : 0;
 
   // Calculate portfolio metrics
