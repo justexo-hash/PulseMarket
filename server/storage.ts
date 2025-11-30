@@ -62,6 +62,14 @@ export interface IStorage {
   // Wallet nonce helpers
   upsertWalletNonce(walletAddress: string, nonce: string, expiresAt: Date): Promise<void>;
   consumeWalletNonce(walletAddress: string, nonce: string): Promise<boolean>;
+
+  // Profile helpers
+  updateUserProfile(userId: number, data: {
+    username?: string;
+    displayName?: string | null;
+    bio?: string | null;
+    avatarUrl?: string | null;
+  }): Promise<User>;
 }
 
 export class DbStorage implements IStorage {
@@ -709,6 +717,39 @@ export class DbStorage implements IStorage {
     await db.delete(walletNonces).where(eq(walletNonces.walletAddress, walletAddress));
 
     return isMatch && !isExpired;
+  }
+
+  async updateUserProfile(
+    userId: number,
+    data: {
+      username?: string;
+      displayName?: string | null;
+      bio?: string | null;
+      avatarUrl?: string | null;
+    }
+  ): Promise<User> {
+    const updateData: Partial<typeof users.$inferInsert> = {};
+
+    if (data.username !== undefined) {
+      updateData.username = data.username;
+    }
+    if (data.displayName !== undefined) {
+      updateData.displayName = data.displayName;
+    }
+    if (data.bio !== undefined) {
+      updateData.bio = data.bio;
+    }
+    if (data.avatarUrl !== undefined) {
+      updateData.avatarUrl = data.avatarUrl;
+    }
+
+    const result = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId))
+      .returning();
+
+    return result[0];
   }
 }
 

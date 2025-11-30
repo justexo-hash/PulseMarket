@@ -3,13 +3,13 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { TrendingUp, Target, Users, Trophy } from "lucide-react";
+import { TrendingUp, Target, Users, Trophy, Sparkles, Shield } from "lucide-react";
 import { FollowButton } from "./follow-button";
 import type { PulseProfileSummary } from "@server/profiles";
 import Link from "next/link";
+import { ProfileSettingsCard } from "./profile-settings-card";
 
 interface PulseProfileViewProps {
   profile: PulseProfileSummary;
@@ -28,60 +28,96 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-      <div className="rounded-3xl border border-border/40 bg-gradient-to-br from-slate-900/60 via-slate-900/20 to-slate-800/40 p-8 shadow-2xl">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div className="flex items-center gap-6">
-            <Avatar className="h-20 w-20 border-2 border-primary/60">
-              {user.avatarUrl ? (
-                <Image
-                  src={user.avatarUrl}
-                  alt={user.displayName}
-                  width={80}
-                  height={80}
-                />
-              ) : (
-                <AvatarFallback className="text-xl font-bold">
-                  {user.displayName.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              )}
-            </Avatar>
-            <div>
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-4xl font-bold text-secondary-foreground ">
-                  {user.displayName}
-                </h1>
-                <Badge variant="secondary" className="text-sm">
-                  @{user.username}
-                </Badge>
+      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#111827] via-[#0f172a] to-[#111827] p-8 shadow-[0_0_45px_rgba(99,102,241,0.35)]">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-60 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle at 20% 20%, rgba(99,102,241,0.4), transparent 55%)",
+          }}
+        />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-50 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle at 80% 0%, rgba(16,185,129,0.35), transparent 50%)",
+          }}
+        />
+        <div className="relative z-10 flex flex-col gap-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+              <Avatar className="h-24 w-24 border-2 border-white/40 ring-4 ring-black/20">
+                {user.avatarUrl ? (
+                  <Image
+                    src={user.avatarUrl}
+                    alt={user.displayName}
+                    width={96}
+                    height={96}
+                    className="object-cover"
+                  />
+                ) : (
+                  <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary">
+                    {user.displayName.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-4xl font-bold text-secondary-foreground">
+                    {user.displayName}
+                  </h1>
+                  <Badge variant="secondary" className="text-sm">
+                    @{user.username}
+                  </Badge>
+                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-wide text-white/80">
+                    <Sparkles className="mr-1 h-3 w-3" />
+                    Pulse Forecaster
+                  </span>
+                </div>
+                <p className="text-muted-foreground mt-3 max-w-2xl leading-relaxed">
+                  {user.bio || "This forecaster hasn’t added a bio yet."}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                  <span>Joined {format(new Date(user.joinedAt), "MMMM d, yyyy")}</span>
+                  <span className="flex items-center gap-1">
+                    <Shield className="h-3 w-3" />
+                    {user.walletAddress.slice(0, 4)}...{user.walletAddress.slice(-4)}
+                  </span>
+                </div>
               </div>
-              <p className="text-muted-foreground mt-2 max-w-2xl">
-                {user.bio || "This forecaster hasn’t added a bio yet."}
-              </p>
-              <p className="text-xs text-muted-foreground mt-2">
-                Joined {format(new Date(user.joinedAt), "MMMM d, yyyy")}
-              </p>
             </div>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="grid grid-cols-2 gap-3">
-              <StatPill
-                label="Followers"
-                value={followers.followersCount.toLocaleString()}
-              />
-              <StatPill
-                label="Following"
-                value={followers.followingCount.toLocaleString()}
-              />
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="grid grid-cols-2 gap-3">
+                <StatPill
+                  label="Followers"
+                  value={followers.followersCount.toLocaleString()}
+                />
+                <StatPill
+                  label="Following"
+                  value={followers.followingCount.toLocaleString()}
+                />
+              </div>
+              {canFollow && (
+                <FollowButton
+                  username={user.username}
+                  initialIsFollowing={followers.isFollowing}
+                />
+              )}
             </div>
-            {canFollow && (
-              <FollowButton
-                username={user.username}
-                initialIsFollowing={followers.isFollowing}
-              />
-            )}
           </div>
         </div>
       </div>
+
+      {viewerId === user.id && (
+        <ProfileSettingsCard
+          user={{
+            username: user.username,
+            displayName: user.displayName,
+            bio: user.bio,
+            avatarUrl: user.avatarUrl,
+          }}
+        />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <MetricCard
@@ -120,14 +156,29 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
       </div>
 
       <Tabs defaultValue="activity" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto">
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="calibration">Calibration</TabsTrigger>
-          <TabsTrigger value="sectors">Sectors</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 rounded-2xl border border-white/10 bg-white/5 p-1 lg:w-auto">
+          <TabsTrigger
+            value="activity"
+            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-secondary-foreground"
+          >
+            Activity
+          </TabsTrigger>
+          <TabsTrigger
+            value="calibration"
+            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-secondary-foreground"
+          >
+            Calibration
+          </TabsTrigger>
+          <TabsTrigger
+            value="sectors"
+            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-secondary-foreground"
+          >
+            Sectors
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="activity" className="mt-6">
-          <Card className="p-6 space-y-4">
+          <Card className="p-6 space-y-4 border border-white/5 bg-white/5 backdrop-blur">
             {recentBets.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 No betting activity yet.
@@ -159,7 +210,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                           ? `/wager/${bet.marketInviteCode}`
                           : "#"
                       }
-                      className="text-lg font-semibold hover:underline"
+                      className="text-lg font-semibold hover:underline text-secondary-foreground"
                     >
                       {bet.marketQuestion || "Unknown market"}
                     </Link>
@@ -193,7 +244,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
         </TabsContent>
 
         <TabsContent value="calibration" className="mt-6">
-          <Card className="p-6">
+          <Card className="p-6 border border-white/5 bg-white/5 backdrop-blur">
             {stats.calibrationBuckets.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 Need more resolved bets to compute calibration.
@@ -203,7 +254,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                 {stats.calibrationBuckets.map((bucket) => (
                   <div
                     key={bucket.bucket}
-                    className="rounded-xl border border-border/40 p-4 bg-card/60"
+                    className="rounded-xl border border-white/10 p-4 bg-background/60"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <p className="font-semibold">{bucket.bucket}% bets</p>
@@ -231,7 +282,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
         </TabsContent>
 
         <TabsContent value="sectors" className="mt-6">
-          <Card className="p-6">
+          <Card className="p-6 border border-white/5 bg-white/5 backdrop-blur">
             {stats.sectorSpecialization.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 No sector data yet.
@@ -270,11 +321,9 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
 
 function StatPill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border/40 bg-card/40 px-4 py-3 text-center">
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p className="text-xl font-semibold text-secondary-foreground ">{value}</p>
+    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center backdrop-blur">
+      <p className="text-xs uppercase tracking-wide text-white/70">{label}</p>
+      <p className="text-xl font-semibold text-secondary-foreground">{value}</p>
     </div>
   );
 }
@@ -291,12 +340,12 @@ function MetricCard({
   helper?: string;
 }) {
   return (
-    <Card className="p-5 bg-card/70 border-border/40 space-y-2">
+    <Card className="p-5 space-y-2 border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur">
       <div className="flex items-center gap-3 text-sm text-muted-foreground">
         {icon}
         <span>{label}</span>
       </div>
-      <p className="text-2xl font-bold text-secondary-foreground ">{value}</p>
+      <p className="text-2xl font-bold text-secondary-foreground">{value}</p>
       {helper && <p className="text-xs text-muted-foreground">{helper}</p>}
     </Card>
   );
