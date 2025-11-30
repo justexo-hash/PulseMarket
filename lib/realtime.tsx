@@ -8,6 +8,8 @@ import type { RealtimeEvent } from "@shared/realtime";
 
 const GLOBAL_CHANNEL = "pulse-global";
 
+type Channel = ReturnType<Realtime["channels"]["get"]>;
+
 export function useRealtime(userId?: number | null) {
   const clientRef = useRef<Realtime | null>(null);
   const globalChannelRef = useRef<Channel | null>(null);
