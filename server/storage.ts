@@ -1,5 +1,5 @@
 import {
-  type Market, type InsertMarket, markets, 
+  type Market, type InsertMarket, markets,
   type User, type InsertUser, users,
   type Bet, type InsertBet, bets,
   type Transaction, transactions,
@@ -10,6 +10,7 @@ import { eq, and, sql, desc } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import { generateInviteCode, isValidInviteCode } from "./inviteCodes";
 import { generateSlug } from "./slugs";
+import { publishTransactionNotification } from "./notifications";
 
 export interface IStorage {
   getAllMarkets(): Promise<Market[]>;
@@ -433,7 +434,32 @@ export class DbStorage implements IStorage {
       .insert(transactions)
       .values(data)
       .returning();
-    return result[0];
+    const transaction = result[0];
+
+    if (
+      transaction &&
+      (transaction.type === "payout" || transaction.type === "refund")
+    ) {
+      let marketQuestion: string | null = null;
+      let marketSlug: string | null = null;
+
+      if (transaction.marketId) {
+        const market = await this.getMarketById(transaction.marketId);
+        marketQuestion = market?.question ?? null;
+        marketSlug = market?.slug ?? null;
+      }
+
+      await publishTransactionNotification({
+        userId: transaction.userId,
+        transactionId: transaction.id,
+        type: transaction.type,
+        amount: Number(transaction.amount),
+        marketQuestion,
+        marketSlug,
+      });
+    }
+
+    return transaction;
   }
 
   async getTransactionsByUser(userId: number): Promise<Transaction[]> {

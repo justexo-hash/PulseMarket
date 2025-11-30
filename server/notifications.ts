@@ -6,6 +6,7 @@ import {
   markets,
 } from "@shared/schema";
 import { and, desc, eq, inArray } from "drizzle-orm";
+import { publishToUser } from "@lib/realtime/server";
 
 export type NotificationRecord = {
   id: string;
@@ -86,6 +87,52 @@ export async function getNotificationsForUser(userId: number) {
         b.createdAt.getTime() - a.createdAt.getTime()
     )
     .slice(0, NOTIFICATION_LIMIT);
+}
+
+export async function publishFollowerNotification(
+  follower: { id: number; username: string; displayName?: string | null },
+  targetUserId: number
+) {
+  const notification = {
+    id: `follow-${follower.id}-${Date.now()}`,
+    type: "follower" as const,
+    title: "New follower",
+    message: `${follower.displayName || follower.username} started following you.`,
+    createdAt: new Date().toISOString(),
+    href: `/profile/${follower.username}`,
+  };
+
+  await publishToUser(targetUserId, {
+    type: "notification:new",
+    data: { userId: targetUserId, notification },
+  });
+}
+
+export async function publishTransactionNotification(params: {
+  userId: number;
+  transactionId: number;
+  type: "payout" | "refund";
+  amount: number;
+  marketQuestion?: string | null;
+  marketSlug?: string | null;
+}) {
+  const notification = {
+    id: `tx-${params.transactionId}`,
+    type: params.type,
+    title: params.type === "refund" ? "Refund issued" : "Bet settled",
+    message: `${
+      params.marketQuestion || "One of your markets"
+    } • ${params.type === "refund" ? "Refunded" : "Payout"} ${params.amount.toFixed(
+      2
+    )} SOL`,
+    createdAt: new Date().toISOString(),
+    href: params.marketSlug ? `/market/${params.marketSlug}` : undefined,
+  };
+
+  await publishToUser(params.userId, {
+    type: "notification:new",
+    data: { userId: params.userId, notification },
+  });
 }
 
 

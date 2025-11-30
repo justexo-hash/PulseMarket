@@ -8,6 +8,7 @@ import {
 } from "@shared/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import type { User } from "@shared/schema";
+import { publishFollowerNotification } from "./notifications";
 
 export interface CalibrationBucket {
   bucket: number;
@@ -291,6 +292,18 @@ export async function followUser(
   }
 
   await db.insert(userFollowers).values({ followerId, followeeId });
+
+  const follower = await getUserById(followerId);
+  if (follower) {
+    await publishFollowerNotification(
+      {
+        id: follower.id,
+        username: follower.username,
+        displayName: follower.displayName,
+      },
+      followeeId
+    );
+  }
 }
 
 export async function unfollowUser(

@@ -61,6 +61,20 @@ export function useRealtime(userId?: number | null) {
         queryClient.invalidateQueries({ queryKey: ["/api/wallet/balance"] });
         queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
         break;
+      case "notification:new":
+        queryClient.setQueryData<{ notifications: any[] } | undefined>(
+          ["/api/notifications"],
+          (current) => {
+            const existing = current?.notifications ?? [];
+            const filtered = existing.filter(
+              (item) => item.id !== event.data.notification.id
+            );
+            return {
+              notifications: [event.data.notification, ...filtered].slice(0, 30),
+            };
+          }
+        );
+        break;
     }
   }, []);
 
