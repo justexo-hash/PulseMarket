@@ -126,7 +126,7 @@ export function NotificationsDropdown({
           </div>
         ) : notifications.length === 0 ? (
           <div className="px-4 py-6 text-sm text-muted-foreground">
-            You're all caught up!
+            You&apos;re all caught up!
           </div>
         ) : (
           notifications.map((notification) => {
