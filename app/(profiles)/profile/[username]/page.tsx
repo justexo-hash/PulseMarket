@@ -8,7 +8,7 @@ interface ProfilePageProps {
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
-  const session = getSession();
+  const session = await getSession();
   const profile = await getPulseProfile(
     params.username.toLowerCase(),
     session?.userId
