@@ -29,7 +29,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-      <Card className="p-8 bg-card border border-border/60 shadow-sm">
+      <Card className="p-8 bg-card border border-border shadow-sm">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
             <Avatar className="h-24 w-24 border border-border/80 shadow-inner">
@@ -83,7 +83,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                 value={followers.followingCount.toLocaleString()}
               />
             </div>
-            <div className="flex items-center justify-end gap-3">
+              <div className="flex items-center justify-end gap-3">
               {canFollow ? (
                 <FollowButton
                   username={user.username}
@@ -153,7 +153,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
         </TabsList>
 
         <TabsContent value="activity" className="mt-6">
-          <Card className="p-6 space-y-4 border border-border/60 bg-card shadow-sm">
+          <Card className="p-6 space-y-4 bg-card border border-border shadow-sm">
             {recentBets.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 No betting activity yet.
@@ -162,14 +162,12 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
               recentBets.map((bet) => (
                 <div
                   key={bet.id}
-                  className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border/40 pb-4 last:border-b-0 last:pb-0"
+                  className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border/50 pb-4 last:border-b-0 last:pb-0"
                 >
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <Badge
-                        variant={
-                          bet.position === "yes" ? "default" : "destructive"
-                        }
+                        variant={bet.position === "yes" ? "default" : "destructive"}
                       >
                         {bet.position.toUpperCase()}
                       </Badge>
@@ -201,14 +199,10 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                     {bet.marketStatus === "resolved" && (
                       <p
                         className={`text-sm ${
-                          bet.resolvedOutcome === bet.position
-                            ? "text-green-400"
-                            : "text-red-400"
+                          bet.resolvedOutcome === bet.position ? "text-green-400" : "text-red-400"
                         }`}
                       >
-                        {bet.resolvedOutcome === bet.position
-                          ? "Winner"
-                          : "Settled"}
+                        {bet.resolvedOutcome === bet.position ? "Winner" : "Settled"}
                       </p>
                     )}
                   </div>
@@ -219,7 +213,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
         </TabsContent>
 
         <TabsContent value="calibration" className="mt-6">
-          <Card className="p-6 border border-border/60 bg-card shadow-sm">
+          <Card className="p-6 border border-border bg-card shadow-sm">
             {stats.calibrationBuckets.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 Need more resolved bets to compute calibration.
@@ -243,7 +237,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                         {(bucket.winRate * 100).toFixed(1)}%
                       </span>
                     </div>
-                    <div className="mt-2 h-2 bg-secondary rounded-full overflow-hidden">
+                    <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
                       <div
                         className="h-full bg-primary transition-all"
                         style={{ width: `${bucket.winRate * 100}%` }}
@@ -257,7 +251,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
         </TabsContent>
 
         <TabsContent value="sectors" className="mt-6">
-          <Card className="p-6 border border-border/60 bg-card shadow-sm">
+          <Card className="p-6 border border-border bg-card shadow-sm">
             {stats.sectorSpecialization.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 No sector data yet.
@@ -267,7 +261,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                 {stats.sectorSpecialization.map((sector) => (
                   <div
                     key={sector.category}
-                    className="flex items-center justify-between"
+                    className="flex items-center justify-between border-b border-border/50 pb-4 last:border-none last:pb-0"
                   >
                     <div>
                       <p className="font-semibold">{sector.category}</p>
