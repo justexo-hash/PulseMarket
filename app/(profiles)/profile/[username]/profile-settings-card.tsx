@@ -17,7 +17,7 @@ interface ProfileSettingsCardProps {
     bio: string | null;
     avatarUrl: string | null;
   };
-  onSuccess?: () => void;
+  onSuccess?: (newUsername?: string) => void;
 }
 
 export function ProfileSettingsCard({ user, onSuccess }: ProfileSettingsCardProps) {
@@ -52,12 +52,13 @@ export function ProfileSettingsCard({ user, onSuccess }: ProfileSettingsCardProp
         throw new Error(error || "Unable to update profile");
       }
 
+      const responseData = await response.json();
       toast({
         title: "Profile Updated",
         description: "Your changes have been saved successfully.",
       });
       router.refresh();
-      onSuccess?.();
+      onSuccess?.(responseData?.user?.username || username);
     } catch (error: any) {
       toast({
         title: "Update Failed",

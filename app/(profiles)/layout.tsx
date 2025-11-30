@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Header } from "../(markets)/_components/Header";
 import { Footer } from "../(markets)/_components/Footer";
-import AuroraBackground from "@/components/AuroraBackground";
 
 export default function ProfilesLayout({
   children,
@@ -9,15 +8,10 @@ export default function ProfilesLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col relative">
-      <div className="fixed inset-0 z-0">
-        <AuroraBackground />
-      </div>
-      <div className="relative z-10 flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-grow pb-20">{children}</main>
-        <Footer />
-      </div>
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/10">
+      <Header />
+      <main className="flex-grow pb-20">{children}</main>
+      <Footer />
     </div>
   );
 }

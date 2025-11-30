@@ -9,6 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useRouter } from "next/navigation";
 import { ProfileSettingsCard } from "./profile-settings-card";
 
 interface ProfileSettingsSheetProps {
@@ -25,6 +26,7 @@ export function ProfileSettingsSheet({
   children,
   user,
 }: ProfileSettingsSheetProps) {
+  const router = useRouter();
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -38,11 +40,18 @@ export function ProfileSettingsSheet({
           </SheetDescription>
         </SheetHeader>
         <div className="mt-6">
-          <ProfileSettingsCard user={user} onSuccess={() => setOpen(false)} />
+          <ProfileSettingsCard
+            user={user}
+            onSuccess={(nextUsername) => {
+              setOpen(false);
+              if (nextUsername && nextUsername !== user.username) {
+                router.push(`/profile/${nextUsername}`);
+              }
+            }}
+          />
         </div>
       </SheetContent>
     </Sheet>
   );
 }
-
 
