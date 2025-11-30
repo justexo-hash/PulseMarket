@@ -33,6 +33,11 @@ function getExtension(file: File) {
   }
 }
 
+const UPLOADS_DIR =
+  process.env.UPLOADS_DIR || path.join(process.cwd(), "public", "uploads");
+const PUBLIC_UPLOAD_PATH =
+  process.env.UPLOADS_PUBLIC_PATH || "/uploads";
+
 export async function POST(request: NextRequest) {
   try {
     await requireUser();
@@ -67,18 +72,17 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    await fs.mkdir(uploadsDir, { recursive: true });
+    await fs.mkdir(UPLOADS_DIR, { recursive: true });
 
     const ext = getExtension(file) || ".png";
     const filename = `avatar-${Date.now()}-${crypto.randomUUID()}${ext}`;
-    const filePath = path.join(uploadsDir, filename);
+    const filePath = path.join(UPLOADS_DIR, filename);
 
     await fs.writeFile(filePath, buffer);
 
     return NextResponse.json({
       success: true,
-      url: `/uploads/${filename}`,
+      url: `${PUBLIC_UPLOAD_PATH}/${filename}`,
       filename,
     });
   } catch (error: any) {
