@@ -222,7 +222,7 @@ export async function getPulseProfile(
     followers: {
       followersCount: Number(followerMeta[0]?.count || 0),
       followingCount: Number(followingMeta[0]?.count || 0),
-      isFollowing: Boolean(isFollowingMeta?.[0]?.count),
+      isFollowing: Number(isFollowingMeta?.[0]?.count || 0) > 0,
     },
     recentBets: betRows.slice(0, 10).map((bet) => ({
       id: Number(bet.id),
