@@ -7,11 +7,13 @@ import { useToast } from "@/hooks/use-toast";
 interface FollowButtonProps {
   username: string;
   initialIsFollowing: boolean;
+  onToggle?: (nextState: boolean) => void;
 }
 
 export function FollowButton({
   username,
   initialIsFollowing,
+  onToggle,
 }: FollowButtonProps) {
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [pending, startTransition] = useTransition();
@@ -28,7 +30,11 @@ export function FollowButton({
           const { error } = await response.json();
           throw new Error(error || "Failed to update follow status");
         }
-        setIsFollowing((prev) => !prev);
+        setIsFollowing((prev) => {
+          const next = !prev;
+          onToggle?.(next);
+          return next;
+        });
         toast({
           title: isFollowing ? "Unfollowed" : "Following",
           description: isFollowing

@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Target, Users, Trophy, Sparkles, Shield, Settings } from "lucide-react";
-import { FollowButton } from "./follow-button";
+import { FollowControls } from "./follow-controls";
 import type { PulseProfileSummary } from "@server/profiles";
 import Link from "next/link";
 import { ProfileSettingsSheet } from "./profile-settings-sheet";
@@ -26,6 +26,22 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
   } = profile;
 
   const canFollow = viewerId !== undefined && viewerId !== user.id;
+  const ownerAction =
+    viewerId === user.id ? (
+      <ProfileSettingsSheet
+        user={{
+          username: user.username,
+          displayName: user.displayName,
+          bio: user.bio,
+          avatarUrl: user.avatarUrl,
+        }}
+      >
+        <Button variant="outline" className="gap-2">
+          <Settings className="h-4 w-4" />
+          Edit Profile
+        </Button>
+      </ProfileSettingsSheet>
+    ) : null;
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
@@ -72,40 +88,14 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
               </div>
             </div>
           </div>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <div className="grid grid-cols-2 gap-3 sm:w-64">
-              <StatPill
-                label="Followers"
-                value={followers.followersCount.toLocaleString()}
-              />
-              <StatPill
-                label="Following"
-                value={followers.followingCount.toLocaleString()}
-              />
-            </div>
-              <div className="flex items-center justify-end gap-3">
-              {canFollow ? (
-                <FollowButton
-                  username={user.username}
-                  initialIsFollowing={followers.isFollowing}
-                />
-              ) : viewerId === user.id ? (
-                <ProfileSettingsSheet
-                  user={{
-                    username: user.username,
-                    displayName: user.displayName,
-                    bio: user.bio,
-                    avatarUrl: user.avatarUrl,
-                  }}
-                >
-                  <Button variant="outline" className="gap-2">
-                    <Settings className="h-4 w-4" />
-                    Edit Profile
-                  </Button>
-                </ProfileSettingsSheet>
-              ) : null}
-            </div>
-          </div>
+          <FollowControls
+            username={user.username}
+            initialFollowers={followers.followersCount}
+            initialFollowing={followers.followingCount}
+            initialIsFollowing={followers.isFollowing}
+            canFollow={canFollow}
+            ownerAction={ownerAction}
+          />
         </div>
       </div>
 
@@ -299,15 +289,6 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
-  );
-}
-
-function StatPill({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-muted-foreground/20 bg-secondary px-4 py-3 text-center shadow-sm">
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="text-xl font-semibold text-secondary-foreground">{value}</p>
     </div>
   );
 }
