@@ -510,6 +510,12 @@ export class DbStorage implements IStorage {
           username: users.username,
           displayName: users.displayName,
           avatarUrl: users.avatarUrl,
+          hasActiveBet: sql<boolean>`EXISTS (
+            SELECT 1 FROM ${bets}
+            WHERE ${bets.marketId} = ${marketComments.marketId}
+              AND ${bets.userId} = ${marketComments.userId}
+              AND ${bets.position} IN ('yes','no')
+          )`,
         },
       })
       .from(marketComments)
@@ -546,6 +552,7 @@ export class DbStorage implements IStorage {
         username: user?.username ?? "unknown",
         displayName: user?.displayName ?? user?.username ?? "User",
         avatarUrl: user?.avatarUrl ?? null,
+        hasActiveBet: false,
       },
     };
   }

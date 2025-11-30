@@ -22,6 +22,7 @@ interface CommentPayload {
     username: string;
     displayName: string | null;
     avatarUrl: string | null;
+    hasActiveBet?: boolean;
   };
 }
 
@@ -140,11 +141,19 @@ export default function Comments({ slug }: CommentsProps) {
               )}
             </Avatar>
             <div className="flex flex-col flex-1 gap-1">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Link
+                  href={`/profile/${comment.user.username}`}
+                  className="text-sm font-semibold hover:underline text-secondary-foreground"
+                >
                   {comment.user.displayName || comment.user.username}
-                </p>
+                </Link>
                 <span className="text-xs text-muted-foreground">@{comment.user.username}</span>
+                {comment.user.hasActiveBet && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">
+                    Active position
+                  </span>
+                )}
                 <span className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
                 </span>
