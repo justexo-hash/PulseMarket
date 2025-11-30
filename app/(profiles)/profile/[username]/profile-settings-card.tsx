@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
@@ -23,6 +24,7 @@ interface ProfileSettingsCardProps {
 export function ProfileSettingsCard({ user, onSuccess }: ProfileSettingsCardProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const { data: session, update } = useSession();
   const [username, setUsername] = useState(user.username);
   const [displayName, setDisplayName] = useState(user.displayName);
   const [bio, setBio] = useState(user.bio ?? "");
@@ -56,6 +58,13 @@ export function ProfileSettingsCard({ user, onSuccess }: ProfileSettingsCardProp
       toast({
         title: "Profile Updated",
         description: "Your changes have been saved successfully.",
+      });
+      await update({
+        ...session,
+        user: {
+          ...(session?.user ?? {}),
+          username: responseData?.user?.username ?? username,
+        },
       });
       router.refresh();
       onSuccess?.(responseData?.user?.username || username);
