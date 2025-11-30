@@ -4,10 +4,11 @@ import { MarketSearchBar } from "../Searchbar";
 import HowItWorksButton from "@/components/HowItWorks";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Bell, CircleDollarSign, LogOut, Menu } from "lucide-react";
+import { CircleDollarSign, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { SearchCategories } from "../SearchCategories";
 import { WalletDropdown } from "./WalletDropdown";
+import { NotificationsDropdown } from "./NotificationsDropdown";
 // Static navigation links for both desktop and mobile menus
 const NAV_LINKS = [
   { href: "/", label: "Discover" },
@@ -47,6 +48,10 @@ export function HeaderMobile(props: any) {
                 onChainBalance={props.onChainBalance}
                 solPriceUsd={props.solPriceUsd}
                 onDisconnect={props.handleLogout}
+              />
+              <NotificationsDropdown
+                enabled={Boolean(props.user)}
+                align="end"
               />
               <Sheet>
                 <SheetTrigger asChild>
@@ -121,13 +126,6 @@ export function HeaderMobile(props: any) {
                             </Button>
                           </Link>
 
-                          <Button
-                            variant="ghost"
-                            className="w-full flex justify-start gap-2"
-                          >
-                            <Bell className="h-5 w-5" />
-                            Notifications
-                          </Button>
                         </>
                       )}
 

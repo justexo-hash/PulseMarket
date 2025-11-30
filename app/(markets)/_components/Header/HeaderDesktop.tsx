@@ -15,9 +15,10 @@ import { MarketSearchBar } from "../Searchbar";
 import HowItWorksButton from "@/components/HowItWorks";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Bell, CircleDollarSign, Menu } from "lucide-react";
+import { CircleDollarSign, Menu } from "lucide-react";
 import { ModeToggle } from "@/components/theme-toggle";
 import { WalletDropdown } from "./WalletDropdown";
+import { NotificationsDropdown } from "./NotificationsDropdown";
 
 // Static navigation links for both desktop and mobile menus
 const NAV_LINKS = [
@@ -78,10 +79,7 @@ export function HeaderDesktop(props: any) {
                   </span>
                 </div>
 
-                <Button variant="ghost" size="icon">
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-                </Button>
+                <NotificationsDropdown enabled={Boolean(props.user)} />
               </>
             )}
 
