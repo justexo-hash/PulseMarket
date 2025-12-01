@@ -127,7 +127,6 @@ export function MarketSearchBar() {
         "
         >
           {/* LIVE RESULTS SECTION */}
-<<<<<<< HEAD
           {trimmedQuery.length > 0 && (
             <div className="flex flex-col gap-2 border-b border-muted-foreground/20">
               <div className="flex items-center justify-between px-3 py-2">
@@ -146,26 +145,6 @@ export function MarketSearchBar() {
                           ? "bg-background text-secondary-foreground shadow-sm"
                           : "text-muted-foreground hover:text-secondary-foreground"
                       )}
-=======
-          {searchQuery.trim().length > 0 && (
-            <div className="flex flex-col gap-2 py-2 border-b">
-              <p className="text-xs font-medium px-3 text-muted-foreground uppercase">
-                Results
-              </p>
-
-              {filteredResults.length > 0 ? (
-                <div className="flex flex-col gap-2 p-4">
-                  {filteredResults.map((m) => (
-                    <Link
-                      key={m.id}
-                      href={`/markets/${m.id}`}
-                      onClick={() => setOpen(false)}
-                      className="
-                      w-full flex items-center gap-3 px-4 py-2 
-                      hover:bg-secondary hover:bg-primary hover:text-foreground border border-transparent font-medium 
-                    
-                      "
->>>>>>> 257a010 (change routes)
                     >
                       {option === "markets" ? "Markets" : "Users"}
                     </button>

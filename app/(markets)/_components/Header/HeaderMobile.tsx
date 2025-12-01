@@ -39,16 +39,7 @@ export function HeaderMobile(props: any) {
             {/* MOBILE NAVIGATION (Sheet Menu) */}
             <div className="flex items-center gap-3">
               <HowItWorksButton />
-              <WalletDropdown
-                wallet={props.wallet}
-                isMounted={props.isMounted}
-                align="end"
-                triggerVariant="secondary"
-                triggerClassName="min-w-[120px]"
-                onChainBalance={props.onChainBalance}
-                solPriceUsd={props.solPriceUsd}
-                onDisconnect={props.handleLogout}
-              />
+
               <NotificationsDropdown
                 enabled={Boolean(props.user)}
                 align="end"
@@ -95,7 +86,14 @@ export function HeaderMobile(props: any) {
                           {label}
                         </Link>
                       ))}
-
+                      <p className="text-muted-foreground">Profile</p>
+                      <WalletDropdown
+                        wallet={props.wallet}
+                        isMounted={props.isMounted}
+                        onChainBalance={props.onChainBalance}
+                        solPriceUsd={props.solPriceUsd}
+                        onDisconnect={props.handleLogout}
+                      />
                       {props.user && (
                         <Link
                           href={`/profile/${props.user.username}`}
@@ -125,11 +123,8 @@ export function HeaderMobile(props: any) {
                               Deposit
                             </Button>
                           </Link>
-
                         </>
                       )}
-
-
                   </div>
                 </SheetContent>
               </Sheet>
