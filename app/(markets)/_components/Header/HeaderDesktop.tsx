@@ -16,7 +16,6 @@ import HowItWorksButton from "@/components/HowItWorks";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { CircleDollarSign, Menu } from "lucide-react";
-import { ModeToggle } from "@/components/theme-toggle";
 import { WalletDropdown } from "./WalletDropdown";
 import { NotificationsDropdown } from "./NotificationsDropdown";
 
@@ -55,7 +54,6 @@ export function HeaderDesktop(props: any) {
 
           {/* RIGHT SIDE: Wallet actions, notifications, login/signup dialog, and desktop menu */}
           <div className="hidden md:flex items-center gap-3">
-            <ModeToggle />
             {/* If wallet is connected, display deposit + balance + notifications */}
             {props.user && props.wallet.connected && props.wallet.publicKey && (
               <>
