@@ -105,13 +105,13 @@ export function Footer() {
   });
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background">
+    <footer className="border-t border-border/50 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="flex flex-col sm:flex-row sm:h-16 items-start sm:items-center justify-between gap-3 sm:gap-4 py-3">
+          <div className="flex items-center justify-between lg:justify-normal w-full gap-3 min-w-0">
             <Link
               href="/"
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              className="flex items-center  gap-2 hover:opacity-80 transition-opacity"
             >
               <TrendingUp className="h-5 w-5 text-secondary-foreground" />
               <span className="text-lg font-bold text-secondary-foreground ">
@@ -123,37 +123,38 @@ export function Footer() {
             </span>
           </div>
 
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row w-full items-start sm:items-center gap-2 sm:gap-3 text-sm text-muted-foreground">
             <Link
               href="/about"
               className="hover:text-secondary-foreground  transition-colors"
             >
               About Us
             </Link>
-            <span className="text-muted-foreground/50">•</span>
+            <span className="text-muted-foreground/50 hidden lg:block">•</span>
             <Link
               href="/terms"
               className="hover:text-secondary-foreground  transition-colors"
             >
               Terms of Service
             </Link>
-            <span className="text-muted-foreground/50">•</span>
+            <span className="text-muted-foreground/50 hidden lg:block">•</span>
             <Link
               href="/privacy"
               className="hover:text-secondary-foreground  transition-colors"
             >
               Privacy Policy
             </Link>
-            <span className="text-muted-foreground/50">•</span>
+            <span className="text-muted-foreground/50 hidden lg:block">•</span>
             <Link
               href="/blog"
               className="hover:text-secondary-foreground  transition-colors"
             >
-             Blog
+              Blog
             </Link>
+            <Link href="https://twitter.com/PulseMarket"> Twitter</Link>
           </div>
 
-          <div className="flex items-center gap-4 min-w-0">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 min-w-0">
             {wallet.connected && (
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5 px-2 py-1 bg-secondary/50 rounded-lg">
@@ -221,20 +222,9 @@ export function Footer() {
                 </div>
               </div>
             )}
-
-            <a
-              href="https://twitter.com/PulseMarket"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-secondary/50 transition-colors"
-              aria-label="X (Twitter)"
-            >
-              <Twitter className="h-5 w-5 text-secondary-foreground " />
-            </a>
           </div>
         </div>
       </div>
     </footer>
   );
 }
-

@@ -223,7 +223,7 @@ export function WalletDropdown({
             size={triggerSize}
             disabled={!isMounted || wallet.connecting}
             className={cn(
-              "flex items-center gap-2 min-w-[140px] justify-center",
+              "flex items-center gap-3 min-w-[140px] justify-center",
               triggerClassName
             )}
           >
@@ -232,12 +232,12 @@ export function WalletDropdown({
           </Button>
         </DialogTrigger>
 
-        <DialogContent className="max-w-sm bg-background text-secondary-foreground">
+        <DialogContent className="max-w-sm bg-background text-secondary-foreground px-1.5">
           <DialogHeader>
             <DialogTitle>Select a wallet</DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col gap-2 py-2 max-h-64 overflow-y-auto">
+          <div className="flex flex-col gap-3 px-1.5 max-h-64 overflow-y-auto">
             {availableWallets.length === 0 && (
               <p className="text-muted-foreground text-sm">
                 No wallets detected. Install a Solana wallet to continue.
@@ -253,7 +253,7 @@ export function WalletDropdown({
                 <Button
                   key={walletKey}
                   variant="outline"
-                  className="flex items-center justify-start gap-3 px-3"
+                  className="flex items-center justify-start gap-3 px-1.5"
                   onClick={async () => {
                     await handleSelectWallet(adapter.name);
                     if (wallet.connected) {
@@ -298,7 +298,7 @@ export function WalletDropdown({
           variant={triggerVariant}
           size={triggerSize}
           className={cn(
-            "flex items-center gap-2 min-w-[140px] justify-center",
+            "flex items-center gap-3 min-w-[140px] justify-center",
             triggerClassName
           )}
         >
@@ -308,8 +308,8 @@ export function WalletDropdown({
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="w-72 bg-background text-secondary-foreground shadow-xl">
-        <DropdownMenuLabel className="flex flex-col gap-1">
+      <DropdownMenuContent className="w-72 bg-background text-secondary-foreground shadow-xl px-1.5">
+        <DropdownMenuLabel className="flex flex-col gap-3">
           <span className="text-xs uppercase text-muted-foreground">
             Connected Wallet
           </span>
@@ -336,7 +336,7 @@ export function WalletDropdown({
           </div>
         </DropdownMenuLabel>
 
-        <div className="px-3 pb-3">
+        <div className="px-1.5">
           <p className="text-xs uppercase text-muted-foreground">Balance</p>
           <div className="mt-1 flex items-baseline justify-between">
             <span className="text-lg font-semibold text-secondary-foreground">
@@ -362,7 +362,7 @@ export function WalletDropdown({
 
         <DropdownMenuItem
           onClick={handleDisconnect}
-          className="text-destructive focus:text-destructive"
+          className="text-red-400 bg-red-400/20"
         >
           <LogOut className="mr-2 h-4 w-4" /> Disconnect
         </DropdownMenuItem>
