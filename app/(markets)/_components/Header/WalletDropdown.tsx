@@ -2,12 +2,21 @@
 
 import { useMemo, useState } from "react";
 import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
+  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -201,104 +210,65 @@ export function WalletDropdown({
       ? personalBalance * solPriceUsd
       : null;
 
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant={triggerVariant}
-          size={triggerSize}
-          disabled={!isMounted || wallet.connecting}
-          className={cn(
-            "flex items-center gap-2 min-w-[140px] justify-center",
-            triggerClassName
-          )}
-        >
-          <Wallet className="h-4 w-4" />
-          <span>{triggerLabel}</span>
-          <ChevronDown className="h-3 w-3" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align={align}
-        className="w-72 bg-background text-secondary-foreground shadow-xl"
-      >
-        {connectedAddress ? (
-          <>
-            <DropdownMenuLabel className="flex flex-col gap-1">
-              <span className="text-xs uppercase text-muted-foreground">
-                Connected Wallet
-              </span>
-              <span
-                className="font-mono text-sm"
-                title={connectedAddress}
-              >
-                {truncateAddress(connectedAddress)}
-              </span>
-              {connectedWalletName && (
-                <Badge variant="secondary" className="w-fit">
-                  {connectedWalletName}
-                </Badge>
-              )}
-            </DropdownMenuLabel>
-            <div className="px-3 pb-3">
-              <p className="text-xs uppercase text-muted-foreground">
-                Personal Wallet Balance
-              </p>
-              <div className="mt-1 flex items-baseline justify-between">
-                <span className="text-lg font-semibold text-secondary-foreground">
-                  {personalBalance.toFixed(4)} SOL
-                </span>
-                {personalUsdValue !== null && (
-                  <span className="text-xs text-muted-foreground">
-                    ≈ $
-                    {personalUsdValue.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </span>
-                )}
-              </div>
-            </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleCopyAddress}>
-              <Copy className="mr-2 h-4 w-4" />
-              Copy Address
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={handleDisconnect}
-              className="text-destructive focus:text-destructive"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Disconnect
-            </DropdownMenuItem>
-          </>
-        ) : (
-          <>
-            <DropdownMenuLabel>Select a wallet</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {availableWallets.length === 0 && (
-              <DropdownMenuItem disabled>
-                No wallets detected. Install a Solana wallet to continue.
-              </DropdownMenuItem>
+  if (!connectedAddress) {
+    return (
+      <Dialog onOpenChange={(open) => {
+        if (!open && wallet.connected) {
+          // close modal automatically once connected
+        }
+      }}>
+        <DialogTrigger asChild>
+          <Button
+            variant={triggerVariant}
+            size={triggerSize}
+            disabled={!isMounted || wallet.connecting}
+            className={cn(
+              "flex items-center gap-2 min-w-[140px] justify-center",
+              triggerClassName
             )}
+          >
+            <Wallet className="h-4 w-4" />
+            <span>{triggerLabel}</span>
+          </Button>
+        </DialogTrigger>
+
+        <DialogContent className="max-w-sm bg-background text-secondary-foreground">
+          <DialogHeader>
+            <DialogTitle>Select a wallet</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-2 py-2 max-h-64 overflow-y-auto">
+            {availableWallets.length === 0 && (
+              <p className="text-muted-foreground text-sm">
+                No wallets detected. Install a Solana wallet to continue.
+              </p>
+            )}
+
             {availableWallets.map(({ adapter, readyState }) => {
               const walletKey = `${adapter.name}-${adapter.url ?? ""}`;
               const isInstalled =
                 readyState === WalletReadyState.Installed ||
                 readyState === WalletReadyState.Loadable;
               return (
-                <DropdownMenuItem
+                <Button
                   key={walletKey}
-                  onClick={() => handleSelectWallet(adapter.name)}
+                  variant="outline"
+                  className="flex items-center justify-start gap-3 px-3"
+                  onClick={async () => {
+                    await handleSelectWallet(adapter.name);
+                    if (wallet.connected) {
+                      document
+                        .querySelector('[data-state="open"]')
+                        ?.dispatchEvent(new Event("close"));
+                    }
+                  }}
                   disabled={
                     readyState === WalletReadyState.Unsupported ||
                     wallet.connecting ||
                     Boolean(pendingWallet && pendingWallet !== adapter.name)
                   }
-                  className="flex items-center gap-3"
                 >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                  <img
                     src={adapter.icon}
                     alt={adapter.name}
                     className="h-6 w-6 rounded-full"
@@ -310,23 +280,93 @@ export function WalletDropdown({
                         ? READY_STATE_LABEL[readyState]
                         : "Install required"}
                       {pendingWallet === adapter.name && " • Connecting"}
-                      {wallet.wallet?.adapter.name === adapter.name &&
-                        !pendingWallet && (
-                          <span className="inline-flex items-center gap-1 text-green-500 ml-1">
-                            <Check className="h-3 w-3" />
-                            Selected
-                          </span>
-                        )}
                     </span>
                   </div>
-                </DropdownMenuItem>
+                </Button>
               );
             })}
-          </>
-        )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant={triggerVariant}
+          size={triggerSize}
+          className={cn(
+            "flex items-center gap-2 min-w-[140px] justify-center",
+            triggerClassName
+          )}
+        >
+          <Wallet className="h-4 w-4" />
+          <span>{truncateAddress(connectedAddress)}</span>
+          <ChevronDown className="h-3 w-3" />
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent className="w-72 bg-background text-secondary-foreground shadow-xl">
+        <DropdownMenuLabel className="flex flex-col gap-1">
+          <span className="text-xs uppercase text-muted-foreground">
+            Connected Wallet
+          </span>
+          <div className="flex justify-between">
+          <span className="font-mono text-sm">
+            {truncateAddress(connectedAddress)}
+          </span>
+        {connectedWalletName && (
+            <Badge
+              className={cn(
+                "w-fit",
+                connectedWalletName === "Phantom" && "bg-[#AB19EE] text-white",
+                connectedWalletName === "MetaMask" && "bg-[#F6851B] text-white",
+                connectedWalletName === "Solflare" && "bg-[#F6D500] text-black",
+                connectedWalletName === "Magic Eden" && "bg-[#8A2BE2] text-white",
+                connectedWalletName === "Torus" && "bg-[#2F80ED] text-white",
+                !["Phantom","MetaMask","Solflare","Magic Eden","Torus"].includes(connectedWalletName ?? "") &&
+                  "bg-secondary text-secondary-foreground"
+              )}
+            >
+              {connectedWalletName}
+            </Badge>
+          )}
+          </div>
+        </DropdownMenuLabel>
+
+        <div className="px-3 pb-3">
+          <p className="text-xs uppercase text-muted-foreground">Balance</p>
+          <div className="mt-1 flex items-baseline justify-between">
+            <span className="text-lg font-semibold text-secondary-foreground">
+              {personalBalance.toFixed(4)} SOL
+            </span>
+            {personalUsdValue !== null && (
+              <span className="text-xs text-muted-foreground">
+                ≈ $
+                {personalUsdValue.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem onClick={handleCopyAddress}>
+          <Copy className="mr-2 h-4 w-4" /> Copy Address
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={handleDisconnect}
+          className="text-destructive focus:text-destructive"
+        >
+          <LogOut className="mr-2 h-4 w-4" /> Disconnect
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
-
-
