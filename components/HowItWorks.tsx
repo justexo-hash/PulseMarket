@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useState } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,6 +13,13 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Info, ArrowLeft, ArrowRight } from "lucide-react";
+
+function hasSeenHowItWorks() {
+  return document.cookie.includes("howitworks_seen=1");
+}
+function markHowItWorksSeen() {
+  document.cookie = "howitworks_seen=1; path=/; max-age=31536000";
+}
 
 type Step = {
   title: string;
@@ -48,17 +56,31 @@ export function HowItWorksButton() {
   const [open, setOpen] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
 
+  useEffect(() => {
+    if (!hasSeenHowItWorks()) {
+      setOpen(true);
+    }
+  }, []);
+
   const step = steps[stepIndex];
   const isFirst = stepIndex === 0;
   const isLast = stepIndex === steps.length - 1;
 
   return (
     <>
-      <Button variant="ghost" size="sm" onClick={() => setOpen(true)} className="gap-2 bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 hover:text-cyan-300 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
+      <Button variant="ghost" className="text-blue-300 font-semibold flex items-center" size="sm" onClick={() => setOpen(true)}>
         <Info className="h-4 w-4" />
         How it works
       </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(nextOpen) => {
+          setOpen(nextOpen);
+          if (!nextOpen && !hasSeenHowItWorks()) {
+            markHowItWorksSeen();
+          }
+        }}
+      >
         <DialogContent className="max-w-lg p-0 overflow-hidden">
           <DialogHeader className="px-6 pt-6">
             <DialogTitle className="text-xl">How it works</DialogTitle>
@@ -108,5 +130,4 @@ export function HowItWorksButton() {
 }
 
 export default HowItWorksButton;
-
 

@@ -10,11 +10,11 @@ export default {
   ],
   theme: {
     fontSize: {
-      xs: "0.75rem",      /* 12px */
-      sm: "0.875rem",     /* 14px */
-      base: "0.90rem",    /* 14.4px (slightly reduced default) */
-      lg: "1.125rem",     /* 18px */
-      xl: "1.25rem",      /* 20px */
+      xs: "0.82rem",      /* 12px */
+      sm: "0.85rem",     /* 14px */
+      base: "0.95rem",    /* 14.4px (slightly reduced default) */
+      lg: "1.15rem",     /* 18px */
+      xl: "1.30rem",      /* 20px */
       "2xl": "1.5rem",    /* 24px */
       "3xl": "1.875rem",  /* 30px */
       "4xl": "2.25rem",   /* 36px */
