@@ -87,7 +87,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <AppProviders>
             <div className="relative z-10 flex flex-col">
               <Header />
-              <main className="flex-grow pb-20 px-[1.5rem]">{children}</main>
+              <main className="flex-grow pb-20 min-h-screen px-[1.5rem]">{children}</main>
               <Footer />
             </div>
           </AppProviders>

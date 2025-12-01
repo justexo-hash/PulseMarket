@@ -9,9 +9,9 @@ export default function ProfilesLayout({
 }) {
   return (
     <div className="flex flex-col bg-gradient-to-b from-background via-background to-muted/10">
-      <Header />
+  
       <main className="flex-grow pb-20">{children}</main>
-      <Footer />
+
     </div>
   );
 }
