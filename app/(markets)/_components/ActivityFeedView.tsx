@@ -185,7 +185,6 @@ export function ActivityFeedView() {
 
   if (activities.isLoading || markets.length === 0) {
     return (
-      <div className="relative min-h-screen">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h1 className="text-4xl font-bold text-secondary-foreground  mb-8">Activity Feed</h1>
           <div className="space-y-4">
@@ -194,12 +193,10 @@ export function ActivityFeedView() {
             ))}
           </div>
         </div>
-      </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-secondary-foreground  mb-2">Activity Feed</h1>
@@ -456,7 +453,6 @@ export function ActivityFeedView() {
           </div>
         )}
       </div>
-    </div>
   );
 }
 

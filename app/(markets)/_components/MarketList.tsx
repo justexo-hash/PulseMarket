@@ -35,19 +35,16 @@ export function MarketListView({
 
   if (error) {
     return (
-      <div className="relative min-h-screen">
         <div className="relative z-10 mx-auto py-12">
           <div className="text-center py-20">
             <p className="text-2xl text-red-400 mb-4">Failed to load markets</p>
             <p className="text-white/70">{(error as Error).message}</p>
           </div>
         </div>
-      </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen">
     
       <div className="relative z-10">
         {filteredMarkets.length === 0 ? (
@@ -71,6 +68,5 @@ export function MarketListView({
           </div>
         )}
       </div>
-    </div>
   );
 }

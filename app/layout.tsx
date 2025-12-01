@@ -85,7 +85,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           disableTransitionOnChange
         >
           <AppProviders>
-            <div className="relative z-10 flex flex-col min-h-screen">
+            <div className="relative z-10 flex flex-col">
               <Header />
               <main className="flex-grow pb-20 px-[1.5rem]">{children}</main>
               <Footer />
