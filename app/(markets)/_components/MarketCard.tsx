@@ -105,7 +105,7 @@ export function MarketCard({ market }: MarketCardProps) {
   return (
     <Link href={marketPath} data-testid={`card-market-${market.id}`}>
       <div
-        className={`group bg-secondary rounded-lg border border-muted-foreground/10 p-3 gap-4 shadow-lg hover-elevate active-elevate-2 transition-all duration-200 cursor-pointer h-full flex flex-col justify-between`}
+        className={`group bg-secondary text-card-foreground rounded-lg  p-3 gap-4 rounded-lg transition-all duration-200 cursor-pointer h-full flex flex-col justify-between`}
       >
         {/* ========================================================= */}
         {/* SECTION 1 — HEADER (Category, Status, Countdown, Gauge)   */}

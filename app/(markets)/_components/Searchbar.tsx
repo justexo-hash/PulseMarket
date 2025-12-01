@@ -98,7 +98,7 @@ export function MarketSearchBar() {
     <div ref={wrapperRef} className="relative md:min-w-[600px]">
       {/* SEARCHBAR (STATIC, ALWAYS VISIBLE) */}
       <div className="relative w-full" onClick={() => setOpen(true)}>
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground  outline-none pointer-events-none" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-secondary outline-none pointer-events-none" />
         <Input
           type="text"
           placeholder="Search markets or users..."
@@ -108,10 +108,10 @@ export function MarketSearchBar() {
             setOpen(true);
           }}
           className={
-            "pl-9 text-muted-foreground w-full  bg-secondary cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none " +
+            "pl-9 text-muted-secondary w-full cursor-pointer border-muted-foreground/20 outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none " +
             (open
-              ? "bg-background rounded-t-md rounded-b-none border border-muted-foreground/20"
-              : "rounded-md")
+              ? "rounded-t-md rounded-b-none text-muted-secondary border-muted-foreground/20 border "
+              : "rounded-md text-muted-secondary ")
           }
         />
       </div>
@@ -122,11 +122,12 @@ export function MarketSearchBar() {
           className="
           absolute left-0 top-full z-50 
           w-full md:min-w-[400px]
-          bg-background rounded-t-none rounded-lg overflow-hidden shadow-md 
+         bg-background rounded-t-none rounded-lg overflow-hidden shadow-md 
           border border-muted-foreground/20 border-t-0
         "
         >
           {/* LIVE RESULTS SECTION */}
+<<<<<<< HEAD
           {trimmedQuery.length > 0 && (
             <div className="flex flex-col gap-2 border-b border-muted-foreground/20">
               <div className="flex items-center justify-between px-3 py-2">
@@ -145,6 +146,26 @@ export function MarketSearchBar() {
                           ? "bg-background text-secondary-foreground shadow-sm"
                           : "text-muted-foreground hover:text-secondary-foreground"
                       )}
+=======
+          {searchQuery.trim().length > 0 && (
+            <div className="flex flex-col gap-2 py-2 border-b">
+              <p className="text-xs font-medium px-3 text-muted-foreground uppercase">
+                Results
+              </p>
+
+              {filteredResults.length > 0 ? (
+                <div className="flex flex-col gap-2 p-4">
+                  {filteredResults.map((m) => (
+                    <Link
+                      key={m.id}
+                      href={`/markets/${m.id}`}
+                      onClick={() => setOpen(false)}
+                      className="
+                      w-full flex items-center gap-3 px-4 py-2 
+                      hover:bg-secondary hover:bg-primary hover:text-foreground border border-transparent font-medium 
+                    
+                      "
+>>>>>>> 257a010 (change routes)
                     >
                       {option === "markets" ? "Markets" : "Users"}
                     </button>
@@ -245,7 +266,7 @@ export function MarketSearchBar() {
                 {categories.map((cat) => (
                   <Link
                     key={cat}
-                    href={`/category/${encodeURIComponent(cat)}`}
+                    href={`/markets/${encodeURIComponent(cat)}`}
                     onClick={() => setOpen(false)}
                   >
                     <Badge variant="ghost">

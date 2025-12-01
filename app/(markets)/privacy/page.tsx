@@ -2,7 +2,47 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "Privacy | Pulsemarket",
+  description:
+    "Building the future of memecoin prediction markets.",
+  icons: {
+    icon: "/favicon.png",
+  },
+  openGraph: {
+    title: "Privacy | Pulsemarket",
+    description: "Building the future of memecoin prediction markets.",
+    url: "https://pulsemarket.fun",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Privacy | Pulsemarket",
+    description: "Predict memecoin markets, track sentiment and trade probabilities instantly.",
+    creator: "@pulsemkt",
+    images: ["/og-image.png"],
+  },
+  keywords: [
+    "memecoin",
+    "prediction market",
+    "crypto predictions",
+    "solana",
+    "yes/no markets",
+    "crypto betting",
+    "pulsemarket",
+    "web3 trading",
+    "onchain markets",
+  ],
+  authors: [
+    { name: "PulseMarket Team", url: "https://pulsemarket.fun" }
+  ],
+  category: "finance",
+  applicationName: "PulseMarket",
+  generator: "Next.js",
+  referrer: "origin-when-cross-origin",
+  metadataBase: new URL("https://pulsemarket.fun"),
+};
 export default function PrivacyPage() {
   const lastUpdated = new Date().toLocaleDateString();
 
@@ -15,10 +55,10 @@ export default function PrivacyPage() {
         </Link>
       </Button>
 
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <h1 className="text-4xl font-bold text-secondary-foreground  mb-4">Privacy Policy</h1>
 
-        <Card className="p-8 space-y-6">
+        <Card className="space-y-6">
           <section>
             <p className="text-sm text-muted-foreground mb-6">Last updated: {lastUpdated}</p>
             <h2 className="text-2xl font-semibold text-secondary-foreground  mb-3">1. Overview</h2>

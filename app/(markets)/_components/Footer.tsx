@@ -144,6 +144,13 @@ export function Footer() {
             >
               Privacy Policy
             </Link>
+            <span className="text-muted-foreground/50">•</span>
+            <Link
+              href="/blog"
+              className="hover:text-secondary-foreground  transition-colors"
+            >
+             Blog
+            </Link>
           </div>
 
           <div className="flex items-center gap-4 min-w-0">

@@ -75,7 +75,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en"  className={openSauce.variable} suppressHydrationWarning>
-      <body className="min-h-screen bg-background font-openSauce text-secondary-foreground  antialiased">
+      <body className="min-h-screen font-openSauce bg-background antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

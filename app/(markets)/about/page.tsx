@@ -13,10 +13,10 @@ export default function AboutPage() {
         </Link>
       </Button>
 
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <h1 className="text-4xl font-bold text-secondary-foreground  mb-4">About Us</h1>
 
-        <Card className="p-8 space-y-6">
+        <Card className="">
           <section>
             <h2 className="text-2xl font-semibold text-secondary-foreground  mb-3">What is PulseMarket?</h2>
             <p className="text-muted-foreground leading-relaxed">
