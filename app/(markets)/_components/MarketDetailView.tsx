@@ -300,7 +300,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
   const returnMultiplier = potentialWinnings !== null && betAmountNum > 0 ? (potentialWinnings / betAmountNum).toFixed(2) : null;
 
   return (
-    <div className="container mx-auto px-4 lg:px-0 py-6">
+    <div className="">
       <Button variant="ghost" className="mb-6" asChild>
         <Link href="/" data-testid="button-back">
           <ArrowLeft className="mr-2 h-4 w-4" />

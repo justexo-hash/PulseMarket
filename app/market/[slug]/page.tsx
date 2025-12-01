@@ -1,5 +1,5 @@
 import Comments from "app/(markets)/_components/Comments";
-import { MarketDetailView } from "../../_components/MarketDetailView";
+import { MarketDetailView } from "app/(markets)/_components/MarketDetailView";
 
 interface MarketDetailPageProps {
   params: { slug: string };
@@ -8,19 +8,18 @@ interface MarketDetailPageProps {
 export default function MarketDetailPage({ params }: MarketDetailPageProps) {
   const decodedSlug = decodeURIComponent(params.slug);
   return (
-    <div className="container mx-auto px-4 lg:px-0 py-6">
+ 
       <div className="w-full flex flex-col lg:flex-row gap-6">
         {/* LEFT: MARKET DETAIL */}
         <div className="flex-1 min-w-0 flex flex-col gap-6">
           <MarketDetailView slug={decodedSlug} />
-
           <Comments slug={decodedSlug} />
         </div>
 
       {/* RIGHT: SIDEBAR (Polymarket-style) */}
       <aside className="w-full lg:w-[360px] shrink-0">
-        <div className="sticky top-24 rounded-xl p-4">
-          <div className="w-full flex flex-col gap-4 rounded-xl p-4 bg-background">
+        <div className="sticky top-24 rounded-xl">
+          <div className="w-full flex flex-col gap-4 rounded-xl bg-background">
 
             {/* DATE TITLE */}
             <h3 className="text-base font-semibold">November 30</h3>
@@ -106,6 +105,5 @@ export default function MarketDetailPage({ params }: MarketDetailPageProps) {
         </div>
       </aside>
       </div>
-    </div>
   );
 }

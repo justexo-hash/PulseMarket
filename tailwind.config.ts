@@ -9,10 +9,17 @@ export default {
     "./lib/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
+    container: {
+      center: true,
+      padding: "1.5rem",
+      screens: {
+        xl: "1440px",
+      },
+    },
     fontSize: {
-      xs: "0.82rem",      /* 12px */
-      sm: "0.85rem",     /* 14px */
-      base: "0.95rem",    /* 14.4px (slightly reduced default) */
+      xs: "0.80rem",      /* 12px */
+      sm: "0.84rem",     /* 14px */
+      base: "0.88rem",    /* 14.4px (slightly reduced default) */
       lg: "1.15rem",     /* 18px */
       xl: "1.30rem",      /* 20px */
       "2xl": "1.5rem",    /* 24px */

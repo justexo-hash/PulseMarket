@@ -20,7 +20,7 @@ const NAV_LINKS = [
 export function HeaderMobile(props: any) {
   return (
     <header className="z-50 w-full">
-      <div className="container mx-auto pt-3 px-3 flex flex-col gap-3">
+      <div className="container mx-auto pt-[1.5rem] flex flex-col gap-6 mb-6">
         {/* LEFT SIDE: Logo + Searchbar + Mobile Burger Menu */}
         <div className="flex items-center justify-between gap-6">
           <div className="flex justify-between w-full gap-3 mobile">
@@ -132,7 +132,6 @@ export function HeaderMobile(props: any) {
             {/* Searchbar — desktop & mobile responsive */}
           </div>
         </div>
-        <SearchCategories />
         <MarketSearchBar />
       </div>
     </header>

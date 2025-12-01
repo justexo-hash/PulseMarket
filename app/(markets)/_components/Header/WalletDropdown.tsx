@@ -1,4 +1,5 @@
 "use client";
+// WalletDropdown: manages connecting, displaying, and managing Solana wallets in the header UI
 
 import { useMemo, useState } from "react";
 import {
@@ -7,9 +8,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
+import { useAuth } from "@/lib/auth";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -23,12 +23,21 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import type { WalletContextState } from "@solana/wallet-adapter-react";
+import { WalletReadyState, type WalletName } from "@solana/wallet-adapter-base";
 import {
-  WalletReadyState,
-  type WalletName,
-} from "@solana/wallet-adapter-base";
-import { Check, ChevronDown, Copy, LogOut, Wallet } from "lucide-react";
+  Check,
+  ChevronDown,
+  CircleDollarSign,
+  Copy,
+  LogOut,
+  User,
+  Wallet,
+  Wallet2,
+} from "lucide-react";
+import Link from "next/link";
+import { NotificationsDropdown } from "./NotificationsDropdown";
 
+// Props expected by the WalletDropdown component
 interface WalletDropdownProps {
   wallet: WalletContextState;
   isMounted?: boolean;
@@ -41,6 +50,7 @@ interface WalletDropdownProps {
   solPriceUsd?: number | null;
 }
 
+// Human-readable labels for Solana wallet readiness states
 const READY_STATE_LABEL: Record<WalletReadyState, string> = {
   [WalletReadyState.Installed]: "Installed",
   [WalletReadyState.Loadable]: "Loadable",
@@ -61,12 +71,15 @@ export function WalletDropdown({
 }: WalletDropdownProps) {
   const { toast } = useToast();
   const [pendingWallet, setPendingWallet] = useState<WalletName | null>(null);
+  const { user } = useAuth();
+  const [viewWalletOpen, setViewWalletOpen] = useState(false);
 
   const connectedAddress = wallet.publicKey?.toBase58();
   const connectedWalletName = wallet.wallet?.adapter.name;
 
   const wallets = wallet.wallets;
 
+  // Build a deduplicated and priority-sorted list of detected wallets
   const availableWallets = useMemo(() => {
     const priority: Record<WalletReadyState, number> = {
       [WalletReadyState.Installed]: 0,
@@ -90,11 +103,13 @@ export function WalletDropdown({
     );
   }, [wallets]);
 
+  // Format a wallet address to a short readable form (e.g. 8zxf...A91k)
   const truncateAddress = (address?: string) => {
     if (!address) return "";
     return `${address.slice(0, 4)}...${address.slice(-4)}`;
   };
 
+  // Handle the user selecting a specific wallet provider
   const handleSelectWallet = async (name: WalletName) => {
     setPendingWallet(name);
     try {
@@ -162,6 +177,7 @@ export function WalletDropdown({
     }
   };
 
+  // Disconnect the currently connected wallet
   const handleDisconnect = async () => {
     try {
       await wallet.disconnect();
@@ -179,6 +195,7 @@ export function WalletDropdown({
     }
   };
 
+  // Copy the connected wallet address to clipboard
   const handleCopyAddress = async () => {
     if (!connectedAddress || typeof navigator === "undefined") return;
     try {
@@ -196,30 +213,32 @@ export function WalletDropdown({
     }
   };
 
+  // Determine the label shown on the trigger button
   const triggerLabel = !isMounted
     ? "Loading..."
     : wallet.connecting || pendingWallet
-      ? "Connecting..."
-      : connectedAddress
-        ? truncateAddress(connectedAddress)
-        : "Connect Wallet";
+    ? "Connecting..."
+    : connectedAddress
+    ? truncateAddress(connectedAddress)
+    : "Connect Wallet";
 
+  // Render the wallet selection modal when user is not connected
   const personalBalance = onChainBalance ?? 0;
   const personalUsdValue =
-    typeof solPriceUsd === "number"
-      ? personalBalance * solPriceUsd
-      : null;
+    typeof solPriceUsd === "number" ? personalBalance * solPriceUsd : null;
 
   if (!connectedAddress) {
     return (
-      <Dialog onOpenChange={(open) => {
-        if (!open && wallet.connected) {
-          // close modal automatically once connected
-        }
-      }}>
+      <Dialog
+        onOpenChange={(open) => {
+          if (!open && wallet.connected) {
+            // close modal automatically once connected
+          }
+        }}
+      >
         <DialogTrigger asChild>
           <Button
-            variant={triggerVariant}
+            variant={connectedAddress ? "secondary" : triggerVariant}
             size={triggerSize}
             disabled={!isMounted || wallet.connecting}
             className={cn(
@@ -237,6 +256,7 @@ export function WalletDropdown({
             <DialogTitle>Select a wallet</DialogTitle>
           </DialogHeader>
 
+          {/* Render each available wallet with its installation status */}
           <div className="flex flex-col gap-3 px-1.5 max-h-64 overflow-y-auto">
             {availableWallets.length === 0 && (
               <p className="text-muted-foreground text-sm">
@@ -292,81 +312,100 @@ export function WalletDropdown({
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant={triggerVariant}
-          size={triggerSize}
-          className={cn(
-            "flex items-center gap-3 min-w-[140px] justify-center",
-            triggerClassName
-          )}
-        >
-          <Wallet className="h-4 w-4" />
-          <span>{truncateAddress(connectedAddress)}</span>
-          <ChevronDown className="h-3 w-3" />
-        </Button>
-      </DropdownMenuTrigger>
+    <>
+      <Dialog open={viewWalletOpen} onOpenChange={setViewWalletOpen}>
+        <DialogContent className=" bg-background text-secondary-foreground px-4">
+          <DialogHeader>
+            <DialogTitle>Wallet Details</DialogTitle>
+          </DialogHeader>
 
-      <DropdownMenuContent className="w-72 bg-background text-secondary-foreground shadow-xl px-1.5">
-        <DropdownMenuLabel className="flex flex-col gap-3">
-          <span className="text-xs uppercase text-muted-foreground">
-            Connected Wallet
-          </span>
-          <div className="flex justify-between">
-          <span className="font-mono text-sm">
-            {truncateAddress(connectedAddress)}
-          </span>
-        {connectedWalletName && (
-            <Badge
-              className={cn(
-                "w-fit",
-                connectedWalletName === "Phantom" && "bg-[#AB19EE] text-white",
-                connectedWalletName === "MetaMask" && "bg-[#F6851B] text-white",
-                connectedWalletName === "Solflare" && "bg-[#F6D500] text-black",
-                connectedWalletName === "Magic Eden" && "bg-[#8A2BE2] text-white",
-                connectedWalletName === "Torus" && "bg-[#2F80ED] text-white",
-                !["Phantom","MetaMask","Solflare","Magic Eden","Torus"].includes(connectedWalletName ?? "") &&
-                  "bg-secondary text-secondary-foreground"
-              )}
-            >
-              {connectedWalletName}
-            </Badge>
-          )}
-          </div>
-        </DropdownMenuLabel>
+          <div className="flex flex-col gap-4 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Address</span>
+              <span>{connectedAddress}</span>
+            </div>
 
-        <div className="px-1.5">
-          <p className="text-xs uppercase text-muted-foreground">Balance</p>
-          <div className="mt-1 flex items-baseline justify-between">
-            <span className="text-lg font-semibold text-secondary-foreground">
-              {personalBalance.toFixed(4)} SOL
-            </span>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Wallet</span>
+              <span>{connectedWalletName}</span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Balance</span>
+              <span>{personalBalance} SOL</span>
+            </div>
+
             {personalUsdValue !== null && (
-              <span className="text-xs text-muted-foreground">
-                ≈ $
-                {personalUsdValue.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">USD Value</span>
+                <span>${personalUsdValue.toFixed(2)}</span>
+              </div>
             )}
           </div>
-        </div>
+        </DialogContent>
+      </Dialog>
 
-        <DropdownMenuSeparator />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant={connectedAddress ? "secondary" : triggerVariant}
+            size={triggerSize}
+            className={cn(
+              "flex items-center gap-3 min-w-[140px] justify-center",
+              triggerClassName
+            )}
+          >
+            <Wallet className="h-4 w-4" />
+            <span>{truncateAddress(connectedAddress)}</span>
+            <ChevronDown className="h-3 w-3" />
+          </Button>
+        </DropdownMenuTrigger>
 
-        <DropdownMenuItem onClick={handleCopyAddress}>
-          <Copy className="mr-2 h-4 w-4" /> Copy Address
-        </DropdownMenuItem>
-
-        <DropdownMenuItem
-          onClick={handleDisconnect}
-          className="text-red-400 bg-red-400/20"
+        <DropdownMenuContent
+          align="end"
+          className="mt-2 text-secondary-foreground bg-secondary shadow-xl px-1.5"
         >
-          <LogOut className="mr-2 h-4 w-4" /> Disconnect
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          {user && 
+            <Link
+            href={`/profile/${user.username}`}
+            >
+          <DropdownMenuItem>
+            <User /> Profil
+          </DropdownMenuItem>
+            </Link>
+                      }
+          <DropdownMenuItem onClick={() => setViewWalletOpen(true)}>
+            <Wallet2 /> View wallet
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleCopyAddress}>
+            <Copy /> Copy Address
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+
+          {/* Wallet actions available to the user */}
+
+          {/* If wallet is connected, display deposit + balance + notifications */}
+          {user && wallet.connected && wallet.publicKey && (
+            <>
+              <DropdownMenuItem>
+                <Link
+                  className="text-orange-400 w-full flex gap-3 items-center"
+                  href="/deposit"
+                >
+                  <CircleDollarSign />
+                  Deposit
+                </Link>
+
+                {/* <NotificationsDropdown enabled={Boolean(user)} /> */}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          <DropdownMenuItem onClick={handleDisconnect} className="text-red-400">
+            <LogOut /> Log out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 }

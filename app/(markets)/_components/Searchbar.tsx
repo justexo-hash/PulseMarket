@@ -95,7 +95,7 @@ export function MarketSearchBar() {
     : [];
 
   return (
-    <div ref={wrapperRef} className="relative md:min-w-[600px]">
+    <div ref={wrapperRef} className="relative md:min-w-[400px]">
       {/* SEARCHBAR (STATIC, ALWAYS VISIBLE) */}
       <div className="relative w-full" onClick={() => setOpen(true)}>
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-secondary outline-none pointer-events-none" />

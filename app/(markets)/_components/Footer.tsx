@@ -151,6 +151,8 @@ export function Footer() {
             >
               Blog
             </Link>
+            <span className="text-muted-foreground/50 hidden lg:block">•</span>
+
             <Link href="https://twitter.com/PulseMarket"> Twitter</Link>
           </div>
 

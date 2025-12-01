@@ -4,6 +4,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css";
 import { AppProviders } from "./providers";
 import localFont from "next/font/local";
+import { Header } from "./(markets)/_components/Header";
+import { Footer } from "./(markets)/_components/Footer";
 
 const openSauce = localFont({
   src: [
@@ -82,7 +84,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           enableSystem
           disableTransitionOnChange
         >
-          <AppProviders>{children}</AppProviders>
+          <AppProviders>
+            <div className="relative z-10 flex flex-col min-h-screen">
+              <Header />
+              <main className="flex-grow pb-20 px-[1.5rem]">{children}</main>
+              <Footer />
+            </div>
+          </AppProviders>
         </ThemeProvider>
       </body>
     </html>

@@ -1,24 +1,12 @@
 import Link from "next/link";
 
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuGroup,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-
 import { SearchCategories } from "../SearchCategories";
 import { MarketSearchBar } from "../Searchbar";
 import HowItWorksButton from "@/components/HowItWorks";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { CircleDollarSign, Menu } from "lucide-react";
+import { Plus, Users } from "lucide-react";
 import { WalletDropdown } from "./WalletDropdown";
-import { NotificationsDropdown } from "./NotificationsDropdown";
-
+import { useAuth } from "@/lib/auth";
 // Static navigation links for both desktop and mobile menus
 const NAV_LINKS = [
   { href: "/", label: "Discover" },
@@ -28,9 +16,10 @@ const NAV_LINKS = [
 
 // DESKTOP HEADER COMPONENT
 export function HeaderDesktop(props: any) {
+  const { user } = useAuth();
   return (
     <header className="z-50 w-full">
-      <div className="container mx-auto pt-3  flex flex-col gap-3">
+      <div className="px-[1.5rem] pt-[1.5rem] flex flex-col gap-6 mb-6">
         {/* LEFT SIDE: Logo + Searchbar + Mobile Burger Menu */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex justify-between md:justify-start gap-3 desktop">
@@ -54,33 +43,27 @@ export function HeaderDesktop(props: any) {
 
           {/* RIGHT SIDE: Wallet actions, notifications, login/signup dialog, and desktop menu */}
           <div className="hidden md:flex items-center gap-3">
-            {/* If wallet is connected, display deposit + balance + notifications */}
-            {props.user && props.wallet.connected && props.wallet.publicKey && (
-              <>
-                <Button variant="marketing" asChild>
-                  <Link href="/deposit">
-                    {" "}
-                    <CircleDollarSign />
-                    Deposit
-                  </Link>
-                </Button>
-                <div className="items-center gap-1.5 px-1.5 py-1.5 bg-secondary flex rounded-md">
-                  <Image
-                    src="/solana.webp"
-                    alt="SOL"
-                    width={20}
-                    height={20}
-                    className="rounded-full object-cover"
-                  />
-                  <span className="text-sm font-bold text-secondary-foreground">
-                    {(props.platformBalance ?? 0).toFixed(2)}
-                  </span>
+            {user && (
+              <div className="flex items-start justify-between">
+                <div className="flex gap-2">
+                  {user?.isAdmin && (
+                    <Button size="sm" className="gap-2" asChild>
+                      <Link href="/create">
+                        <Plus className="h-5 w-5" />
+                        Create Market
+                      </Link>
+                    </Button>
+                  )}
+
+                  <Button size="sm" className="gap-2" asChild>
+                    <Link href="/create">
+                      <Users className="h-5 w-5" />
+                      Private Wager
+                    </Link>
+                  </Button>
                 </div>
-
-                <NotificationsDropdown enabled={Boolean(props.user)} />
-              </>
+              </div>
             )}
-
             <WalletDropdown
               wallet={props.wallet}
               isMounted={props.isMounted}
@@ -88,7 +71,7 @@ export function HeaderDesktop(props: any) {
               solPriceUsd={props.solPriceUsd}
               onDisconnect={props.handleLogout}
             />
-            {/* DESKTOP DROPDOWN MENU */}
+            {/* DESKTOP DROPDOWN MENU
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="hidden md:flex">
@@ -122,7 +105,7 @@ export function HeaderDesktop(props: any) {
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuGroup>
-
+                
                 {props.user && (
                   <>
                     <DropdownMenuSeparator />
@@ -155,11 +138,10 @@ export function HeaderDesktop(props: any) {
                   </>
                 )}
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
           </div>
         </div>
-        {/* SECONDARY NAVIGATION (Categories) — only visible on desktop */}
-        <SearchCategories />
+
       </div>
     </header>
   );

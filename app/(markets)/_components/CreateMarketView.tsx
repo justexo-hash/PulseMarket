@@ -377,7 +377,7 @@ export function CreateMarketView() {
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="bg-card border border-card-border rounded-lg p-8 shadow-xl">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="bg-card rounded-lg p-8 shadow-xl">
             <div className="space-y-6">
               <FormField
                 control={form.control}

@@ -99,7 +99,7 @@ export default function AdminPanelPage() {
     return (
       <div className="relative min-h-screen">
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" />
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="relative z-10 container mx-auto py-12">
           <Card className="p-12 text-center bg-black/30 backdrop-blur-sm border-white/20">
             <Shield className="h-16 w-16 mx-auto mb-4 text-destructive" />
             <h1 className="text-3xl font-bold text-white mb-4">Access Denied</h1>
@@ -118,7 +118,7 @@ export default function AdminPanelPage() {
     return (
       <div className="relative min-h-screen">
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" />
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="relative z-10 container mx-auto py-12">
           <h1 className="text-4xl font-bold text-white mb-8">Admin Panel</h1>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
@@ -146,7 +146,7 @@ export default function AdminPanelPage() {
       </div>
       
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="relative z-10 container mx-auto py-12">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <Shield className="h-8 w-8 text-secondary-foreground" />

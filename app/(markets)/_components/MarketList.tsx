@@ -8,7 +8,11 @@ import { useAuth } from "@/lib/auth";
 import { useMarketSearchContext } from "../_context/MarketSearchContext";
 import Link from "next/link";
 
-export function MarketListView({ categoryFilter }: { categoryFilter?: string }) {
+export function MarketListView({
+  categoryFilter,
+}: {
+  categoryFilter?: string;
+}) {
   const { user } = useAuth();
 
   const {
@@ -19,16 +23,12 @@ export function MarketListView({ categoryFilter }: { categoryFilter?: string }) 
     queryKey: ["/api/markets"],
   });
 
-  const {
-    searchQuery,
-    selectedCategory,
-  } = useMarketSearchContext();
+  const { searchQuery, selectedCategory } = useMarketSearchContext();
 
   const filteredMarkets = markets.filter((m) => {
-    const matchCategory =
-      categoryFilter
-        ? m.category === categoryFilter
-        : selectedCategory === "All" || m.category === selectedCategory;
+    const matchCategory = categoryFilter
+      ? m.category === categoryFilter
+      : selectedCategory === "All" || m.category === selectedCategory;
 
     return matchCategory;
   });
@@ -36,7 +36,7 @@ export function MarketListView({ categoryFilter }: { categoryFilter?: string }) 
   if (error) {
     return (
       <div className="relative min-h-screen">
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="relative z-10 mx-auto py-12">
           <div className="text-center py-20">
             <p className="text-2xl text-red-400 mb-4">Failed to load markets</p>
             <p className="text-white/70">{(error as Error).message}</p>
@@ -48,34 +48,8 @@ export function MarketListView({ categoryFilter }: { categoryFilter?: string }) 
 
   return (
     <div className="relative min-h-screen">
-      <div className="relative z-10 container mx-auto px-4 lg:px-0 py-3">
-        <div className="mb-6 flex items-start justify-between">
-          {/* <div>
-            <h1 className="text-4xl font-bold text-white mb-2">Discover</h1>
-            <p className="text-white/80 text-lg">
-              Explore prediction markets and place your bets on future events
-            </p>
-          </div> */}
-          <div className="flex gap-2">
-            {user?.isAdmin && (
-              <Button size="lg" className="gap-2" asChild>
-                <Link href="/create">
-                  <Plus className="h-5 w-5" />
-                  Create Market
-                </Link>
-              </Button>
-            )}
-            {user && (
-              <Button size="lg" className="gap-2" asChild>
-                <Link href="/create">
-                  <Users className="h-5 w-5" />
-                  Private Wager
-                </Link>
-              </Button>
-            )}
-          </div>
-        </div>
-
+    
+      <div className="relative z-10">
         {filteredMarkets.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-2xl text-white mb-4">
