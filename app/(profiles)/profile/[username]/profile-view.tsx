@@ -183,7 +183,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                     <Link
                       href={
                         bet.marketSlug
-                          ? `/market/${bet.marketSlug}`
+                          ? `/markets/${bet.marketSlug}`
                           : bet.marketInviteCode
                           ? `/wager/${bet.marketInviteCode}`
                           : "#"

@@ -162,6 +162,7 @@
   }
 
   body {
+    overflow-x:hidden;
     @apply font-sans antialiased text-secondary-foreground ;
   }
 

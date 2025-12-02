@@ -41,7 +41,7 @@ _Exit criteria_: `app/layout.tsx` renders the full provider stack, hooks compile
 1. **Routing strategy**
    - Map every `client/src/pages/*.tsx` route to an App Router segment:
      - `/` → `app/(markets)/page.tsx`
-     - `/market/[slug]` → `app/(markets)/market/[slug]/page.tsx`
+     - `/markets/[slug]` → `app/(markets)/markets/[slug]/page.tsx`
      - `/portfolio`, `/deposit`, `/withdraw`, `/activity`, `/admin`, `/transparency`, `/wager/[inviteCode]`, `/about`, `/terms`, `/privacy`, etc.
 2. **Shared chrome**
    - Move `Header`, `Footer`, `ErrorBoundary`, and background video logic into `app/(markets)/layout.tsx` or keep inside root layout with client components.

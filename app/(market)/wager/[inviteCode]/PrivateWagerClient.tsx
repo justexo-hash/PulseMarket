@@ -5,10 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import { type Market } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { MarketDetailView } from "../../_components/MarketDetailView";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { MarketDetailView } from "app/_components/MarketDetailView";
 
 interface PrivateWagerClientProps {
   inviteCode: string;

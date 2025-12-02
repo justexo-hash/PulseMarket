@@ -54,7 +54,7 @@ Set up the following routes:
 
 /: Renders the MarketList component.
 
-/market/:id: Renders the MarketDetail component.
+/markets/:id: Renders the MarketDetail component.
 
 /create: Renders the CreateMarket component.
 
@@ -85,7 +85,7 @@ A presentational component that receives a single market object as a prop.
 
 Displays the question, category, and probability (e.g., "65%").
 
-The entire card should be wrapped in a Link component that navigates to /market/${market.id}.
+The entire card should be wrapped in a Link component that navigates to /markets/${market.id}.
 
 MarketDetail.jsx
 

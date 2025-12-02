@@ -4,8 +4,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css";
 import { AppProviders } from "./providers";
 import localFont from "next/font/local";
-import { Header } from "./(markets)/_components/Header";
-import { Footer } from "./(markets)/_components/Footer";
+import { Header } from "./_components/Header";
+import { Footer } from "./_components/Footer";
 
 const openSauce = localFont({
   src: [

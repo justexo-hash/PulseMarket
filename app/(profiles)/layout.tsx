@@ -1,6 +1,4 @@
 import type { ReactNode } from "react";
-import { Header } from "../(markets)/_components/Header";
-import { Footer } from "../(markets)/_components/Footer";
 
 export default function ProfilesLayout({
   children,

@@ -2,11 +2,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { type Market } from "@shared/schema";
 import { MarketCard } from "./MarketCard";
-import { Button } from "@/components/ui/button";
-import { Plus, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { useMarketSearchContext } from "../_context/MarketSearchContext";
-import Link from "next/link";
+import { useMarketSearchContext } from "app/(markets)/_context/MarketSearchContext";
 
 export function MarketListView({
   categoryFilter,

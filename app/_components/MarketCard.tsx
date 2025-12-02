@@ -100,7 +100,7 @@ export function MarketCard({ market }: MarketCardProps) {
   const marketPath =
     market.isPrivate === 1 && market.inviteCode
       ? `/wager/${market.inviteCode}`
-      : `/market/${market.slug || market.id}`;
+      : `/markets/${market.slug || market.id}`;
 
   return (
     <Link href={marketPath} data-testid={`card-market-${market.id}`}>

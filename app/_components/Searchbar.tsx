@@ -4,10 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import { Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { useMarketSearchContext } from "../_context/MarketSearchContext";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { useMarketSearchContext } from "app/(markets)/_context/MarketSearchContext";
 
 type SearchMode = "markets" | "users";
 
@@ -245,7 +245,7 @@ export function MarketSearchBar() {
                 {categories.map((cat) => (
                   <Link
                     key={cat}
-                    href={`/markets/${encodeURIComponent(cat)}`}
+                    href={`/market/${encodeURIComponent(cat)}`}
                     onClick={() => setOpen(false)}
                   >
                     <Badge variant="ghost">
@@ -279,7 +279,7 @@ export function MarketSearchBar() {
                   >
                      <Badge variant="ghost">
 
-                    <span className="font-medium text-base font-medium">{item.name}</span>
+                    <span className="text-base font-medium">{item.name}</span>
                      </Badge>
                   </Link>
                 ))}

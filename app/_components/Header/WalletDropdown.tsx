@@ -18,6 +18,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,7 @@ import {
   ChevronDown,
   CircleDollarSign,
   Copy,
+  Edit,
   LogOut,
   User,
   Wallet,
@@ -36,7 +38,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { NotificationsDropdown } from "./NotificationsDropdown";
-
 // Props expected by the WalletDropdown component
 interface WalletDropdownProps {
   wallet: WalletContextState;
@@ -73,6 +74,8 @@ export function WalletDropdown({
   const [pendingWallet, setPendingWallet] = useState<WalletName | null>(null);
   const { user } = useAuth();
   const [viewWalletOpen, setViewWalletOpen] = useState(false);
+
+  if (user) console.log("USER:" + user);
 
   const connectedAddress = wallet.publicKey?.toBase58();
   const connectedWalletName = wallet.wallet?.adapter.name;
@@ -312,12 +315,17 @@ export function WalletDropdown({
   }
 
   return (
-    <>
+    <div className="relative">
       <Dialog open={viewWalletOpen} onOpenChange={setViewWalletOpen}>
         <DialogContent className=" bg-background text-secondary-foreground px-4">
-          <DialogHeader>
-            <DialogTitle>Wallet Details</DialogTitle>
+          {user && 
+          <DialogHeader className="flex flex-row items-center justify-between my-6">
+            <DialogTitle className="flex items-center gap-3"><img className="border w-8 h-8 rounded-full" src=""/>{user.username}</DialogTitle>
+            <Link  href={`/profile/${user.username}`}>
+            <Button variant="ghost"><Edit/> Edit profile</Button>
+            </Link>
           </DialogHeader>
+          }
 
           <div className="flex flex-col gap-4 text-sm">
             <div className="flex justify-between">
@@ -374,7 +382,15 @@ export function WalletDropdown({
           </DropdownMenuItem>
             </Link>
                       }
-          <DropdownMenuItem onClick={() => setViewWalletOpen(true)}>
+          <DropdownMenuItem
+            onClick={(e) => {
+              const menu = e.currentTarget.closest("[data-radix-menu-content]");
+              if (menu) {
+                (menu as HTMLElement).dispatchEvent(new Event("close", { bubbles: true }));
+              }
+              setTimeout(() => setViewWalletOpen(true), 0);
+            }}
+          >
             <Wallet2 /> View wallet
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleCopyAddress}>
@@ -406,6 +422,6 @@ export function WalletDropdown({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </>
+    </div>
   );
 }

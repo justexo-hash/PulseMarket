@@ -1,4 +1,4 @@
-import { MarketListView } from "app/(markets)/_components/MarketList";
+import { MarketListView } from "app/_components/MarketList";
 
 export default function CategoryPage({
   params,

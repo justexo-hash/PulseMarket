@@ -77,7 +77,7 @@ export async function getNotificationsForUser(userId: number) {
       title,
       message: `${question} • ${action} ${amount.toFixed(2)} SOL`,
       createdAt: row.createdAt,
-      href: row.marketSlug ? `/market/${row.marketSlug}` : undefined,
+      href: row.marketSlug ? `/markets/${row.marketSlug}` : undefined,
     };
   });
 
@@ -126,7 +126,7 @@ export async function publishTransactionNotification(params: {
       2
     )} SOL`,
     createdAt: new Date().toISOString(),
-    href: params.marketSlug ? `/market/${params.marketSlug}` : undefined,
+    href: params.marketSlug ? `/markets/${params.marketSlug}` : undefined,
   };
 
   await publishToUser(params.userId, {

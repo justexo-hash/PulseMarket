@@ -185,7 +185,7 @@ export function ActivityFeedView() {
 
   if (activities.isLoading || markets.length === 0) {
     return (
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="">
           <h1 className="text-4xl font-bold text-secondary-foreground  mb-8">Activity Feed</h1>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
@@ -197,7 +197,7 @@ export function ActivityFeedView() {
   }
 
   return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-secondary-foreground  mb-2">Activity Feed</h1>
           <p className="text-muted-foreground text-lg">
@@ -297,7 +297,7 @@ export function ActivityFeedView() {
                     href={
                       bet.market.isPrivate === 1 && bet.market.inviteCode
                         ? `/wager/${bet.market.inviteCode}`
-                        : `/market/${bet.market.slug || bet.marketId}`
+                        : `/markets/${bet.market.slug || bet.marketId}`
                     }
                     className="block"
                   >
@@ -354,7 +354,7 @@ export function ActivityFeedView() {
                     href={
                       market.isPrivate === 1 && market.inviteCode
                         ? `/wager/${market.inviteCode}`
-                        : `/market/${market.slug || market.id}`
+                        : `/markets/${market.slug || market.id}`
                     }
                     className="block"
                   >
@@ -411,7 +411,7 @@ export function ActivityFeedView() {
                     href={
                       market.isPrivate === 1 && market.inviteCode
                         ? `/wager/${market.inviteCode}`
-                        : `/market/${market.slug || market.id}`
+                        : `/markets/${market.slug || market.id}`
                     }
                     className="block"
                   >

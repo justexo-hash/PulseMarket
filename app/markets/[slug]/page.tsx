@@ -1,5 +1,6 @@
-import Comments from "app/(markets)/_components/Comments";
-import { MarketDetailView } from "app/(markets)/_components/MarketDetailView";
+
+import Comments from "app/_components/Comments";
+import { MarketDetailView } from "app/_components/MarketDetailView";
 
 interface MarketDetailPageProps {
   params: { slug: string };

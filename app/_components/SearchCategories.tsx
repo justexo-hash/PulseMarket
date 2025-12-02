@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useMarketSearchContext } from "../_context/MarketSearchContext";
+import { useMarketSearchContext } from "app/(markets)/_context/MarketSearchContext";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -18,7 +18,7 @@ export function SearchCategories() {
         {categories.map((cat: any) => (
           <Link
             key={cat}
-            href={`/markets/${encodeURIComponent(cat)}`}
+            href={`/market/${encodeURIComponent(cat)}`}
           >
             <Button
               key={cat}

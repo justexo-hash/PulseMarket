@@ -6,10 +6,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useSolanaConnection, getSOLBalance } from "@/lib/solana";
 import { useEffect, useState } from "react";
-
-import { useMediaQuery } from "../_hooks/useMediaQuery";
 import { HeaderDesktop } from "./Header/HeaderDesktop";
 import { HeaderMobile } from "./Header/HeaderMobile";
+import { useMediaQuery } from "app/(markets)/_hooks/useMediaQuery";
 
 // Main Header component — responsive navbar + wallet + search + menus
 export function Header() {

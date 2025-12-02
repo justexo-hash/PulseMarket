@@ -2,16 +2,14 @@
 "use client";
 import type { ReactNode } from "react";
 import { Suspense } from "react";
-import FilterHeader from "./_components/Header/FilterHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
+import FilterHeader from "app/_components/Header/FilterHeader";
 export default function MarketsLayout({ children }: { children: ReactNode }) {
   return (
     <Suspense>

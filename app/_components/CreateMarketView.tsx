@@ -120,7 +120,7 @@ export function CreateMarketView() {
         });
         
         // Use slug for public markets
-        window.location.href = `/market/${market.slug}`;
+        window.location.href = `/markets/${market.slug}`;
       } else {
         toast({
           title: "Market Created!",

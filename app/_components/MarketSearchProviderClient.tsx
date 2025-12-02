@@ -4,7 +4,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Market } from "@shared/schema";
-import { MarketSearchProvider } from "../_context/MarketSearchContext";
+import { MarketSearchProvider } from "app/(markets)/_context/MarketSearchContext";
 
 export default function MarketSearchProviderClient({
   children,
