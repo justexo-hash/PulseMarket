@@ -235,7 +235,7 @@ export function ActivityFeedView() {
             value={activityType}
             onValueChange={(value) => setActivityType(value as ActivityType)}
           >
-            <SelectTrigger className="">
+            <SelectTrigger className="md:w-auto lg:w-[150px]">
               <SelectValue placeholder="Activity type" />
             </SelectTrigger>
             <SelectContent>
@@ -250,7 +250,7 @@ export function ActivityFeedView() {
             value={dateFilter}
             onValueChange={(value) => setDateFilter(value as DateFilter)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="md:w-auto lg:w-[150px]">
               <SelectValue placeholder="Date range" />
             </SelectTrigger>
             <SelectContent>
@@ -262,7 +262,7 @@ export function ActivityFeedView() {
           </Select>
 
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="md:w-auto lg:w-[150px]">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
