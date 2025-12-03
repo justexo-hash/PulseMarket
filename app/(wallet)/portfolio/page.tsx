@@ -135,7 +135,7 @@ export default function PortfolioPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button onClick={() => router.push("/withdraw")} variant="outline" data-testid="button-withdraw">
+          <Button onClick={() => router.push("/withdraw")} variant="destructive" data-testid="button-withdraw">
             <Minus className="mr-2 h-4 w-4" />
             Withdraw
           </Button>

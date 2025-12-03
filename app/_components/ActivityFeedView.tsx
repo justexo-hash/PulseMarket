@@ -36,7 +36,8 @@ type ActivityItem =
 type ActivityType = "all" | "bet" | "resolution" | "market_created";
 type DateFilter = "all" | "today" | "week" | "month";
 
-export function ActivityFeedView() {
+export function 
+ActivityFeedView() {
   const { user } = useAuth();
   const [activityType, setActivityType] = useState<ActivityType>("all");
   const [dateFilter, setDateFilter] = useState<DateFilter>("all");
