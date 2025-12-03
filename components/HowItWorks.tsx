@@ -62,6 +62,8 @@ export function HowItWorksButton() {
     }
   }, []);
 
+  if (hasSeenHowItWorks() && !open) return null;
+
   const step = steps[stepIndex];
   const isFirst = stepIndex === 0;
   const isLast = stepIndex === steps.length - 1;
@@ -76,9 +78,6 @@ export function HowItWorksButton() {
         open={open}
         onOpenChange={(nextOpen) => {
           setOpen(nextOpen);
-          if (!nextOpen && !hasSeenHowItWorks()) {
-            markHowItWorksSeen();
-          }
         }}
       >
         <DialogContent className="max-w-lg p-0 overflow-hidden">
@@ -114,7 +113,15 @@ export function HowItWorksButton() {
                 Back
               </Button>
               {isLast ? (
-                <Button size="sm" onClick={() => setOpen(false)}>Got it</Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    markHowItWorksSeen();
+                    setOpen(false);
+                  }}
+                >
+                  Got it
+                </Button>
               ) : (
                 <Button size="sm" onClick={() => setStepIndex((i) => Math.min(steps.length - 1, i + 1))}>
                   Next
@@ -130,4 +137,3 @@ export function HowItWorksButton() {
 }
 
 export default HowItWorksButton;
-
