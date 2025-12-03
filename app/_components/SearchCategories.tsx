@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 export function SearchCategories() {
   const { categories } = useMarketSearchContext();
   const pathname = usePathname();
-  const activeCategory = decodeURIComponent(pathname.split("/").pop() || "");
+  const activeCategory = decodeURIComponent(pathname.split("/").pop() || "").toLowerCase();
 
   if (!categories || categories.length === 0) return null;
   
@@ -18,12 +18,12 @@ export function SearchCategories() {
         {categories.map((cat: any) => (
           <Link
             key={cat}
-            href={`/market/${encodeURIComponent(cat)}`}
+            href={`/market/${encodeURIComponent(cat.toLowerCase())}`}
           >
             <Button
               key={cat}
               variant={
-                activeCategory === cat ? "default" : "secondary"
+                activeCategory === cat.toLowerCase() ? "default" : "secondary"
               }
               className="whitespace-nowrap capitalize font-bold text-base"
             >

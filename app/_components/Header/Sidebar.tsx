@@ -18,12 +18,12 @@ export default function Sidebar() {
 
   return (
     <motion.nav
-      animate={{ width: expanded ? 192 : 64 }}
+      animate={{ width: expanded ? 192 : 88 }}
       transition={{ duration: 0.01, ease: "easeIn" }}
       className={`
         sticky top-0 max-h-screen pt-[1.5rem] px-[1rem] border-r border-border
         transition-all duration-300 ease-in-out flex flex-col items-center
-        ${expanded ? "w-48" : "w-auto"}
+        ${expanded ? "w-48" : "w-full"}
         group
       `}
     >
@@ -34,17 +34,17 @@ export default function Sidebar() {
         variant="sidebar"
         size="lg"
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center justify-center p-2 rounded-md hover:bg-muted transition"
+        className="p-2 rounded-md hover:bg-muted transition"
       >
         <span className="text-xs">{!expanded ? <Expand /> : <Minimize />}</span>
       </Button>
-      <div className="pt-[3rem]">
+      <div className="pt-[3rem] w-full">
         <div className="flex flex-col items-center gap-3">
-          <Link href="/" className="">
+          <Link href="/" className="w-full flex items-center">
             <Button
               variant="sidebar"
               size="lg"
-              className="flex items-center justify-center p-2 rounded-md hover:bg-muted transition"
+              className="flex items-center w-full justify-start p-2 rounded-md hover:bg-muted transition"
             >
               <Home className="!w-8 !h-6" />
               {expanded && (
@@ -59,11 +59,11 @@ export default function Sidebar() {
             </Button>
           </Link>
           {user && (
-            <Link href={`/profile/${user.username}`} className="">
+            <Link href={`/profile/${user.username}`} className="w-full flex items-center">
               <Button
                 variant="sidebar"
                 size="lg"
-                className="flex items-center justify-center p-2 rounded-md hover:bg-muted transition"
+                className="flex items-center w-full justify-start p-2 rounded-md hover:bg-muted transition"
               >
                 <User className="!w-8 !h-6" />
                 {expanded && (
@@ -78,11 +78,11 @@ export default function Sidebar() {
               </Button>
             </Link>
           )}
-          <Link href="/activity" className="">
+          <Link href="/activity" className="w-full flex items-center">
             <Button
               variant="sidebar"
               size="lg"
-              className="flex items-center justify-center p-2 rounded-md hover:bg-muted transition"
+              className="flex items-center w-full justify-start p-2 rounded-md hover:bg-muted transition"
             >
               <ChartArea className="!w-8 !h-6" />
               {expanded && (
@@ -96,11 +96,11 @@ export default function Sidebar() {
               )}
             </Button>
           </Link>
-          <Link href="/blog" className="">
+          <Link href="/blog" className="w-full flex items-center">
             <Button
               variant="sidebar"
               size="lg"
-              className="flex items-center justify-center p-2 rounded-md hover:bg-muted transition"
+              className="flex items-center w-full justify-start p-2 rounded-md hover:bg-muted transition"
             >
               <MessageCircle className="!w-8 !h-6" />
               {expanded && (
@@ -115,9 +115,18 @@ export default function Sidebar() {
             </Button>
           </Link>
           {user && (
-            <Link href="/create">
-            <Button className="flex items-center justify-center rounded-md hover:bg-muted transition">
+            <Link href="/create" className="w-full flex items-center">
+            <Button className="flex items-center w-full justify-start rounded-md hover:bg-muted transition">
               <Plus />
+            {expanded && (
+                <span
+                  className={`
+            text-sm transition-opacity duration-300
+            `}
+                >
+                  Create
+                </span>
+              )}
             </Button>
             </Link>
           )}

@@ -15,17 +15,17 @@ export type SortOption =
 export function useMarketSearch(markets: Market[]) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const categories = useMemo(() => {
     const unique = new Set(markets.map((m) => m.category));
-    return ["All", ...Array.from(unique).sort()];
+    return ["all", ...Array.from(unique).sort()];
   }, [markets]);
 
   const filteredMarkets = useMemo(() => {
     let filtered = markets.filter((market) => {
       const matchesCategory =
-        selectedCategory === "All" || market.category === selectedCategory;
+        selectedCategory === "all" || market.category === selectedCategory;
 
       const matchesSearch =
         searchQuery === "" ||

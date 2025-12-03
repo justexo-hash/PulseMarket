@@ -1,10 +1,9 @@
-import Link from "next/link"
-import { Metadata } from "next"
+import Link from "next/link";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Featured | Pulsemarket",
-  description:
-    "Building the future of memecoin prediction markets.",
+  description: "Building the future of memecoin prediction markets.",
   icons: {
     icon: "/favicon.png",
   },
@@ -16,7 +15,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Featured | Pulsemarket",
-    description: "Predict memecoin markets, track sentiment and trade probabilities instantly.",
+    description:
+      "Predict memecoin markets, track sentiment and trade probabilities instantly.",
     creator: "@pulsemkt",
     images: ["/og-image.png"],
   },
@@ -31,9 +31,7 @@ export const metadata: Metadata = {
     "web3 trading",
     "onchain markets",
   ],
-  authors: [
-    { name: "PulseMarket Team", url: "https://pulsemarket.fun" }
-  ],
+  authors: [{ name: "PulseMarket Team", url: "https://pulsemarket.fun" }],
   category: "finance",
   applicationName: "PulseMarket",
   generator: "Next.js",
@@ -42,14 +40,14 @@ export const metadata: Metadata = {
 };
 
 type BlogPost = {
-  slug: string
-  title: string
-  excerpt: string
-  date: string
-  author: string
-  tags?: string[]
-  cover?: string
-}
+  slug: string;
+  title: string;
+  excerpt: string;
+  date: string;
+  author: string;
+  tags?: string[];
+  cover?: string;
+};
 
 const posts: BlogPost[] = [
   {
@@ -92,16 +90,20 @@ const posts: BlogPost[] = [
     tags: ["roundup", "weekly"],
     cover: "/blog/weekly-roundup.png",
   },
-]
+];
 
 export default function Blog() {
   return (
-    <main className="max-w-4xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-semibold mb-6">PulseMarket Blog</h1>
-      <p className="text-muted-foreground mb-10">
-        Updates, stories, and insights about prediction markets, events, and the
-        ecosystem.
-      </p>
+    <main className="max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-secondary-foreground  mb-2">
+          PulseMarket Blog
+        </h1>
+        <p className="text-muted-foreground text-lg">
+          Updates, stories, and insights about prediction markets, events, and
+          the ecosystem.
+        </p>
+      </div>
 
       <div className="flex flex-col gap-8">
         {posts.length === 0 && (
@@ -109,6 +111,7 @@ export default function Blog() {
             No posts yet. Start adding content to <code>/app/blog</code>.
           </p>
         )}
+      <div className="grid grid-cols-3 gap-6">
 
         {posts.map((post) => (
           <Link
@@ -155,6 +158,8 @@ export default function Blog() {
           </Link>
         ))}
       </div>
+
+      </div>
     </main>
-  )
+  );
 }

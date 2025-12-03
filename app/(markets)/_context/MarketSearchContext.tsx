@@ -23,19 +23,19 @@ export function MarketSearchProvider({
   children: React.ReactNode;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   // Extract unique categories from markets
   const categories = useMemo(() => {
-    if (!markets || markets.length === 0) return ["All"];
+    if (!markets || markets.length === 0) return ["all"];
 
     const unique = new Set(
       markets
-        .map((m) => m.category?.trim())
+        .map((m) => m.category?.trim().toLowerCase())
         .filter((c) => c && c.length > 0)
     );
 
-    return ["All", ...Array.from(unique)];
+    return Array.from(unique);
   }, [markets]);
 
   const value: MarketSearchContextType = {

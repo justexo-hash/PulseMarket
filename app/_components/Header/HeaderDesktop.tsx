@@ -1,6 +1,4 @@
 import Link from "next/link";
-
-import { SearchCategories } from "../SearchCategories";
 import { MarketSearchBar } from "../Searchbar";
 import HowItWorksButton from "@/components/HowItWorks";
 import { Button } from "@/components/ui/button";

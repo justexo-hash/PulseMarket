@@ -23,11 +23,19 @@ export function MarketListView({
   const { searchQuery, selectedCategory } = useMarketSearchContext();
 
   const filteredMarkets = markets.filter((m) => {
-    const matchCategory = categoryFilter
-      ? m.category === categoryFilter
-      : selectedCategory === "All" || m.category === selectedCategory;
+    const cat = m.category?.toLowerCase() || "";
+    const rawSel = selectedCategory || "";
+    const sel = rawSel.toLowerCase();
+    const filter = categoryFilter?.toLowerCase();
 
-    return matchCategory;
+    // Category forced by prop (e.g. on category pages)
+    if (filter) return cat === filter;
+
+    // If no category is selected → return everything
+    if (!sel) return true;
+
+    // Otherwise filter strictly by category
+    return cat === sel;
   });
 
   if (error) {
@@ -42,17 +50,17 @@ export function MarketListView({
   }
 
   return (
-    
+      
       <div className="relative z-10">
         {filteredMarkets.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-2xl text-white mb-4">
-              {searchQuery || selectedCategory !== "All"
+              {searchQuery || selectedCategory
                 ? "No markets match your filters"
                 : "No markets available yet"}
             </p>
             <p className="text-white/70">
-              {searchQuery || selectedCategory !== "All"
+              {searchQuery || selectedCategory
                 ? "Try adjusting your filters"
                 : "Be the first to create a market!"}
             </p>

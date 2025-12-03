@@ -245,7 +245,8 @@ export function MarketSearchBar() {
                 {categories.map((cat) => (
                   <Link
                     key={cat}
-                    href={`/market/${encodeURIComponent(cat)}`}
+                    href={`/market/${encodeURIComponent(cat.toLowerCase())}`}
+
                     onClick={() => setOpen(false)}
                   >
                     <Badge variant="ghost">
