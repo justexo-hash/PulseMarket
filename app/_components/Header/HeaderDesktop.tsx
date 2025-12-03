@@ -23,19 +23,6 @@ export function HeaderDesktop(props: any) {
         {/* LEFT SIDE: Logo + Searchbar + Mobile Burger Menu */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex justify-between md:justify-start gap-3 desktop">
-            {/* App logo linking to homepage */}
-            <Link
-              href="/"
-              data-testid="link-home"
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo-white.png" className="w-8 h-8" alt="" />
-              <span className="text-xl font-bold text-secondary-foreground ">
-                PulseMarket
-              </span>
-            </Link>
-
             {/* Searchbar — desktop & mobile responsive */}
             <MarketSearchBar />
             <HowItWorksButton />

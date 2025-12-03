@@ -28,7 +28,13 @@ export function MarketSearchProvider({
   // Extract unique categories from markets
   const categories = useMemo(() => {
     if (!markets || markets.length === 0) return ["All"];
-    const unique = new Set(markets.map((m) => m.category));
+
+    const unique = new Set(
+      markets
+        .map((m) => m.category?.trim())
+        .filter((c) => c && c.length > 0)
+    );
+
     return ["All", ...Array.from(unique)];
   }, [markets]);
 

@@ -27,7 +27,7 @@ export function SearchCategories() {
               }
               className="whitespace-nowrap capitalize font-bold text-base"
             >
-              {cat}
+              {cat.charAt(0).toUpperCase() + cat.slice(1)}
             </Button>
           </Link>
         ))}

@@ -22,7 +22,7 @@ const buttonVariants = cva(
         // Add a transparent border so that when someone toggles a border on later, it doesn't shift layout/size.
         ghost: "text-muted-foreground hover:text-foreground",
         selected: "border border-transparent",
-
+        sidebar:"text-muted-foreground hover:text-foreground"
       },
       // Heights are set as "min" heights, because sometimes Ai will place large amount of content
       // inside buttons. With a min-height they will look appropriate with small amounts of content,

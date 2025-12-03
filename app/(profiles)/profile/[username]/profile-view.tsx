@@ -44,7 +44,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
     ) : null;
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+    <div className="flex flex-col gap-6">
       <div className="rounded-2xl border border-muted-foreground/20 bg-secondary shadow-lg p-6 sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">

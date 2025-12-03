@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { AppProviders } from "./providers";
 import localFont from "next/font/local";
 import { Header } from "./_components/Header";
 import { Footer } from "./_components/Footer";
+import Sidebar from "./_components/Header/Sidebar";
 
 const openSauce = localFont({
   src: [
@@ -36,8 +37,7 @@ const openSauce = localFont({
 
 export const metadata: Metadata = {
   title: "PulseMarket | World largest memecoin prediction markets",
-  description:
-    "Building the future of memecoin prediction markets.",
+  description: "Building the future of memecoin prediction markets.",
   icons: {
     icon: "/favicon.png",
   },
@@ -49,7 +49,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "PulseMarket | World largest memecoin prediction markets",
-    description: "Predict memecoin markets, track sentiment and trade probabilities instantly.",
+    description:
+      "Predict memecoin markets, track sentiment and trade probabilities instantly.",
     creator: "@pulsemkt",
     images: ["/og-image.png"],
   },
@@ -64,9 +65,7 @@ export const metadata: Metadata = {
     "web3 trading",
     "onchain markets",
   ],
-  authors: [
-    { name: "PulseMarket Team", url: "https://pulsemarket.fun" }
-  ],
+  authors: [{ name: "PulseMarket Team", url: "https://pulsemarket.fun" }],
   category: "finance",
   applicationName: "PulseMarket",
   generator: "Next.js",
@@ -76,7 +75,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en"  className={openSauce.variable} suppressHydrationWarning>
+    <html lang="en" className={openSauce.variable} suppressHydrationWarning>
       <body className="min-h-screen font-openSauce bg-background antialiased">
         <ThemeProvider
           attribute="class"
@@ -85,10 +84,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           disableTransitionOnChange
         >
           <AppProviders>
-            <div className="relative z-10 flex flex-col">
-              <Header />
-              <main className="flex-grow pb-20 min-h-screen px-[1.5rem]">{children}</main>
-              <Footer />
+            <div className="relative z-10 flex flex-row">
+              <Sidebar />
+              <div className="content w-full">
+                <Header />
+                <main className="flex-grow pb-20 min-h-screen px-[1.5rem]">
+                  {children}
+                </main>
+                <Footer />
+              </div>
             </div>
           </AppProviders>
         </ThemeProvider>
