@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useMediaQuery } from "app/(markets)/_hooks/useMediaQuery";
-import { Home, User, Expand, Minimize, ChartArea, Plus, MessageCircle } from "lucide-react";
+import { Home, User, Expand, Minimize, ChartArea, Plus, MessageCircle, GitPullRequestClosed, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth";
@@ -59,24 +59,44 @@ export default function Sidebar() {
             </Button>
           </Link>
           {user && (
+            <>
             <Link href={`/profile/${user.username}`} className="w-full flex items-center">
               <Button
                 variant="sidebar"
                 size="lg"
                 className="flex items-center w-full justify-start p-2 rounded-md hover:bg-muted transition"
-              >
+                >
                 <User className="!w-8 !h-6" />
                 {expanded && (
                   <span
-                    className={`
+                  className={`
                     text-sm transition-opacity duration-300
                     `}
-                  >
+                    >
                     Profile
                   </span>
                 )}
               </Button>
             </Link>
+             <Link href={`/portfolio`} className="w-full flex items-center">
+             <Button
+               variant="sidebar"
+               size="lg"
+               className="flex items-center w-full justify-start p-2 rounded-md hover:bg-muted transition"
+               >
+               <Wallet className="!w-8 !h-6" />
+               {expanded && (
+                 <span
+                 className={`
+                  text-sm transition-opacity duration-300
+                  `}
+                  >
+                   Portfolio
+                 </span>
+               )}
+             </Button>
+           </Link>
+               </>
           )}
           <Link href="/activity" className="w-full flex items-center">
             <Button

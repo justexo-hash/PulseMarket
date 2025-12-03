@@ -47,20 +47,18 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
     ) : null;
 
   return (
-    <div className="max-w-7xl mx-auto">
-         <div className="mb-8">
+    <div className="max-w-7xl mx-auto pt-8">
+      <div className="mb-8">
         <h1 className="text-4xl font-bold text-secondary-foreground  mb-2">
           Profile
         </h1>
-        <p className="text-muted-foreground text-lg">
-          See your profile
-        </p>
+        <p className="text-muted-foreground text-lg">See your profile</p>
       </div>
       <div className="flex flex-col gap-6">
-        <div className="rounded-2xl border border-muted-foreground/20 bg-secondary shadow-lg p-6 sm:p-8">
+        <div className="bg-secondary hover:bg-background/70 hover-elevate rounded-xl p-6 active-elevate-2 transition-all duration-200 border border-border cursor-pointer cursor-pointer">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-              <Avatar className="h-24 w-24 border border-muted-foreground/20 shadow-inner">
+              <Avatar className="h-24 w-24 shadow-inner">
                 {user.avatarUrl ? (
                   <Image
                     src={user.avatarUrl}
@@ -116,25 +114,25 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <MetricCard
-            icon={<TrendingUp className="h-5 w-5 text-secondary-foreground" />}
+            icon={<TrendingUp className="h-5 w-5 " />}
             label="Realized PnL"
             value={`${formatNumber(stats.realizedPnl)} SOL`}
             helper="Settled outcomes only"
           />
           <MetricCard
-            icon={<Target className="h-5 w-5 text-secondary-foreground" />}
+            icon={<Target className="h-5 w-5 " />}
             label="Total Predictions"
             value={stats.totalPredictions.toString()}
             helper={`${stats.resolvedPredictions} resolved`}
           />
           <MetricCard
-            icon={<Trophy className="h-5 w-5 text-secondary-foreground" />}
+            icon={<Trophy className="h-5 w-5 " />}
             label="Win Rate"
             value={`${(stats.winRate * 100).toFixed(1)}%`}
             helper={`${stats.correctPredictions}/${stats.resolvedPredictions} resolved wins`}
           />
           <MetricCard
-            icon={<Users className="h-5 w-5 text-secondary-foreground" />}
+            icon={<Users className="h-5 w-5 " />}
             label="Calibration Score"
             value={
               stats.calibrationBuckets.length > 0
@@ -152,30 +150,14 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
         </div>
 
         <Tabs defaultValue="activity" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-secondary border border-muted-foreground/20 rounded-xl p-1 lg:w-auto">
-            <TabsTrigger
-              value="activity"
-              className="data-[state=active]:bg-muted data-[state=active]:text-secondary-foreground"
-            >
-              Activity
-            </TabsTrigger>
-            <TabsTrigger
-              value="calibration"
-              className="data-[state=active]:bg-muted data-[state=active]:text-secondary-foreground"
-            >
-              Calibration
-            </TabsTrigger>
-            <TabsTrigger
-              value="sectors"
-              className="data-[state=active]:bg-muted data-[state=active]:text-secondary-foreground"
-            >
-              Sectors
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-secondary rounded-xl lg:w-auto">
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="calibration">Calibration</TabsTrigger>
+            <TabsTrigger value="sectors">Sectors</TabsTrigger>
           </TabsList>
 
           <TabsContent value="activity" className="mt-6">
-            <Card className="p-6 space-y-4 bg-secondary border border-muted-foreground/20 shadow-sm">
-              {recentBets.length === 0 ? (
+<Card>          {recentBets.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
                   No betting activity yet.
                 </p>
@@ -244,8 +226,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
           </TabsContent>
 
           <TabsContent value="calibration" className="mt-6">
-            <Card className="p-6 border border-muted-foreground/20 bg-secondary shadow-sm">
-              {stats.calibrationBuckets.length === 0 ? (
+<Card>          {stats.calibrationBuckets.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
                   Need more resolved bets to compute calibration.
                 </p>
@@ -254,7 +235,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
                   {stats.calibrationBuckets.map((bucket) => (
                     <div
                       key={bucket.bucket}
-                      className="rounded-xl border border-muted-foreground/20 p-4 bg-secondary shadow-sm"
+                      className="rounded-xl p-4 bg-secondary shadow-sm"
                     >
                       <div className="flex items-center justify-between mb-2">
                         <p className="font-semibold">{bucket.bucket}% bets</p>
@@ -282,8 +263,7 @@ export function PulseProfileView({ profile, viewerId }: PulseProfileViewProps) {
           </TabsContent>
 
           <TabsContent value="sectors" className="mt-6">
-            <Card className="p-6 border border-muted-foreground/20 bg-secondary shadow-sm">
-              {stats.sectorSpecialization.length === 0 ? (
+  <Card>              {stats.sectorSpecialization.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
                   No sector data yet.
                 </p>
@@ -332,7 +312,7 @@ function MetricCard({
   helper?: string;
 }) {
   return (
-    <Card className="p-5 space-y-2 border border-muted-foreground/20 bg-secondary shadow-sm">
+    <Card className="bg-secondary hover:bg-background/70 hover-elevate rounded-xl p-6 active-elevate-2 transition-all duration-200 border border-border cursor-pointer cursor-pointer">
       <div className="flex items-center gap-3 text-sm text-muted-foreground">
         {icon}
         <span>{label}</span>

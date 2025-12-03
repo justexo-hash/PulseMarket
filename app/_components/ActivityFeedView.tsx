@@ -219,7 +219,7 @@ ActivityFeedView() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto pt-8">
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-secondary-foreground  mb-2">
           Activity Feed
@@ -333,7 +333,7 @@ ActivityFeedView() {
                   }
                   className="block"
                 >
-                  <Card className="p-6 bg-secondary border border-border cursor-pointer">
+                  <Card className="p-6 bg-secondary cursor-pointer">
                     <div className="flex items-start gap-4">
                       <div
                         className={`hidden md:block p-3 rounded-full ${
@@ -396,7 +396,7 @@ ActivityFeedView() {
                   }
                   className="block"
                 >
-                  <Card className="p-6 bg-secondary hover:bg-background/70 hover-elevate active-elevate-2 transition-all duration-200 cursor-pointer border border-border cursor-pointer">
+                  <Card className="p-6 bg-secondary hover:bg-background/70 hover-elevate active-elevate-2 transition-all duration-200 border border-border cursor-pointer cursor-pointer">
                     <div className="flex items-start gap-4">
                       <div
                         className={`hidden md:block p-3 rounded-full ${

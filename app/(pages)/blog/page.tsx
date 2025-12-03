@@ -94,7 +94,7 @@ const posts: BlogPost[] = [
 
 export default function Blog() {
   return (
-    <main className="max-w-7xl mx-auto">
+    <main className="max-w-7xl mx-auto pt-8">
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-secondary-foreground  mb-2">
           PulseMarket Blog
@@ -117,8 +117,9 @@ export default function Blog() {
           <Link
             href={`/blog/${post.slug}`}
             key={post.slug}
-            className="group border rounded-lg p-5 hover:bg-secondary transition"
+            className="group rounded-lg p-5 hover:bg-secondar bg-secondary hover:bg-background/70 hover-elevate active-elevate-2 transition-all duration-200 border border-border cursor-pointer"
           >
+
             <div className="flex flex-col gap-3">
               {post.cover && (
                 <img
