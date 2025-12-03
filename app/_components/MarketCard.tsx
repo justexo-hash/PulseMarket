@@ -6,9 +6,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { type Market } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, CheckCircle2, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 import { ProbabilityGauge } from "./ProbabilityGauge";
-import { Bookmark } from "lucide-react";
+import { Star } from "lucide-react";
 // --- Countdown badge displayed when market has an expiration date ---
 interface MarketCardProps {
   market: Market;
@@ -79,6 +79,7 @@ function CountdownTimer({ expiresAt }: { expiresAt: Date | string | null }) {
 
 // --- Main market card component ---
 export function MarketCard({ market }: MarketCardProps) {
+  const [favorited, setFavorited] = useState(false);
   // Compute market resolution state and probability
   const isResolved = market.status === "resolved";
   const resolvedOutcome = market.resolvedOutcome;
@@ -103,7 +104,7 @@ export function MarketCard({ market }: MarketCardProps) {
       : `/markets/${market.slug || market.id}`;
 
   return (
-    <Link href={marketPath} data-testid={`card-market-${market.id}`}>
+    <Link href={marketPath} data-testid={`group z-1 card-market-${market.id}`}>
       <div
         className={`group bg-secondary rounded-lg border border-muted-foreground/10 p-3 gap-4 shadow-lg hover-elevate active-elevate-2 transition-all duration-200 cursor-pointer h-full flex flex-col justify-between`}
       >
@@ -111,30 +112,30 @@ export function MarketCard({ market }: MarketCardProps) {
         {/* SECTION 1 — HEADER (Category, Status, Countdown, Gauge)   */}
         {/* ========================================================= */}
         <div className="flex items-start justify-between min-h-[56px] w-full mb-3">
-        <div className="flex gap-4 items-start w-full">
-          <div className="flex flex-col flex-1 gap-4">
-            <div className="flex gap-3 items-center">
-              <div className="flex-shrink-0 w-1/2 gap-2 max-w-[35px] flex items-center justify-center">
-                <div className="w-full rounded-sm overflow-hidden">
-                  <img
-                    src={market.image || "/placeholder.png"}
-                    alt={market.question}
-                    className="w-[150px] object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = "/placeholder.png";
-                    }}
-                  />
+          <div className="flex gap-4 items-start w-full">
+            <div className="flex flex-col flex-1 gap-4">
+              <div className="flex gap-3 items-center">
+                <div className="flex-shrink-0 w-1/2 gap-2 max-w-[35px] flex items-center justify-center">
+                  <div className="w-full rounded-sm overflow-hidden">
+                    <img
+                      src={market.image || "/placeholder.png"}
+                      alt={market.question}
+                      className="w-[150px] object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "/placeholder.png";
+                      }}
+                    />
+                  </div>
                 </div>
+                <h2
+                  className="text-sm font-semibold text-foreground"
+                  data-testid={`text-question-${market.id}`}
+                >
+                  {market.question}
+                </h2>
               </div>
-              <h2
-                className="text-sm font-semibold text-foreground"
-                data-testid={`text-question-${market.id}`}
-              >
-                {market.question}
-              </h2>
             </div>
           </div>
-        </div>
           <div className="flex flex-col gap-3">
             {/* <div className="gap-4 flex">
               <Badge
@@ -180,7 +181,7 @@ export function MarketCard({ market }: MarketCardProps) {
         {/* ========================================================= */}
         {/* SECTION 2 — IMAGE & QUESTION TITLE                        */}
         {/* ========================================================= */}
-        
+
         {/* ========================================================= */}
         {/* SECTION 3 — ACTION BUTTONS (UI Only)                      */}
         {/* ========================================================= */}
@@ -198,15 +199,28 @@ export function MarketCard({ market }: MarketCardProps) {
         {/* ========================================================= */}
         <div className="flex items-center w-full justify-between text-xs text-muted-foreground mt-auto">
           <span>{volume.toFixed(2)} SOL Vol.</span>
-          <div className="flex items-center gap-1.5">
-            {isResolved &&  <Badge
+          <div className=" flex items-center gap-1.5">
+            {isResolved && (
+              <Badge
                 variant="secondary"
                 className="bg-red-400/20 text-red-400 uppercase text-xs font-semibold tracking-wide"
                 data-testid={`badge-category-${market.id}`}
               >
                 Resolved
-              </Badge>}
-          <Bookmark size="18" />
+              </Badge>
+            )}
+            <Star
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();                setFavorited(!favorited);
+              }}
+              className={`hidden group-hover:block text-muted-foreground border-none
+                cursor-pointer transition-all z-10
+                ${favorited && " fill-orange-400"}
+              `}
+              size="18"
+              fill={favorited ? "currentColor" : "none"}
+            />
           </div>
         </div>
       </div>

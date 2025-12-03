@@ -18,7 +18,7 @@ export default function Sidebar() {
 
   return (
     <motion.nav
-      animate={{ width: expanded ? 192 : 88 }}
+      animate={{ width: expanded ? 148 : 88 }}
       transition={{ duration: 0.01, ease: "easeIn" }}
       className={`
         sticky top-0 max-h-screen pt-[1.5rem] px-[1rem] border-r border-border
