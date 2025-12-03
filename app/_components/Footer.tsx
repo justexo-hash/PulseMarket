@@ -107,23 +107,12 @@ export function Footer() {
   return (
     <footer className="border-t border-border/50 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:h-16 items-start sm:items-center justify-between gap-3 sm:gap-4 py-3">
-          <div className="flex items-center justify-between lg:justify-normal w-full gap-3 min-w-0">
-            <Link
-              href="/"
-              className="flex items-center  gap-2 hover:opacity-80 transition-opacity"
-            >
-              <TrendingUp className="h-5 w-5 text-secondary-foreground" />
-              <span className="text-lg font-bold text-secondary-foreground ">
-                PulseMarket
-              </span>
-            </Link>
-            <span className="text-sm text-muted-foreground">
+        <div className="flex flex-col md:flex-row items-start sm:items-center gap-3 sm:gap-4 py-6">
+            <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} PulseMarket
-            </span>
-          </div>
+            </p>
 
-          <div className="flex flex-col sm:flex-row w-full items-start sm:items-center gap-2 sm:gap-3 text-sm text-muted-foreground">
+          <div className="flex items-start sm:items-center gap-2 sm:gap-6 text-sm text-muted-foreground">
             <Link
               href="/about"
               className="hover:text-secondary-foreground  transition-colors"
@@ -156,7 +145,7 @@ export function Footer() {
             <Link href="https://twitter.com/PulseMarket"> Twitter</Link>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 min-w-0">
+          <div className="hidden lg:flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 min-w-0">
             {wallet.connected && (
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5 px-2 py-1 bg-secondary/50 rounded-lg">

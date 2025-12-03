@@ -625,8 +625,8 @@ export function CreateMarketView() {
               <div className="pt-4">
                 <Button
                   type="submit"
-                  size="lg"
-                  className="w-full text-lg font-semibold h-auto py-4"
+             
+                  className="w-full text-base font-semibold h-auto py-4"
                   disabled={createMarket.isPending}
                   data-testid="button-submit"
                 >
