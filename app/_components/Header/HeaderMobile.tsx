@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { SearchCategories } from "../SearchCategories";
 import { WalletDropdown } from "./WalletDropdown";
 import { NotificationsDropdown } from "./NotificationsDropdown";
+import FilterHeader from "./FilterHeader";
 // Static navigation links for both desktop and mobile menus
 const NAV_LINKS = [
   { href: "/", label: "Discover" },
@@ -19,7 +20,7 @@ const NAV_LINKS = [
 // MOBILE HEADER COMPONENT
 export function HeaderMobile(props: any) {
   return (
-    <header className="z-50 w-full">
+    <header className="z-50 w-full border-b mb-6">
       <div className="container mx-auto pt-[1.5rem] flex flex-col gap-6 mb-6">
         {/* LEFT SIDE: Logo + Searchbar + Mobile Burger Menu */}
         <div className="flex items-center justify-between gap-6">
@@ -132,6 +133,8 @@ export function HeaderMobile(props: any) {
             {/* Searchbar — desktop & mobile responsive */}
           </div>
         </div>
+        <FilterHeader />
+
         <MarketSearchBar />
       </div>
     </header>

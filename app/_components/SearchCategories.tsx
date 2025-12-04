@@ -15,19 +15,47 @@ export function SearchCategories() {
   
 
   return (
-      <div className="flex items-start gap-6 pb-6 overflow-x-auto">
+      <div className="flex items-center gap-6 overflow-auto no-scrollbar">
+        <div className="pr-6 flex items-center gap-6 border-r border-border">
+
             <Link
             href={`/`}
           >
             <Button
               variant={
-                activeCategory ? "secondary" : "default"
+                activeCategory === "" ? "default" : "secondary"
               }
               className="whitespace-nowrap capitalize font-bold text-base"
             >
-              All
+              Trending
             </Button>
           </Link>
+          <Link
+            href={`/breaking`}
+          >
+            <Button
+              variant={
+                activeCategory === "breaking" ? "default" : "secondary"
+              }
+              className="whitespace-nowrap capitalize font-bold text-base"
+            >
+              Breaking
+            </Button>
+          </Link>
+          <Link
+            href={`/new`}
+          >
+            <Button
+              variant={
+                activeCategory === "new" ? "default" : "secondary"
+              }
+              className="whitespace-nowrap capitalize font-bold text-base"
+            >
+              New
+            </Button>
+          </Link>
+        </div>
+          
         {categories.map((cat: any) => (
           <Link
             key={cat}

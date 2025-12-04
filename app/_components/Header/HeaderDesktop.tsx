@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Plus, Users } from "lucide-react";
 import { WalletDropdown } from "./WalletDropdown";
 import { useAuth } from "@/lib/auth";
+import FilterHeader from "./FilterHeader";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
+import { Card, CardContent } from "@/components/ui/card";
 // Static navigation links for both desktop and mobile menus
 const NAV_LINKS = [
   { href: "/", label: "Discover" },
@@ -16,7 +23,7 @@ const NAV_LINKS = [
 export function HeaderDesktop(props: any) {
   const { user } = useAuth();
   return (
-    <header className="z-50 w-full">
+    <header className="z-50 w-full border-b mb-6">
       <div className="px-[1.5rem] pt-[1.5rem] flex flex-col gap-6 mb-6">
         {/* LEFT SIDE: Logo + Searchbar + Mobile Burger Menu */}
         <div className="flex items-center justify-between gap-3">
@@ -126,7 +133,7 @@ export function HeaderDesktop(props: any) {
             </DropdownMenu> */}
           </div>
         </div>
-
+        <FilterHeader />
       </div>
     </header>
   );

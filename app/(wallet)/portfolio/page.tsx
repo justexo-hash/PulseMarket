@@ -127,7 +127,7 @@ export default function PortfolioPage() {
 
   return (
     <div className="max-w-7xl mx-auto pt-8">
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex flex-col md:flex-row items-start md:items-center gap-6 justify-between">
         <div>
           <h1 className="text-4xl font-bold text-secondary-foreground  mb-2">My Portfolio</h1>
           <p className="text-muted-foreground text-lg">

@@ -95,10 +95,10 @@ export function MarketSearchBar() {
     : [];
 
   return (
-    <div ref={wrapperRef} className="relative md:min-w-[400px]">
+    <div ref={wrapperRef} className="relative md:min-w-[650px]">
       {/* SEARCHBAR (STATIC, ALWAYS VISIBLE) */}
       <div className="relative w-full" onClick={() => setOpen(true)}>
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-secondary outline-none pointer-events-none" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-secondary  outline-none pointer-events-none" />
         <Input
           type="text"
           placeholder="Search markets or users..."
@@ -108,7 +108,7 @@ export function MarketSearchBar() {
             setOpen(true);
           }}
           className={
-            "pl-9 text-muted-secondary w-full cursor-pointer border-muted-foreground/20 outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none " +
+            "pl-9 text-muted-secondar bg-secondary w-full cursor-pointer border-muted-foreground/20 outline-none focus:bg-transparent focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none " +
             (open
               ? "rounded-t-md rounded-b-none text-muted-secondary border-muted-foreground/20 border "
               : "rounded-md text-muted-secondary ")
@@ -259,7 +259,7 @@ export function MarketSearchBar() {
           )}
           {/* BROWSE SECTION */}
           {trimmedQuery.length === 0 && (
-            <div className="flex flex-col gap-2 p-4 border-b border-muted-foreground/20  pointer-events-none select-none">
+            <div className="flex flex-col gap-2 p-4 border-b border-muted-foreground/20 pointer-events-none select-none">
               <p className="text-xs font-medium text-muted-foreground uppercase">
                 Browse{" "}
                 <span className="text-chart-3 animate-pulse">(soon)</span>
