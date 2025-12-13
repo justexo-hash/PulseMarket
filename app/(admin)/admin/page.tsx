@@ -104,12 +104,22 @@ export default function AdminPanelPage() {
   });
 
   // Automated Markets Configuration
-  const { data: automationConfig, isLoading: isLoadingConfig, refetch: refetchConfig } = useQuery<{
+  const { data: automationConfig, isLoading: isLoadingConfig, error: configError, refetch: refetchConfig } = useQuery<{
     enabled: boolean;
     lastRun: string | null;
   }>({
     queryKey: ["/api/automated-markets/config"],
     enabled: isAdmin,
+    retry: 1,
+    retryDelay: 1000,
+  });
+
+  // Log config query state
+  console.log("[AdminPanel] Config query state:", {
+    isLoadingConfig,
+    configError,
+    automationConfig,
+    isAdmin,
   });
 
   const { data: automationLogs, isLoading: isLoadingLogs } = useQuery<{
