@@ -51,6 +51,8 @@ export const markets = pgTable("markets", {
   payoutType: text("payout_type").notNull().default("proportional"), // "proportional" or "winner-takes-all"
   image: text("image"), // Optional market image URL
   tokenAddress: text("token_address"), // Optional Solana token contract address
+  isAutomated: integer("is_automated").notNull().default(0), // 0 = false, 1 = true - Flag for auto-generated markets
+  tokenAddress2: text("token_address2"), // Optional second token for battle markets
   createdAt: timestamp("created_at").notNull().defaultNow(), // Track when market was created
 });
 
@@ -120,6 +122,45 @@ export const watchlist = pgTable("watchlist", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Automated Markets Configuration
+// Stores the global toggle and settings for automated market creation
+export const automatedMarketsConfig = pgTable("automated_markets_config", {
+  id: serial("id").primaryKey(),
+  enabled: integer("enabled").notNull().default(0), // 0 = false, 1 = true - Toggle automation on/off
+  lastRun: timestamp("last_run"), // Last execution time of market creation job
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Automated Markets Execution Log
+// Tracks every execution of the automated market creation job
+export const automatedMarketsLog = pgTable("automated_markets_log", {
+  id: serial("id").primaryKey(),
+  executionTime: timestamp("execution_time").notNull().defaultNow(), // When the job ran
+  marketId: integer("market_id").references(() => markets.id, { onDelete: "set null" }), // Created market ID (null if failed)
+  questionType: text("question_type"), // Type of market: "market_cap", "volume", "holders", "battle_race", "battle_dump"
+  tokenAddress: text("token_address"), // Token address used for the market
+  tokenAddress2: text("token_address2"), // Second token for battle markets
+  success: integer("success").notNull().default(0), // 0 = false, 1 = true - Whether creation succeeded
+  errorMessage: text("error_message"), // Error message if creation failed
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Automated Market Resolutions Tracking
+// Tracks which automated markets need resolution checking and their targets
+export const automatedMarketResolutions = pgTable("automated_market_resolutions", {
+  id: serial("id").primaryKey(),
+  marketId: integer("market_id").notNull().references(() => markets.id, { onDelete: "cascade" }), // Market being tracked
+  marketType: text("market_type").notNull(), // Type: "market_cap", "volume", "holders", "battle_race", "battle_dump"
+  targetValue: numeric("target_value", { precision: 20, scale: 2 }), // Target value to reach (MC, volume, holders, etc.)
+  tokenAddress: text("token_address").notNull(), // Primary token address to check
+  tokenAddress2: text("token_address2"), // Second token for battle markets
+  lastChecked: timestamp("last_checked"), // Last time we checked this market for resolution
+  status: text("status").notNull().default("pending"), // "pending", "resolved", "expired"
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const insertMarketSchema = createInsertSchema(markets).omit({
   id: true,
   probability: true,
@@ -131,6 +172,8 @@ export const insertMarketSchema = createInsertSchema(markets).omit({
   inviteCode: true,
   createdBy: true,
   image: true, // Remove image from auto-generated schema
+  isAutomated: true, // Set programmatically for automated markets
+  tokenAddress2: true, // Optional, set programmatically for battle markets
 }).extend({
   question: z.string().min(10, "Question must be at least 10 characters"),
   category: z.string().min(1, "Category is required"),
@@ -209,6 +252,8 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Market = typeof markets.$inferSelect;
 export type InsertMarket = z.infer<typeof insertMarketSchema> & {
   expiresAt?: string | Date | null;
+  isAutomated?: boolean; // Optional, set programmatically
+  tokenAddress2?: string | null; // Optional, for battle markets
 };
 export type MarketComment = typeof marketComments.$inferSelect;
 export type Bet = typeof bets.$inferSelect;
@@ -217,3 +262,6 @@ export type Transaction = typeof transactions.$inferSelect;
 export type WatchlistItem = typeof watchlist.$inferSelect;
 export type UserStats = typeof userStats.$inferSelect;
 export type UserFollower = typeof userFollowers.$inferSelect;
+export type AutomatedMarketsConfig = typeof automatedMarketsConfig.$inferSelect;
+export type AutomatedMarketsLog = typeof automatedMarketsLog.$inferSelect;
+export type AutomatedMarketResolution = typeof automatedMarketResolutions.$inferSelect;

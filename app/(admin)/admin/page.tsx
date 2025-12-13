@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
-import { CheckCircle2, XCircle, DollarSign, Shield, Wallet, RefreshCw } from "lucide-react";
+import { CheckCircle2, XCircle, DollarSign, Shield, Wallet, RefreshCw, Play, Settings, Clock } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { formatDistanceToNow } from "date-fns";
 import {
   AlertDialog,
@@ -90,6 +91,82 @@ export default function AdminPanelPage() {
       toast({
         title: "Error",
         description: error.message || "Failed to refund market.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Automated Markets Configuration
+  const { data: automationConfig, isLoading: isLoadingConfig, refetch: refetchConfig } = useQuery<{
+    enabled: boolean;
+    lastRun: string | null;
+  }>({
+    queryKey: ["/api/automated-markets/config"],
+    enabled: isAdmin,
+  });
+
+  const { data: automationLogs, isLoading: isLoadingLogs } = useQuery<{
+    success: boolean;
+    logs: Array<{
+      id: number;
+      executionTime: string;
+      marketId: number | null;
+      questionType: string;
+      tokenAddress: string | null;
+      tokenAddress2: string | null;
+      success: boolean;
+      errorMessage: string | null;
+      createdAt: string;
+    }>;
+  }>({
+    queryKey: ["/api/automated-markets/logs"],
+    enabled: isAdmin,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  const toggleAutomation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      const response = await apiRequest("POST", "/api/automated-markets/config", { enabled });
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/automated-markets/config"] });
+      toast({
+        title: automationConfig?.enabled ? "Automation Disabled" : "Automation Enabled",
+        description: automationConfig?.enabled 
+          ? "Automated market creation has been disabled."
+          : "Automated market creation has been enabled.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update automation settings.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const runMarketCreation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/automated-markets/create");
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/markets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/automated-markets/logs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/automated-markets/config"] });
+      toast({
+        title: "Market Created!",
+        description: data.marketCreated 
+          ? `Successfully created market #${data.marketCreated} (${data.marketType})`
+          : "Market creation triggered.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create market.",
         variant: "destructive",
       });
     },
@@ -227,6 +304,100 @@ export default function AdminPanelPage() {
               <p className="text-xs text-white/50 mt-2">
                 Send SOL to this address to fund the treasury
               </p>
+            </div>
+          )}
+        </Card>
+
+        {/* Automated Markets Control Card */}
+        <Card className="p-6 bg-black/30 backdrop-blur-sm border-white/20 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Settings className="h-6 w-6 text-secondary-foreground" />
+              <h2 className="text-2xl font-bold text-white">Automated Markets</h2>
+            </div>
+          </div>
+
+          {isLoadingConfig ? (
+            <div className="space-y-2">
+              <div className="h-8 bg-white/10 rounded animate-pulse" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Toggle Switch */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white font-semibold">Enable Automated Market Creation</p>
+                  <p className="text-sm text-white/60">
+                    Automatically create markets every 6 hours from trending tokens
+                  </p>
+                </div>
+                <Switch
+                  checked={automationConfig?.enabled || false}
+                  onCheckedChange={(checked) => toggleAutomation.mutate(checked)}
+                  disabled={toggleAutomation.isPending}
+                />
+              </div>
+
+              {/* Last Run Info */}
+              {automationConfig?.lastRun && (
+                <div className="flex items-center gap-2 text-sm text-white/60">
+                  <Clock className="h-4 w-4" />
+                  <span>
+                    Last run: {new Date(automationConfig.lastRun).toLocaleString()}
+                  </span>
+                </div>
+              )}
+
+              {/* Run Now Button */}
+              <Button
+                onClick={() => runMarketCreation.mutate()}
+                disabled={runMarketCreation.isPending || !automationConfig?.enabled}
+                className="w-full"
+              >
+                <Play className="h-4 w-4 mr-2" />
+                {runMarketCreation.isPending ? "Creating..." : "Run Now"}
+              </Button>
+
+              {/* Recent Logs */}
+              {isLoadingLogs ? (
+                <div className="mt-4 space-y-2">
+                  <div className="h-4 bg-white/10 rounded animate-pulse" />
+                  <div className="h-4 bg-white/10 rounded animate-pulse" />
+                </div>
+              ) : automationLogs && automationLogs.logs.length > 0 ? (
+                <div className="mt-4">
+                  <p className="text-sm font-semibold text-white mb-2">Recent Executions</p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {automationLogs.logs.slice(0, 5).map((log) => (
+                      <div
+                        key={log.id}
+                        className={`p-2 rounded text-xs ${
+                          log.success ? "bg-green-500/20" : "bg-red-500/20"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className={log.success ? "text-green-400" : "text-red-400"}>
+                            {log.success ? "✓" : "✗"} {log.questionType}
+                          </span>
+                          <span className="text-white/60">
+                            {new Date(log.executionTime).toLocaleTimeString()}
+                          </span>
+                        </div>
+                        {log.marketId && (
+                          <div className="text-white/80 mt-1">
+                            Market #{log.marketId}
+                          </div>
+                        )}
+                        {log.errorMessage && (
+                          <div className="text-red-400 mt-1 text-xs">
+                            {log.errorMessage}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           )}
         </Card>

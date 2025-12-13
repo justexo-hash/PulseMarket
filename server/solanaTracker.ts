@@ -193,3 +193,231 @@ export function isValidTokenAddress(tokenAddress: string): boolean {
   return base58Regex.test(trimmed);
 }
 
+/**
+ * Trending Token Info (from /tokens/trending endpoint)
+ * Simplified structure for what we need from trending tokens
+ */
+export interface TrendingToken {
+  token: {
+    name: string;
+    symbol: string;
+    mint: string;
+    image: string;
+    creation: {
+      created_time: number; // Unix timestamp in seconds
+    };
+  };
+  pools: Array<{
+    marketCap: {
+      usd: number;
+    };
+    txns: {
+      volume: number; // 5min volume
+      volume24h: number;
+    };
+  }>;
+  holders: number;
+}
+
+/**
+ * Get trending tokens from Solana Tracker API
+ * Returns top 100 trending tokens with their current metrics
+ * 
+ * @returns Array of trending tokens
+ * @throws Error if API key is missing or request fails
+ */
+export async function getTrendingTokens(): Promise<TrendingToken[]> {
+  const apiKey = getApiKey();
+  const url = `${BASE_URL}/tokens/trending`;
+  
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `Failed to fetch trending tokens: ${response.status} ${response.statusText}`;
+      
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+      } catch {
+        if (errorText) {
+          errorMessage = `${errorMessage} - ${errorText}`;
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json() as TrendingToken[];
+    return data;
+  } catch (error: any) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(`Failed to fetch trending tokens: ${error.message || String(error)}`);
+  }
+}
+
+/**
+ * Get multiple tokens in a single batch request
+ * More efficient than calling getTokenInfo() multiple times
+ * 
+ * @param tokenAddresses - Array of token addresses (max 20 per request)
+ * @returns Object with token addresses as keys and TokenInfo as values
+ * @throws Error if API key is missing, too many tokens, or request fails
+ */
+export async function getMultipleTokens(tokenAddresses: string[]): Promise<Record<string, TokenInfo>> {
+  const apiKey = getApiKey();
+  
+  // Validate input
+  if (!Array.isArray(tokenAddresses) || tokenAddresses.length === 0) {
+    throw new Error("tokenAddresses must be a non-empty array");
+  }
+  
+  if (tokenAddresses.length > 20) {
+    throw new Error("Maximum 20 tokens per batch request");
+  }
+  
+  // Validate all addresses
+  for (const address of tokenAddresses) {
+    if (!isValidTokenAddress(address)) {
+      throw new Error(`Invalid token address: ${address}`);
+    }
+  }
+  
+  const url = `${BASE_URL}/tokens/multi`;
+  
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tokens: tokenAddresses,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `Failed to fetch multiple tokens: ${response.status} ${response.statusText}`;
+      
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+      } catch {
+        if (errorText) {
+          errorMessage = `${errorMessage} - ${errorText}`;
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json() as { tokens: Record<string, TokenInfo> };
+    return data.tokens;
+  } catch (error: any) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(`Failed to fetch multiple tokens: ${error.message || String(error)}`);
+  }
+}
+
+/**
+ * OHLCV Candle structure from chart endpoint
+ */
+export interface OHLCVCandle {
+  open: number;
+  close: number;
+  low: number;
+  high: number;
+  volume: number;
+  time: number; // Unix timestamp in seconds
+}
+
+/**
+ * Chart data response structure
+ */
+export interface TokenChartData {
+  oclhv: OHLCVCandle[]; // Note: API uses "oclhv" (typo) instead of "ohlcv"
+}
+
+/**
+ * Get token chart/OHLCV data for a specific timeframe
+ * Used for battle market resolution to find when tokens hit targets
+ * 
+ * @param tokenAddress - Solana token contract address
+ * @param timeframe - Timeframe: "5m", "15m", "1h", "4h", "1d"
+ * @param limit - Maximum number of candles to return (default: 1000)
+ * @returns Chart data with OHLCV candles
+ * @throws Error if API key is missing, invalid address, or request fails
+ */
+export async function getTokenChart(
+  tokenAddress: string,
+  timeframe: "5m" | "15m" | "1h" | "4h" | "1d" = "5m",
+  limit: number = 1000
+): Promise<TokenChartData> {
+  const apiKey = getApiKey();
+  
+  // Validate token address
+  if (!isValidTokenAddress(tokenAddress)) {
+    throw new Error("Invalid token address format");
+  }
+  
+  // Validate timeframe
+  const validTimeframes = ["5m", "15m", "1h", "4h", "1d"];
+  if (!validTimeframes.includes(timeframe)) {
+    throw new Error(`Invalid timeframe. Must be one of: ${validTimeframes.join(", ")}`);
+  }
+  
+  // Validate limit
+  if (limit < 1 || limit > 1000) {
+    throw new Error("Limit must be between 1 and 1000");
+  }
+  
+  const url = `${BASE_URL}/chart/${tokenAddress}?timeframe=${timeframe}&limit=${limit}`;
+  
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `Failed to fetch chart data: ${response.status} ${response.statusText}`;
+      
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+      } catch {
+        if (errorText) {
+          errorMessage = `${errorMessage} - ${errorText}`;
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json() as TokenChartData;
+    return data;
+  } catch (error: any) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(`Failed to fetch chart data: ${error.message || String(error)}`);
+  }
+}
+

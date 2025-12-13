@@ -11,3 +11,4 @@ vite.config.ts.*
 client/public/uploads/
 public/uploads/
 .next
+blorg.md
