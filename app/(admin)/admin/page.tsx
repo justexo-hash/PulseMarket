@@ -450,20 +450,12 @@ export default function AdminPanelPage() {
 
               {/* Run Now Button */}
               <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log("[RunNow] Button clicked!");
-                  console.log("[RunNow] Mutation object:", runMarketCreation);
-                  try {
-                    runMarketCreation.mutate();
-                    console.log("[RunNow] Mutate called successfully");
-                  } catch (error) {
-                    console.error("[RunNow] Error:", error);
-                  }
+                onClick={() => {
+                  runMarketCreation.mutate();
                 }}
                 disabled={runMarketCreation.isPending || !automationConfig?.enabled}
                 className="w-full"
+                style={{ position: 'relative', zIndex: 1000 }}
               >
                 <Play className="h-4 w-4 mr-2" />
                 {runMarketCreation.isPending ? "Creating..." : "Run Now"}
