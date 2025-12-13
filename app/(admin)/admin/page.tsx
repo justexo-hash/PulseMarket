@@ -29,6 +29,13 @@ export default function AdminPanelPage() {
   const { toast } = useToast();
   const isAdmin = !!user?.isAdmin;
 
+  // Debug logging
+  console.log("[AdminPanel] Component rendered", { 
+    hasUser: !!user, 
+    isAdmin, 
+    userId: user?.id 
+  });
+
   const { data: markets = [], isLoading } = useQuery<Market[]>({
     queryKey: ["/api/markets"],
     enabled: isAdmin,
@@ -201,7 +208,16 @@ export default function AdminPanelPage() {
 
   const activeMarkets = markets.filter((m) => m.status === "active");
 
+  console.log("[AdminPanel] State check", { 
+    isLoading, 
+    isAdmin, 
+    marketsCount: markets.length,
+    isLoadingConfig,
+    automationConfig 
+  });
+
   if (isLoading) {
+    console.log("[AdminPanel] Showing loading state");
     return (
       <div className="relative min-h-screen">
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" />
@@ -217,6 +233,8 @@ export default function AdminPanelPage() {
     );
   }
 
+  console.log("[AdminPanel] Rendering main content");
+
   return (
     <div className="relative min-h-screen">
       {/* Background Image with Dark Overlay */}
@@ -227,13 +245,14 @@ export default function AdminPanelPage() {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
+          pointerEvents: 'none', // Don't block clicks
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" style={{ pointerEvents: 'none' }} />
       </div>
       
       {/* Content */}
-      <div className="relative z-10 container mx-auto py-12">
+      <div className="relative z-10 container mx-auto py-12" style={{ pointerEvents: 'auto' }}>
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <Shield className="h-8 w-8 text-secondary-foreground" />
