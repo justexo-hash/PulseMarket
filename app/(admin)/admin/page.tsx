@@ -283,7 +283,18 @@ export default function AdminPanelPage() {
       </div>
       
       {/* Content */}
-      <div className="relative z-10 container mx-auto py-12" style={{ pointerEvents: 'auto' }}>
+      <div className="relative z-10 container mx-auto py-12" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 100 }}>
+        {/* TEST BUTTON - Remove after debugging */}
+        <Button 
+          onClick={() => {
+            console.log("[TEST] Simple button clicked!");
+            alert("Test button works!");
+          }}
+          className="mb-4"
+        >
+          TEST BUTTON - Click Me
+        </Button>
+        
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <Shield className="h-8 w-8 text-secondary-foreground" />
@@ -393,13 +404,24 @@ export default function AdminPanelPage() {
                 </div>
                 <div
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     console.log("[Toggle] CLICKED! Current value:", automationConfig?.enabled);
-                    const newValue = !(automationConfig?.enabled || false);
-                    console.log("[Toggle] Toggling to:", newValue);
-                    toggleAutomation.mutate(newValue);
+                    try {
+                      const newValue = !(automationConfig?.enabled || false);
+                      console.log("[Toggle] Toggling to:", newValue);
+                      console.log("[Toggle] Mutation object:", toggleAutomation);
+                      console.log("[Toggle] Calling mutate...");
+                      toggleAutomation.mutate(newValue);
+                      console.log("[Toggle] Mutate called successfully");
+                    } catch (error) {
+                      console.error("[Toggle] Error in onClick handler:", error);
+                    }
                   }}
-                  style={{ cursor: 'pointer' }}
+                  onMouseDown={(e) => {
+                    console.log("[Toggle] MouseDown event fired");
+                  }}
+                  style={{ cursor: 'pointer', position: 'relative', zIndex: 1000 }}
                 >
                   <Switch
                     checked={automationConfig?.enabled || false}
@@ -408,6 +430,10 @@ export default function AdminPanelPage() {
                       toggleAutomation.mutate(checked);
                     }}
                     disabled={toggleAutomation.isPending}
+                    onClick={(e) => {
+                      console.log("[Toggle] Switch onClick fired!");
+                      e.stopPropagation();
+                    }}
                   />
                 </div>
               </div>
@@ -424,7 +450,18 @@ export default function AdminPanelPage() {
 
               {/* Run Now Button */}
               <Button
-                onClick={() => runMarketCreation.mutate()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("[RunNow] Button clicked!");
+                  console.log("[RunNow] Mutation object:", runMarketCreation);
+                  try {
+                    runMarketCreation.mutate();
+                    console.log("[RunNow] Mutate called successfully");
+                  } catch (error) {
+                    console.error("[RunNow] Error:", error);
+                  }
+                }}
                 disabled={runMarketCreation.isPending || !automationConfig?.enabled}
                 className="w-full"
               >
