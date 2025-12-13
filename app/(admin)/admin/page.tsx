@@ -30,6 +30,13 @@ export default function AdminPanelPage() {
   const { toast } = useToast();
   const isAdmin = !!user?.isAdmin;
 
+  // Debug logging
+  console.log("[AdminPanel] Component rendered", { 
+    hasUser: !!user, 
+    isAdmin, 
+    userId: user?.id 
+  });
+
   const { data: markets = [], isLoading } = useQuery<Market[]>({
     queryKey: ["/api/markets"],
     enabled: isAdmin,
@@ -108,6 +115,34 @@ export default function AdminPanelPage() {
     retryDelay: 1000,
   });
 
+  // Debug: Test API call manually
+  React.useEffect(() => {
+    if (isAdmin && !isLoadingConfig && !automationConfig) {
+      console.log("[AdminPanel] Testing API call manually...");
+      fetch("/api/automated-markets/config", {
+        credentials: "include",
+      })
+        .then((res) => {
+          console.log("[AdminPanel] Manual API response status:", res.status);
+          return res.json();
+        })
+        .then((data) => {
+          console.log("[AdminPanel] Manual API response data:", data);
+        })
+        .catch((err) => {
+          console.error("[AdminPanel] Manual API error:", err);
+        });
+    }
+  }, [isAdmin, isLoadingConfig, automationConfig]);
+
+  // Log config query state
+  console.log("[AdminPanel] Config query state:", {
+    isLoadingConfig,
+    configError,
+    automationConfig,
+    isAdmin,
+  });
+
   const { data: automationLogs, isLoading: isLoadingLogs } = useQuery<{
     success: boolean;
     logs: Array<{
@@ -129,10 +164,19 @@ export default function AdminPanelPage() {
 
   const toggleAutomation = useMutation({
     mutationFn: async (enabled: boolean) => {
-      const response = await apiRequest("POST", "/api/automated-markets/config", { enabled });
-      return await response.json();
+      console.log("[Toggle] Attempting to set enabled to:", enabled);
+      try {
+        const response = await apiRequest("POST", "/api/automated-markets/config", { enabled });
+        const data = await response.json();
+        console.log("[Toggle] API response:", data);
+        return data;
+      } catch (error: any) {
+        console.error("[Toggle] API error:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
+      console.log("[Toggle] Success, new state:", data);
       queryClient.invalidateQueries({ queryKey: ["/api/automated-markets/config"] });
       toast({
         title: data.enabled ? "Automation Enabled" : "Automation Disabled",
@@ -142,7 +186,7 @@ export default function AdminPanelPage() {
       });
     },
     onError: (error: any) => {
-      console.error("[AdminPanel] Failed to toggle automation:", error);
+      console.error("[Toggle] Mutation error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to update automation settings.",
@@ -195,7 +239,16 @@ export default function AdminPanelPage() {
 
   const activeMarkets = markets.filter((m) => m.status === "active");
 
+  console.log("[AdminPanel] State check", { 
+    isLoading, 
+    isAdmin, 
+    marketsCount: markets.length,
+    isLoadingConfig,
+    automationConfig 
+  });
+
   if (isLoading) {
+    console.log("[AdminPanel] Showing loading state");
     return (
       <div className="relative min-h-screen">
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" />
@@ -210,6 +263,8 @@ export default function AdminPanelPage() {
       </div>
     );
   }
+
+  console.log("[AdminPanel] Rendering main content");
 
   return (
     <div className="relative min-h-screen">
@@ -229,6 +284,17 @@ export default function AdminPanelPage() {
       
       {/* Content */}
       <div className="relative z-10 container mx-auto py-12" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 100 }}>
+        {/* TEST BUTTON - Remove after debugging */}
+        <Button 
+          onClick={() => {
+            console.log("[TEST] Simple button clicked!");
+            alert("Test button works!");
+          }}
+          className="mb-4"
+        >
+          TEST BUTTON - Click Me
+        </Button>
+        
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <Shield className="h-8 w-8 text-secondary-foreground" />
@@ -336,13 +402,40 @@ export default function AdminPanelPage() {
                     Automatically create markets every 6 hours from trending tokens
                   </p>
                 </div>
-                <Switch
-                  checked={automationConfig?.enabled || false}
-                  onCheckedChange={(checked) => {
-                    toggleAutomation.mutate(checked);
+                <div
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log("[Toggle] CLICKED! Current value:", automationConfig?.enabled);
+                    try {
+                      const newValue = !(automationConfig?.enabled || false);
+                      console.log("[Toggle] Toggling to:", newValue);
+                      console.log("[Toggle] Mutation object:", toggleAutomation);
+                      console.log("[Toggle] Calling mutate...");
+                      toggleAutomation.mutate(newValue);
+                      console.log("[Toggle] Mutate called successfully");
+                    } catch (error) {
+                      console.error("[Toggle] Error in onClick handler:", error);
+                    }
                   }}
-                  disabled={toggleAutomation.isPending}
-                />
+                  onMouseDown={(e) => {
+                    console.log("[Toggle] MouseDown event fired");
+                  }}
+                  style={{ cursor: 'pointer', position: 'relative', zIndex: 1000 }}
+                >
+                  <Switch
+                    checked={automationConfig?.enabled || false}
+                    onCheckedChange={(checked) => {
+                      console.log("[Toggle] Switch onCheckedChange:", checked);
+                      toggleAutomation.mutate(checked);
+                    }}
+                    disabled={toggleAutomation.isPending}
+                    onClick={(e) => {
+                      console.log("[Toggle] Switch onClick fired!");
+                      e.stopPropagation();
+                    }}
+                  />
+                </div>
               </div>
 
               {/* Last Run Info */}
@@ -357,8 +450,17 @@ export default function AdminPanelPage() {
 
               {/* Run Now Button */}
               <Button
-                onClick={() => {
-                  runMarketCreation.mutate();
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("[RunNow] Button clicked!");
+                  console.log("[RunNow] Mutation object:", runMarketCreation);
+                  try {
+                    runMarketCreation.mutate();
+                    console.log("[RunNow] Mutate called successfully");
+                  } catch (error) {
+                    console.error("[RunNow] Error:", error);
+                  }
                 }}
                 disabled={runMarketCreation.isPending || !automationConfig?.enabled}
                 className="w-full"
