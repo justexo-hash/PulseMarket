@@ -126,19 +126,29 @@ export default function AdminPanelPage() {
 
   const toggleAutomation = useMutation({
     mutationFn: async (enabled: boolean) => {
-      const response = await apiRequest("POST", "/api/automated-markets/config", { enabled });
-      return await response.json();
+      console.log("[Toggle] Attempting to set enabled to:", enabled);
+      try {
+        const response = await apiRequest("POST", "/api/automated-markets/config", { enabled });
+        const data = await response.json();
+        console.log("[Toggle] API response:", data);
+        return data;
+      } catch (error: any) {
+        console.error("[Toggle] API error:", error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("[Toggle] Success, new state:", data);
       queryClient.invalidateQueries({ queryKey: ["/api/automated-markets/config"] });
       toast({
-        title: automationConfig?.enabled ? "Automation Disabled" : "Automation Enabled",
-        description: automationConfig?.enabled 
-          ? "Automated market creation has been disabled."
-          : "Automated market creation has been enabled.",
+        title: data.enabled ? "Automation Enabled" : "Automation Disabled",
+        description: data.enabled 
+          ? "Automated market creation has been enabled."
+          : "Automated market creation has been disabled.",
       });
     },
     onError: (error: any) => {
+      console.error("[Toggle] Mutation error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to update automation settings.",
