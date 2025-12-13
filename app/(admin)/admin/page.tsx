@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { type Market } from "@shared/schema";
@@ -113,6 +114,26 @@ export default function AdminPanelPage() {
     retry: 1,
     retryDelay: 1000,
   });
+
+  // Debug: Test API call manually
+  React.useEffect(() => {
+    if (isAdmin && !isLoadingConfig && !automationConfig) {
+      console.log("[AdminPanel] Testing API call manually...");
+      fetch("/api/automated-markets/config", {
+        credentials: "include",
+      })
+        .then((res) => {
+          console.log("[AdminPanel] Manual API response status:", res.status);
+          return res.json();
+        })
+        .then((data) => {
+          console.log("[AdminPanel] Manual API response data:", data);
+        })
+        .catch((err) => {
+          console.error("[AdminPanel] Manual API error:", err);
+        });
+    }
+  }, [isAdmin, isLoadingConfig, automationConfig]);
 
   // Log config query state
   console.log("[AdminPanel] Config query state:", {
@@ -370,11 +391,25 @@ export default function AdminPanelPage() {
                     Automatically create markets every 6 hours from trending tokens
                   </p>
                 </div>
-                <Switch
-                  checked={automationConfig?.enabled || false}
-                  onCheckedChange={(checked) => toggleAutomation.mutate(checked)}
-                  disabled={toggleAutomation.isPending}
-                />
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log("[Toggle] CLICKED! Current value:", automationConfig?.enabled);
+                    const newValue = !(automationConfig?.enabled || false);
+                    console.log("[Toggle] Toggling to:", newValue);
+                    toggleAutomation.mutate(newValue);
+                  }}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <Switch
+                    checked={automationConfig?.enabled || false}
+                    onCheckedChange={(checked) => {
+                      console.log("[Toggle] Switch onCheckedChange:", checked);
+                      toggleAutomation.mutate(checked);
+                    }}
+                    disabled={toggleAutomation.isPending}
+                  />
+                </div>
               </div>
 
               {/* Last Run Info */}
