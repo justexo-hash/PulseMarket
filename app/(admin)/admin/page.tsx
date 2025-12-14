@@ -449,13 +449,13 @@ export default function AdminPanelPage() {
               )}
 
               {/* Market Type Selection */}
-              <div className="space-y-2">
+              <div className="space-y-2" style={{ position: 'relative', zIndex: 1000 }}>
                 <Label className="text-white font-semibold">Market Type</Label>
                 <Select value={selectedMarketType} onValueChange={setSelectedMarketType}>
-                  <SelectTrigger className="w-full bg-black/20 border-white/20 text-white">
+                  <SelectTrigger className="w-full bg-black/20 border-white/20 text-white" style={{ position: 'relative', zIndex: 1000 }}>
                     <SelectValue placeholder="Select market type" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent style={{ zIndex: 10000 }}>
                     <SelectItem value="standard">Standard (Rotation)</SelectItem>
                     <SelectItem value="market_cap">Market Cap</SelectItem>
                     <SelectItem value="volume">Volume</SelectItem>
@@ -470,16 +470,17 @@ export default function AdminPanelPage() {
               </div>
 
               {/* Test Mode Toggle */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between" style={{ position: 'relative', zIndex: 1000 }}>
                 <div>
                   <p className="text-white font-semibold">Test Mode</p>
                   <p className="text-sm text-white/60">
-                    Use 5% of normal expiration time (for testing)
+                    Use 5 minutes expiration time (for testing)
                   </p>
                 </div>
                 <Switch
                   checked={testMode}
                   onCheckedChange={setTestMode}
+                  style={{ position: 'relative', zIndex: 1000 }}
                 />
               </div>
 
