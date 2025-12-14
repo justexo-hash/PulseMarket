@@ -383,6 +383,20 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
               </h1>
             </div>
             
+            {/* Show market image if available */}
+            {displayMarket.image && (
+              <div className="mb-4">
+                <img
+                  src={displayMarket.image}
+                  alt={displayMarket.question}
+                  className="w-full max-w-md h-auto rounded-lg border border-border object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = "/placeholder.png";
+                  }}
+                />
+              </div>
+            )}
+            
             {/* Show token address(es) if available as subheader */}
             {(displayMarket.tokenAddress || displayMarket.tokenAddress2) && (() => {
               // Extract token names from question for battle markets
@@ -410,9 +424,8 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                 <div className="mb-4 space-y-2">
                   {displayMarket.tokenAddress && (
                     <div className="flex items-center gap-2">
-                      <p className="text-xs text-muted-foreground">{token1Name || "Token 1"}:</p>
                       <p className="text-sm text-muted-foreground font-mono">
-                        {displayMarket.tokenAddress}
+                        {token1Name || "Token 1"}: {displayMarket.tokenAddress}
                       </p>
                       <Button
                         variant="ghost"
@@ -432,9 +445,8 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                   )}
                   {displayMarket.tokenAddress2 && (
                     <div className="flex items-center gap-2">
-                      <p className="text-xs text-muted-foreground">{token2Name || "Token 2"}:</p>
                       <p className="text-sm text-muted-foreground font-mono">
-                        {displayMarket.tokenAddress2}
+                        {token2Name || "Token 2"}: {displayMarket.tokenAddress2}
                       </p>
                       <Button
                         variant="ghost"

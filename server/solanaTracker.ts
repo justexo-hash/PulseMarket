@@ -421,3 +421,193 @@ export async function getTokenChart(
   }
 }
 
+/**
+ * Search Token Result (from /search endpoint)
+ */
+export interface SearchTokenResult {
+  name: string;
+  symbol: string;
+  mint: string;
+  decimals: number;
+  image: string;
+  holders: number;
+  jupiter: boolean;
+  verified: boolean;
+  liquidityUsd: number;
+  marketCapUsd: number;
+  priceUsd: number;
+  volume: number;
+  volume_5m: number;
+  volume_15m: number;
+  volume_30m: number;
+  volume_1h: number;
+  volume_6h: number;
+  volume_12h: number;
+  volume_24h: number;
+  tokenDetails: {
+    creator: string;
+    tx: string;
+    time: number; // Unix timestamp in milliseconds
+  };
+}
+
+/**
+ * Search Token Response
+ */
+export interface SearchTokenResponse {
+  status: string;
+  data: SearchTokenResult[];
+  total: number;
+  pages: number;
+  page: number;
+  nextCursor?: string;
+  hasMore: boolean;
+}
+
+/**
+ * Search tokens by symbol, name, or address
+ * 
+ * @param query - Search term for token symbol, name, or address
+ * @param options - Optional search parameters (sortBy, sortOrder, limit, etc.)
+ * @returns Search results with tokens matching the query
+ * @throws Error if API key is missing or request fails
+ */
+export async function searchTokens(
+  query: string,
+  options?: {
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+    limit?: number;
+    page?: number;
+    minMarketCap?: number;
+    maxMarketCap?: number;
+    minVolume?: number;
+    minHolders?: number;
+  }
+): Promise<SearchTokenResponse> {
+  const apiKey = getApiKey();
+  
+  if (!query || query.trim().length === 0) {
+    throw new Error("Search query cannot be empty");
+  }
+
+  const url = new URL(`${BASE_URL}/search`);
+  url.searchParams.set("query", query.trim());
+  
+  if (options) {
+    if (options.sortBy) url.searchParams.set("sortBy", options.sortBy);
+    if (options.sortOrder) url.searchParams.set("sortOrder", options.sortOrder);
+    if (options.limit) url.searchParams.set("limit", options.limit.toString());
+    if (options.page) url.searchParams.set("page", options.page.toString());
+    if (options.minMarketCap) url.searchParams.set("minMarketCap", options.minMarketCap.toString());
+    if (options.maxMarketCap) url.searchParams.set("maxMarketCap", options.maxMarketCap.toString());
+    if (options.minVolume) url.searchParams.set("minVolume", options.minVolume.toString());
+    if (options.minHolders) url.searchParams.set("minHolders", options.minHolders.toString());
+  }
+
+  try {
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `Failed to search tokens: ${response.status} ${response.statusText}`;
+      
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+      } catch {
+        if (errorText) {
+          errorMessage = `${errorMessage} - ${errorText}`;
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json() as SearchTokenResponse;
+    return data;
+  } catch (error: any) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(`Failed to search tokens: ${error.message || String(error)}`);
+  }
+}
+
+/**
+ * Graduating Token structure (from /tokens/multi/graduating endpoint)
+ * Similar to TokenInfo but for graduating tokens
+ */
+export interface GraduatingToken {
+  token: {
+    name: string;
+    symbol: string;
+    mint: string;
+    image: string;
+    creation: {
+      created_time: number; // Unix timestamp in seconds
+    };
+  };
+  pools: Array<{
+    marketCap: {
+      usd: number;
+    };
+    txns: {
+      volume24h: number;
+    };
+  }>;
+  holders: number;
+}
+
+/**
+ * Get graduating tokens from Solana Tracker API
+ * Returns tokens that are about to graduate from bonding curves (e.g., PumpFun)
+ * 
+ * @returns Array of graduating tokens
+ * @throws Error if API key is missing or request fails
+ */
+export async function getGraduatingTokens(): Promise<GraduatingToken[]> {
+  const apiKey = getApiKey();
+  const url = `${BASE_URL}/tokens/multi/graduating`;
+  
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `Failed to fetch graduating tokens: ${response.status} ${response.statusText}`;
+      
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+      } catch {
+        if (errorText) {
+          errorMessage = `${errorMessage} - ${errorText}`;
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json() as GraduatingToken[];
+    return data;
+  } catch (error: any) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(`Failed to fetch graduating tokens: ${error.message || String(error)}`);
+  }
+}
+

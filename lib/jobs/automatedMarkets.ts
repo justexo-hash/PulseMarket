@@ -1,12 +1,12 @@
 /**
  * Automated Market Creation Job
  * 
- * This job runs every 6 hours to create new markets automatically based on trending tokens.
+ * This job runs every 6 hours to create new markets automatically based on graduating tokens.
  * It implements the logic defined in blorg.md for market creation, calculations, and rotation.
  */
 
 import { storage } from "@server/storage";
-import { getTrendingTokens, getMultipleTokens, getTokenChart, type TrendingToken } from "@server/solanaTracker";
+import { getGraduatingTokens, getMultipleTokens, getTokenChart, type GraduatingToken } from "@server/solanaTracker";
 import { type InsertMarket } from "@shared/schema";
 import { publishEvent } from "@lib/realtime/server";
 import { spliceBattleMarketImages } from "@server/imageUtils";
@@ -163,8 +163,8 @@ function calculateBattleDumpTarget(token1MC: number, token2MC: number): { target
  * Uses 30% buffer for both MC and age
  */
 function tokensMatchForBattle(
-  token1: TrendingToken,
-  token2: TrendingToken
+  token1: GraduatingToken,
+  token2: GraduatingToken
 ): boolean {
   const mc1 = token1.pools[0]?.marketCap?.usd || 0;
   const mc2 = token2.pools[0]?.marketCap?.usd || 0;
@@ -236,11 +236,11 @@ async function isTokenAlreadyUsed(tokenAddress: string): Promise<boolean> {
 }
 
 /**
- * Find an unused token from the trending list
+ * Find an unused token from the graduating list
  * Goes down the list until finding one that hasn't been used
  */
-async function findUnusedToken(trendingTokens: TrendingToken[]): Promise<TrendingToken | null> {
-  for (const token of trendingTokens) {
+async function findUnusedToken(graduatingTokens: GraduatingToken[]): Promise<GraduatingToken | null> {
+  for (const token of graduatingTokens) {
     const mint = token.token.mint;
     if (!mint) continue;
     
@@ -254,20 +254,20 @@ async function findUnusedToken(trendingTokens: TrendingToken[]): Promise<Trendin
 
 /**
  * Find two matching tokens for battle markets
- * Searches trending list for tokens that match (similar MC and age)
+ * Searches graduating list for tokens that match (similar MC and age)
  */
-async function findMatchingTokensForBattle(trendingTokens: TrendingToken[]): Promise<[TrendingToken, TrendingToken] | null> {
+async function findMatchingTokensForBattle(graduatingTokens: GraduatingToken[]): Promise<[GraduatingToken, GraduatingToken] | null> {
   // Try all pairs until we find a match
-  for (let i = 0; i < trendingTokens.length; i++) {
-    const token1 = trendingTokens[i];
+  for (let i = 0; i < graduatingTokens.length; i++) {
+    const token1 = graduatingTokens[i];
     
     // Check if token1 is already used
     if (token1.token.mint && await isTokenAlreadyUsed(token1.token.mint)) {
       continue;
     }
     
-    for (let j = i + 1; j < trendingTokens.length; j++) {
-      const token2 = trendingTokens[j];
+    for (let j = i + 1; j < graduatingTokens.length; j++) {
+      const token2 = graduatingTokens[j];
       
       // Check if token2 is already used
       if (token2.token.mint && await isTokenAlreadyUsed(token2.token.mint)) {
@@ -312,11 +312,11 @@ export async function runAutomatedMarketCreation(
       return { success: true };
     }
 
-    // Step 2: Fetch trending tokens
-    console.log("[AutomatedMarkets] Fetching trending tokens...");
-    const trendingTokens = await getTrendingTokens();
-    if (!trendingTokens || trendingTokens.length === 0) {
-      throw new Error("No trending tokens returned from API");
+    // Step 2: Fetch graduating tokens
+    console.log("[AutomatedMarkets] Fetching graduating tokens...");
+    const graduatingTokens = await getGraduatingTokens();
+    if (!graduatingTokens || graduatingTokens.length === 0) {
+      throw new Error("No graduating tokens returned from API");
     }
 
     // Step 3: Get existing markets to check for duplicates
@@ -348,7 +348,7 @@ export async function runAutomatedMarketCreation(
 
     if (marketType === "battle_race" || marketType === "battle_dump") {
       // Battle markets need 2 matching tokens
-      const matchingTokens = await findMatchingTokensForBattle(trendingTokens);
+      const matchingTokens = await findMatchingTokensForBattle(graduatingTokens);
       if (!matchingTokens) {
         throw new Error("Could not find matching tokens for battle market");
       }
@@ -436,7 +436,7 @@ export async function runAutomatedMarketCreation(
       };
     } else {
       // Single token markets - try multiple tokens until we find one that works
-      let token: TrendingToken | null = null;
+      let token: GraduatingToken | null = null;
       
       const maxAttempts = 20; // Try up to 20 tokens
       let attempts = 0;
@@ -445,7 +445,7 @@ export async function runAutomatedMarketCreation(
       while (!marketData && attempts < maxAttempts) {
         attempts++;
         // Get unused token, but filter out ones we've already tried
-        const availableTokens = trendingTokens.filter(t => {
+        const availableTokens = graduatingTokens.filter(t => {
           if (!t.token.mint) return false;
           if (triedTokens.has(t.token.mint)) return false;
           return true;
@@ -463,7 +463,7 @@ export async function runAutomatedMarketCreation(
         }
         
         if (!token) {
-          throw new Error("Could not find unused token from trending list");
+          throw new Error("Could not find unused token from graduating list");
         }
         
         const mc = token.pools[0]?.marketCap?.usd || 0;
