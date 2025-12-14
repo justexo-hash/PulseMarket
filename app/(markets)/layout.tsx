@@ -15,16 +15,6 @@ export default function MarketsLayout({ children }: { children: ReactNode }) {
       {user ? (
         <Tabs defaultValue="explore">
           <div className="flex items-center justify-start gap-6 mb-6">
-            <div className="hidden lg:block category_searchbar relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-secondary  outline-none pointer-events-none" />
-              <Input
-                type="text"
-                placeholder="Search..."
-                className={
-                  "w-[325px] pl-9 text-muted-secondar bg-secondary cursor-pointer border-muted-foreground/20 outline-none focus:bg-transparent focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none "
-                }
-              />
-            </div>
             <TabsList>
               <TabsTrigger value="explore">Explore</TabsTrigger>
               <TabsTrigger value="watchlist">Watchlist</TabsTrigger>

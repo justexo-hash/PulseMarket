@@ -99,9 +99,12 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
   if (displayMarket) {
     if (displayMarket.tokenAddress2) {
       // Battle market - extract names from question
-      // Format: "Which token will... first: TokenName1 or TokenName2?"
-      const match = displayMarket.question.match(/first:\s*([^?]+)\s*or\s*([^?]+)\?/i);
-      if (match) {
+      // Multiple formats:
+      // - "Which token will reach $250K market cap first: TokenName1 or TokenName2?"
+      // - "Which token will dump 50% first (to $800K market cap): TokenName1 or TokenName2?"
+      // Pattern: Look for ": TokenName1 or TokenName2?" at the end
+      const match = displayMarket.question.match(/:\s*([^?]+?)\s+or\s+([^?]+?)\s*\?/i);
+      if (match && match[1] && match[2]) {
         token1Name = match[1].trim();
         token2Name = match[2].trim();
       }
@@ -114,6 +117,13 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
       }
     }
   }
+  
+  // Helper function to truncate text with ellipses
+  const truncateText = (text: string | null, maxLength: number = 20): string => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength - 3) + "...";
+  };
 
   const resolveMarket = useMutation({
     mutationFn: async (outcome: "yes" | "no") => {
@@ -754,11 +764,13 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                   data-testid="button-bet-yes"
                 >
                   <ThumbsUp className="mr-2 h-5 w-5" />
-                  {placeBet.isPending 
-                    ? "Placing..." 
-                    : displayMarket.tokenAddress2 
-                      ? `Bet ${token1Name || "Token 1"}` 
-                      : "Bet Yes"}
+                  <span className="truncate" title={displayMarket.tokenAddress2 ? (token1Name || "Token 1") : "Yes"}>
+                    {placeBet.isPending 
+                      ? "Placing..." 
+                      : displayMarket.tokenAddress2 
+                        ? `Bet ${truncateText(token1Name || "Token 1", 15)}` 
+                        : "Bet Yes"}
+                  </span>
                 </Button>
               </div>
               <div
@@ -773,11 +785,13 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                   data-testid="button-bet-no"
                 >
                   <ThumbsDown className="mr-2 h-5 w-5" />
-                  {placeBet.isPending 
-                    ? "Placing..." 
-                    : displayMarket.tokenAddress2 
-                      ? `Bet ${token2Name || "Token 2"}` 
-                      : "Bet No"}
+                  <span className="truncate" title={displayMarket.tokenAddress2 ? (token2Name || "Token 2") : "No"}>
+                    {placeBet.isPending 
+                      ? "Placing..." 
+                      : displayMarket.tokenAddress2 
+                        ? `Bet ${truncateText(token2Name || "Token 2", 15)}` 
+                        : "Bet No"}
+                  </span>
                 </Button>
               </div>
             </div>

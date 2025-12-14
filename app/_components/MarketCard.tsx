@@ -109,9 +109,12 @@ export function MarketCard({ market }: MarketCardProps) {
   
   if (market.tokenAddress2) {
     // Battle market - extract names from question
-    // Format: "Which token will... first: TokenName1 or TokenName2?"
-    const match = market.question.match(/first:\s*([^?]+)\s*or\s*([^?]+)\?/i);
-    if (match) {
+    // Multiple formats:
+    // - "Which token will reach $250K market cap first: TokenName1 or TokenName2?"
+    // - "Which token will dump 50% first (to $800K market cap): TokenName1 or TokenName2?"
+    // Pattern: Look for ": TokenName1 or TokenName2?" at the end
+    const match = market.question.match(/:\s*([^?]+?)\s+or\s+([^?]+?)\s*\?/i);
+    if (match && match[1] && match[2]) {
       token1Name = match[1].trim();
       token2Name = match[2].trim();
     }
@@ -123,6 +126,13 @@ export function MarketCard({ market }: MarketCardProps) {
       token1Name = match[1].trim();
     }
   }
+  
+  // Helper function to truncate text with ellipses
+  const truncateText = (text: string | null, maxLength: number = 15): string => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength - 3) + "...";
+  };
 
   return (
     <Link href={marketPath} data-testid={`group z-1 card-market-${market.id}`}>
@@ -207,11 +217,15 @@ export function MarketCard({ market }: MarketCardProps) {
         {/* SECTION 3 — ACTION BUTTONS (UI Only)                      */}
         {/* ========================================================= */}
         <div className="flex gap-4 w-full">
-          <button className="flex-1 py-2 rounded-md bg-green-400/20 text-green-400 font-semibold hover:bg-green-700/40 transition">
-            {market.tokenAddress2 ? (token1Name || "Token 1") : "Yes"}
+          <button className="flex-1 py-2 rounded-md bg-green-400/20 text-green-400 font-semibold hover:bg-green-700/40 transition overflow-hidden">
+            <span className="truncate block" title={market.tokenAddress2 ? (token1Name || "Token 1") : "Yes"}>
+              {market.tokenAddress2 ? truncateText(token1Name || "Token 1", 12) : "Yes"}
+            </span>
           </button>
-          <button className="flex-1 py-2 rounded-md bg-red-400/20 text-red-400 font-semibold hover:bg-red-700/40 transition">
-            {market.tokenAddress2 ? (token2Name || "Token 2") : "No"}
+          <button className="flex-1 py-2 rounded-md bg-red-400/20 text-red-400 font-semibold hover:bg-red-700/40 transition overflow-hidden">
+            <span className="truncate block" title={market.tokenAddress2 ? (token2Name || "Token 2") : "No"}>
+              {market.tokenAddress2 ? truncateText(token2Name || "Token 2", 12) : "No"}
+            </span>
           </button>
         </div>
 

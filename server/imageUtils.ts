@@ -116,14 +116,27 @@ export async function spliceBattleMarketImages(
     }
 
     // Save the spliced image
+    // Note: public/uploads/ is in .gitignore (which is correct - we don't want to commit images)
+    // But the directory must exist on the server with write permissions
     const uploadsDir = path.join(process.cwd(), "public", "uploads");
     
     // Ensure directory exists
     try {
       await fs.mkdir(uploadsDir, { recursive: true });
       console.log(`[ImageUtils] Created/verified uploads directory: ${uploadsDir}`);
+      
+      // Verify we can write to the directory
+      const testFile = path.join(uploadsDir, ".write-test");
+      try {
+        await fs.writeFile(testFile, "test");
+        await fs.unlink(testFile);
+        console.log(`[ImageUtils] Write permissions verified for ${uploadsDir}`);
+      } catch (writeError: any) {
+        console.error(`[ImageUtils] WARNING: Cannot write to uploads directory: ${writeError.message}`);
+        throw new Error(`No write permissions for uploads directory: ${writeError.message}`);
+      }
     } catch (error: any) {
-      console.error(`[ImageUtils] Failed to create uploads directory: ${error.message}`);
+      console.error(`[ImageUtils] Failed to create/verify uploads directory: ${error.message}`);
       throw new Error(`Failed to create uploads directory: ${error.message}`);
     }
 
