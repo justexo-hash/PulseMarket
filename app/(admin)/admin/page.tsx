@@ -465,7 +465,7 @@ export default function AdminPanelPage() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-white/60">
-                  Select a specific type or use "Standard" for automatic rotation
+                  Select a specific type or use &quot;Standard&quot; for automatic rotation
                 </p>
               </div>
 
