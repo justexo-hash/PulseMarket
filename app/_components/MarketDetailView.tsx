@@ -92,6 +92,29 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
   const marketId = displayMarket?.id?.toString() || slug;
   const querySlug = slug || displayMarket?.slug || displayMarket?.id?.toString();
 
+  // Extract token names for use in charts and buttons
+  let token1Name: string | null = null;
+  let token2Name: string | null = null;
+  
+  if (displayMarket) {
+    if (displayMarket.tokenAddress2) {
+      // Battle market - extract names from question
+      // Format: "Which token will... first: TokenName1 or TokenName2?"
+      const match = displayMarket.question.match(/first:\s*([^?]+)\s*or\s*([^?]+)\?/i);
+      if (match) {
+        token1Name = match[1].trim();
+        token2Name = match[2].trim();
+      }
+    } else if (displayMarket.tokenAddress) {
+      // Single token market - extract name from question
+      // Format: "Will TokenName's current..."
+      const match = displayMarket.question.match(/Will\s+([^']+)'s/i);
+      if (match) {
+        token1Name = match[1].trim();
+      }
+    }
+  }
+
   const resolveMarket = useMutation({
     mutationFn: async (outcome: "yes" | "no") => {
       const response = await apiRequest("POST", `/api/markets/${marketId}/resolve`, { outcome });
@@ -383,17 +406,66 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
               </h1>
             </div>
             
-            {/* Show market image if available */}
-            {displayMarket.image && (
+            {/* DexScreener Chart(s) - Replace image with live charts */}
+            {(displayMarket.tokenAddress || displayMarket.tokenAddress2) && (
               <div className="mb-4">
-                <img
-                  src={displayMarket.image}
-                  alt={displayMarket.question}
-                  className="w-full max-w-md h-auto rounded-lg border border-border object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = "/placeholder.png";
-                  }}
-                />
+                <style jsx>{`
+                  .dexscreener-embed {
+                    position: relative;
+                    width: 100%;
+                    padding-bottom: 125%;
+                  }
+                  @media(min-width:1400px) {
+                    .dexscreener-embed {
+                      padding-bottom: 65%;
+                    }
+                  }
+                  .dexscreener-embed iframe {
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    top: 0;
+                    left: 0;
+                    border: 0;
+                  }
+                `}</style>
+                {displayMarket.tokenAddress2 ? (
+                  // Battle market - show two charts side by side
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="dexscreener-embed">
+                      <iframe 
+                        src={`https://dexscreener.com/solana/${displayMarket.tokenAddress}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=0&chartType=usd&interval=15`}
+                        width="100%" 
+                        height="400" 
+                        frameBorder="0"
+                        allowFullScreen
+                        title={`Chart for ${token1Name || "Token 1"}`}
+                      />
+                    </div>
+                    <div className="dexscreener-embed">
+                      <iframe 
+                        src={`https://dexscreener.com/solana/${displayMarket.tokenAddress2}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=0&chartType=usd&interval=15`}
+                        width="100%" 
+                        height="400" 
+                        frameBorder="0"
+                        allowFullScreen
+                        title={`Chart for ${token2Name || "Token 2"}`}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  // Single token market - show one chart
+                  <div className="dexscreener-embed">
+                    <iframe 
+                      src={`https://dexscreener.com/solana/${displayMarket.tokenAddress}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=0&chartType=usd&interval=15`}
+                      width="100%" 
+                      height="400" 
+                      frameBorder="0"
+                      allowFullScreen
+                      title={`Chart for ${token1Name || "Token"}`}
+                    />
+                  </div>
+                )}
               </div>
             )}
             
@@ -686,7 +758,11 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                   data-testid="button-bet-yes"
                 >
                   <ThumbsUp className="mr-2 h-5 w-5" />
-                  {placeBet.isPending ? "Placing..." : "Bet Yes"}
+                  {placeBet.isPending 
+                    ? "Placing..." 
+                    : displayMarket.tokenAddress2 
+                      ? `Bet ${token1Name || "Token 1"}` 
+                      : "Bet Yes"}
                 </Button>
               </div>
               <div
@@ -701,7 +777,11 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                   data-testid="button-bet-no"
                 >
                   <ThumbsDown className="mr-2 h-5 w-5" />
-                  {placeBet.isPending ? "Placing..." : "Bet No"}
+                  {placeBet.isPending 
+                    ? "Placing..." 
+                    : displayMarket.tokenAddress2 
+                      ? `Bet ${token2Name || "Token 2"}` 
+                      : "Bet No"}
                 </Button>
               </div>
             </div>

@@ -117,15 +117,36 @@ export async function spliceBattleMarketImages(
 
     // Save the spliced image
     const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    await fs.mkdir(uploadsDir, { recursive: true });
+    
+    // Ensure directory exists
+    try {
+      await fs.mkdir(uploadsDir, { recursive: true });
+      console.log(`[ImageUtils] Created/verified uploads directory: ${uploadsDir}`);
+    } catch (error: any) {
+      console.error(`[ImageUtils] Failed to create uploads directory: ${error.message}`);
+      throw new Error(`Failed to create uploads directory: ${error.message}`);
+    }
 
     const uniqueSuffix = `${Date.now()}-${crypto.randomUUID()}`;
     const filename = `battle-${uniqueSuffix}.png`;
     const filePath = path.join(uploadsDir, filename);
 
-    await fs.writeFile(filePath, splicedImage);
+    // Write the file
+    try {
+      await fs.writeFile(filePath, splicedImage);
+      console.log(`[ImageUtils] Successfully saved spliced image: ${filePath}`);
+      
+      // Verify file exists
+      const stats = await fs.stat(filePath);
+      console.log(`[ImageUtils] File verified - size: ${stats.size} bytes`);
+    } catch (error: any) {
+      console.error(`[ImageUtils] Failed to write file ${filePath}: ${error.message}`);
+      throw new Error(`Failed to save spliced image: ${error.message}`);
+    }
 
-    return `/uploads/${filename}`;
+    const publicPath = `/uploads/${filename}`;
+    console.log(`[ImageUtils] Returning public path: ${publicPath}`);
+    return publicPath;
   } catch (error: any) {
     console.error("[ImageUtils] Error splicing images:", error);
     throw new Error(`Failed to splice images: ${error.message}`);

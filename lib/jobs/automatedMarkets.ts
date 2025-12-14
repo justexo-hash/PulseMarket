@@ -236,6 +236,17 @@ async function isTokenAlreadyUsed(tokenAddress: string): Promise<boolean> {
 }
 
 /**
+ * Check if a token is on PumpFun market
+ * Filters out Meteora, Raydium, Bonk, and other markets
+ */
+function isPumpFunToken(token: GraduatedToken): boolean {
+  // Check if any pool has market === "pumpfun" (case-insensitive)
+  return token.pools.some(pool => 
+    pool.market?.toLowerCase() === "pumpfun"
+  );
+}
+
+/**
  * Check if a token name has already been used in an active automated market
  * Prevents creating markets with duplicate token names (even if different addresses)
  * This avoids confusing markets like "Multi-Tx Max vs Multi-Tx Max"
@@ -296,6 +307,12 @@ async function findUnusedToken(graduatedTokens: GraduatedToken[]): Promise<Gradu
     const mint = token.token.mint;
     if (!mint) continue;
     
+    // Filter: Only use PumpFun tokens
+    if (!isPumpFunToken(token)) {
+      console.log(`[AutomatedMarkets] Skipping token ${mint}: not on PumpFun market`);
+      continue;
+    }
+    
     // Check if address is already used
     const addressUsed = await isTokenAlreadyUsed(mint);
     if (addressUsed) continue;
@@ -321,6 +338,11 @@ async function findMatchingTokensForBattle(graduatedTokens: GraduatedToken[]): P
   for (let i = 0; i < graduatedTokens.length; i++) {
     const token1 = graduatedTokens[i];
     
+    // Filter: Only use PumpFun tokens
+    if (!isPumpFunToken(token1)) {
+      continue;
+    }
+    
     // Check if token1 is already used (by address)
     if (token1.token.mint && await isTokenAlreadyUsed(token1.token.mint)) {
       continue;
@@ -333,6 +355,11 @@ async function findMatchingTokensForBattle(graduatedTokens: GraduatedToken[]): P
     
     for (let j = i + 1; j < graduatedTokens.length; j++) {
       const token2 = graduatedTokens[j];
+      
+      // Filter: Only use PumpFun tokens
+      if (!isPumpFunToken(token2)) {
+        continue;
+      }
       
       // Check if token2 is already used (by address)
       if (token2.token.mint && await isTokenAlreadyUsed(token2.token.mint)) {
@@ -531,6 +558,12 @@ export async function runAutomatedMarketCreation(
         for (const t of availableTokens) {
           if (!t.token.mint) continue;
           
+          // Filter: Only use PumpFun tokens
+          if (!isPumpFunToken(t)) {
+            console.log(`[AutomatedMarkets] Skipping token ${t.token.mint}: not on PumpFun market`);
+            continue;
+          }
+          
           // Check if address is already used
           const addressUsed = await isTokenAlreadyUsed(t.token.mint);
           if (addressUsed) continue;
@@ -547,7 +580,7 @@ export async function runAutomatedMarketCreation(
         }
         
         if (!token) {
-          throw new Error("Could not find unused token from graduated list");
+          throw new Error("Could not find unused PumpFun token from graduated list");
         }
         
         const mc = token.pools[0]?.marketCap?.usd || 0;

@@ -570,6 +570,7 @@ export interface GraduatedToken {
     txns: {
       volume24h: number;
     };
+    market?: string; // Market type: "pumpfun", "meteora-dyn-v2", "raydium", etc.
   }>;
   holders: number;
 }
