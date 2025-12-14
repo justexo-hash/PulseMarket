@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { type Market } from "@shared/schema";
@@ -9,7 +10,10 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
-import { CheckCircle2, XCircle, DollarSign, Shield, Wallet, RefreshCw } from "lucide-react";
+import { CheckCircle2, XCircle, DollarSign, Shield, Wallet, RefreshCw, Play, Settings, Clock } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { formatDistanceToNow } from "date-fns";
 import {
   AlertDialog,
@@ -27,6 +31,15 @@ export default function AdminPanelPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const isAdmin = !!user?.isAdmin;
+  const [selectedMarketType, setSelectedMarketType] = React.useState<string>("standard");
+  const [testMode, setTestMode] = React.useState<boolean>(false);
+
+  // Debug logging
+  console.log("[AdminPanel] Component rendered", { 
+    hasUser: !!user, 
+    isAdmin, 
+    userId: user?.id 
+  });
 
   const { data: markets = [], isLoading } = useQuery<Market[]>({
     queryKey: ["/api/markets"],
@@ -95,6 +108,129 @@ export default function AdminPanelPage() {
     },
   });
 
+  // Automated Markets Configuration
+  const { data: automationConfig, isLoading: isLoadingConfig, error: configError, refetch: refetchConfig } = useQuery<{
+    enabled: boolean;
+    lastRun: string | null;
+  }>({
+    queryKey: ["/api/automated-markets/config"],
+    enabled: isAdmin,
+    retry: 1,
+    retryDelay: 1000,
+  });
+
+  // Debug: Test API call manually
+  React.useEffect(() => {
+    if (isAdmin && !isLoadingConfig && !automationConfig) {
+      console.log("[AdminPanel] Testing API call manually...");
+      fetch("/api/automated-markets/config", {
+        credentials: "include",
+      })
+        .then((res) => {
+          console.log("[AdminPanel] Manual API response status:", res.status);
+          return res.json();
+        })
+        .then((data) => {
+          console.log("[AdminPanel] Manual API response data:", data);
+        })
+        .catch((err) => {
+          console.error("[AdminPanel] Manual API error:", err);
+        });
+    }
+  }, [isAdmin, isLoadingConfig, automationConfig]);
+
+  // Log config query state
+  console.log("[AdminPanel] Config query state:", {
+    isLoadingConfig,
+    configError,
+    automationConfig,
+    isAdmin,
+  });
+
+  const { data: automationLogs, isLoading: isLoadingLogs } = useQuery<{
+    success: boolean;
+    logs: Array<{
+      id: number;
+      executionTime: string;
+      marketId: number | null;
+      questionType: string;
+      tokenAddress: string | null;
+      tokenAddress2: string | null;
+      success: boolean;
+      errorMessage: string | null;
+      createdAt: string;
+    }>;
+  }>({
+    queryKey: ["/api/automated-markets/logs"],
+    enabled: isAdmin,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  const toggleAutomation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      console.log("[Toggle] Attempting to set enabled to:", enabled);
+      try {
+        const response = await apiRequest("POST", "/api/automated-markets/config", { enabled });
+        const data = await response.json();
+        console.log("[Toggle] API response:", data);
+        return data;
+      } catch (error: any) {
+        console.error("[Toggle] API error:", error);
+        throw error;
+      }
+    },
+    onSuccess: (data) => {
+      console.log("[Toggle] Success, new state:", data);
+      queryClient.invalidateQueries({ queryKey: ["/api/automated-markets/config"] });
+      toast({
+        title: data.enabled ? "Automation Enabled" : "Automation Disabled",
+        description: data.enabled 
+          ? "Automated market creation has been enabled."
+          : "Automated market creation has been disabled.",
+      });
+    },
+    onError: (error: any) => {
+      console.error("[Toggle] Mutation error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update automation settings.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const runMarketCreation = useMutation({
+    mutationFn: async () => {
+      const body: { marketType?: string; testMode?: boolean } = {};
+      if (selectedMarketType !== "standard") {
+        body.marketType = selectedMarketType;
+      }
+      if (testMode) {
+        body.testMode = true;
+      }
+      const response = await apiRequest("POST", "/api/automated-markets/create", body);
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/markets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/automated-markets/logs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/automated-markets/config"] });
+      toast({
+        title: "Market Created!",
+        description: data.marketCreated 
+          ? `Successfully created market #${data.marketCreated} (${data.marketType})`
+          : "Market creation triggered.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create market.",
+        variant: "destructive",
+      });
+    },
+  });
+
   if (!isAdmin) {
     return (
       <div className="relative min-h-screen">
@@ -114,7 +250,16 @@ export default function AdminPanelPage() {
 
   const activeMarkets = markets.filter((m) => m.status === "active");
 
+  console.log("[AdminPanel] State check", { 
+    isLoading, 
+    isAdmin, 
+    marketsCount: markets.length,
+    isLoadingConfig,
+    automationConfig 
+  });
+
   if (isLoading) {
+    console.log("[AdminPanel] Showing loading state");
     return (
       <div className="relative min-h-screen">
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" />
@@ -130,6 +275,8 @@ export default function AdminPanelPage() {
     );
   }
 
+  console.log("[AdminPanel] Rendering main content");
+
   return (
     <div className="relative min-h-screen">
       {/* Background Image with Dark Overlay */}
@@ -140,13 +287,14 @@ export default function AdminPanelPage() {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
+          pointerEvents: 'none', // Don't block clicks
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" style={{ pointerEvents: 'none' }} />
       </div>
       
       {/* Content */}
-      <div className="relative z-10 container mx-auto py-12">
+      <div className="relative z-10 container mx-auto py-12" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 100 }}>
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <Shield className="h-8 w-8 text-secondary-foreground" />
@@ -227,6 +375,168 @@ export default function AdminPanelPage() {
               <p className="text-xs text-white/50 mt-2">
                 Send SOL to this address to fund the treasury
               </p>
+            </div>
+          )}
+        </Card>
+
+        {/* Automated Markets Control Card */}
+        <Card className="p-6 bg-black/30 backdrop-blur-sm border-white/20 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Settings className="h-6 w-6 text-secondary-foreground" />
+              <h2 className="text-2xl font-bold text-white">Automated Markets</h2>
+            </div>
+          </div>
+
+          {isLoadingConfig ? (
+            <div className="space-y-2">
+              <div className="h-8 bg-white/10 rounded animate-pulse" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Toggle Switch */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white font-semibold">Enable Automated Market Creation</p>
+                  <p className="text-sm text-white/60">
+                    Automatically create markets every 6 hours from trending tokens
+                  </p>
+                </div>
+                <div
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log("[Toggle] CLICKED! Current value:", automationConfig?.enabled);
+                    try {
+                      const newValue = !(automationConfig?.enabled || false);
+                      console.log("[Toggle] Toggling to:", newValue);
+                      console.log("[Toggle] Mutation object:", toggleAutomation);
+                      console.log("[Toggle] Calling mutate...");
+                      toggleAutomation.mutate(newValue);
+                      console.log("[Toggle] Mutate called successfully");
+                    } catch (error) {
+                      console.error("[Toggle] Error in onClick handler:", error);
+                    }
+                  }}
+                  onMouseDown={(e) => {
+                    console.log("[Toggle] MouseDown event fired");
+                  }}
+                  style={{ cursor: 'pointer', position: 'relative', zIndex: 1000 }}
+                >
+                  <Switch
+                    checked={automationConfig?.enabled || false}
+                    onCheckedChange={(checked) => {
+                      console.log("[Toggle] Switch onCheckedChange:", checked);
+                      toggleAutomation.mutate(checked);
+                    }}
+                    disabled={toggleAutomation.isPending}
+                    onClick={(e) => {
+                      console.log("[Toggle] Switch onClick fired!");
+                      e.stopPropagation();
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Last Run Info */}
+              {automationConfig?.lastRun && (
+                <div className="flex items-center gap-2 text-sm text-white/60">
+                  <Clock className="h-4 w-4" />
+                  <span>
+                    Last run: {new Date(automationConfig.lastRun).toLocaleString()}
+                  </span>
+                </div>
+              )}
+
+              {/* Market Type Selection */}
+              <div className="space-y-2" style={{ position: 'relative', zIndex: 1000 }}>
+                <Label className="text-white font-semibold">Market Type</Label>
+                <Select value={selectedMarketType} onValueChange={setSelectedMarketType}>
+                  <SelectTrigger className="w-full bg-black/20 border-white/20 text-white" style={{ position: 'relative', zIndex: 1000 }}>
+                    <SelectValue placeholder="Select market type" />
+                  </SelectTrigger>
+                  <SelectContent style={{ zIndex: 10000 }}>
+                    <SelectItem value="standard">Standard (Rotation)</SelectItem>
+                    <SelectItem value="market_cap">Market Cap</SelectItem>
+                    <SelectItem value="volume">Volume</SelectItem>
+                    <SelectItem value="holders">Holders</SelectItem>
+                    <SelectItem value="battle_race">Battle Race</SelectItem>
+                    <SelectItem value="battle_dump">Battle Dump</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-white/60">
+                  Select a specific type or use &quot;Standard&quot; for automatic rotation
+                </p>
+              </div>
+
+              {/* Test Mode Toggle */}
+              <div className="flex items-center justify-between" style={{ position: 'relative', zIndex: 1000 }}>
+                <div>
+                  <p className="text-white font-semibold">Test Mode</p>
+                  <p className="text-sm text-white/60">
+                    Use 5 minutes expiration time (for testing)
+                  </p>
+                </div>
+                <Switch
+                  checked={testMode}
+                  onCheckedChange={setTestMode}
+                  style={{ position: 'relative', zIndex: 1000 }}
+                />
+              </div>
+
+              {/* Run Now Button */}
+              <Button
+                onClick={() => {
+                  runMarketCreation.mutate();
+                }}
+                disabled={runMarketCreation.isPending || !automationConfig?.enabled}
+                className="w-full"
+                style={{ position: 'relative', zIndex: 1000 }}
+              >
+                <Play className="h-4 w-4 mr-2" />
+                {runMarketCreation.isPending ? "Creating..." : "Run Now"}
+              </Button>
+
+              {/* Recent Logs */}
+              {isLoadingLogs ? (
+                <div className="mt-4 space-y-2">
+                  <div className="h-4 bg-white/10 rounded animate-pulse" />
+                  <div className="h-4 bg-white/10 rounded animate-pulse" />
+                </div>
+              ) : automationLogs && automationLogs.logs.length > 0 ? (
+                <div className="mt-4">
+                  <p className="text-sm font-semibold text-white mb-2">Recent Executions</p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {automationLogs.logs.slice(0, 5).map((log) => (
+                      <div
+                        key={log.id}
+                        className={`p-2 rounded text-xs ${
+                          log.success ? "bg-green-500/20" : "bg-red-500/20"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className={log.success ? "text-green-400" : "text-red-400"}>
+                            {log.success ? "✓" : "✗"} {log.questionType}
+                          </span>
+                          <span className="text-white/60">
+                            {new Date(log.executionTime).toLocaleTimeString()}
+                          </span>
+                        </div>
+                        {log.marketId && (
+                          <div className="text-white/80 mt-1">
+                            Market #{log.marketId}
+                          </div>
+                        )}
+                        {log.errorMessage && (
+                          <div className="text-red-400 mt-1 text-xs">
+                            {log.errorMessage}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           )}
         </Card>

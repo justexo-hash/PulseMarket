@@ -193,3 +193,449 @@ export function isValidTokenAddress(tokenAddress: string): boolean {
   return base58Regex.test(trimmed);
 }
 
+/**
+ * Trending Token Info (from /tokens/trending endpoint)
+ * Simplified structure for what we need from trending tokens
+ */
+export interface TrendingToken {
+  token: {
+    name: string;
+    symbol: string;
+    mint: string;
+    image: string;
+    creation: {
+      created_time: number; // Unix timestamp in seconds
+    };
+  };
+  pools: Array<{
+    marketCap: {
+      usd: number;
+    };
+    txns: {
+      volume: number; // 5min volume
+      volume24h: number;
+    };
+  }>;
+  holders: number;
+}
+
+/**
+ * Get trending tokens from Solana Tracker API
+ * Returns top 100 trending tokens with their current metrics
+ * 
+ * @returns Array of trending tokens
+ * @throws Error if API key is missing or request fails
+ */
+export async function getTrendingTokens(): Promise<TrendingToken[]> {
+  const apiKey = getApiKey();
+  const url = `${BASE_URL}/tokens/trending`;
+  
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `Failed to fetch trending tokens: ${response.status} ${response.statusText}`;
+      
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+      } catch {
+        if (errorText) {
+          errorMessage = `${errorMessage} - ${errorText}`;
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json() as TrendingToken[];
+    return data;
+  } catch (error: any) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(`Failed to fetch trending tokens: ${error.message || String(error)}`);
+  }
+}
+
+/**
+ * Get multiple tokens in a single batch request
+ * More efficient than calling getTokenInfo() multiple times
+ * 
+ * @param tokenAddresses - Array of token addresses (max 20 per request)
+ * @returns Object with token addresses as keys and TokenInfo as values
+ * @throws Error if API key is missing, too many tokens, or request fails
+ */
+export async function getMultipleTokens(tokenAddresses: string[]): Promise<Record<string, TokenInfo>> {
+  // Check for test mocks
+  if ((globalThis as any).__TEST_MODE__ && (globalThis as any).__TEST_MOCK_GET_MULTIPLE_TOKENS__) {
+    return (globalThis as any).__TEST_MOCK_GET_MULTIPLE_TOKENS__(tokenAddresses);
+  }
+  const apiKey = getApiKey();
+  
+  // Validate input
+  if (!Array.isArray(tokenAddresses) || tokenAddresses.length === 0) {
+    throw new Error("tokenAddresses must be a non-empty array");
+  }
+  
+  if (tokenAddresses.length > 20) {
+    throw new Error("Maximum 20 tokens per batch request");
+  }
+  
+  // Validate all addresses
+  for (const address of tokenAddresses) {
+    if (!isValidTokenAddress(address)) {
+      throw new Error(`Invalid token address: ${address}`);
+    }
+  }
+  
+  const url = `${BASE_URL}/tokens/multi`;
+  
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tokens: tokenAddresses,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `Failed to fetch multiple tokens: ${response.status} ${response.statusText}`;
+      
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+      } catch {
+        if (errorText) {
+          errorMessage = `${errorMessage} - ${errorText}`;
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json() as { tokens: Record<string, TokenInfo> };
+    return data.tokens;
+  } catch (error: any) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(`Failed to fetch multiple tokens: ${error.message || String(error)}`);
+  }
+}
+
+/**
+ * OHLCV Candle structure from chart endpoint
+ */
+export interface OHLCVCandle {
+  open: number;
+  close: number;
+  low: number;
+  high: number;
+  volume: number;
+  time: number; // Unix timestamp in seconds
+}
+
+/**
+ * Chart data response structure
+ */
+export interface TokenChartData {
+  oclhv: OHLCVCandle[]; // Note: API uses "oclhv" (typo) instead of "ohlcv"
+}
+
+/**
+ * Get token chart/OHLCV data for a specific timeframe
+ * Used for battle market resolution to find when tokens hit targets
+ * 
+ * @param tokenAddress - Solana token contract address
+ * @param timeframe - Timeframe: "5m", "15m", "1h", "4h", "1d"
+ * @param limit - Maximum number of candles to return (default: 1000)
+ * @returns Chart data with OHLCV candles
+ * @throws Error if API key is missing, invalid address, or request fails
+ */
+export async function getTokenChart(
+  tokenAddress: string,
+  timeframe: "5m" | "15m" | "1h" | "4h" | "1d" = "5m",
+  limit: number = 1000
+): Promise<TokenChartData> {
+  // Check for test mocks
+  if ((globalThis as any).__TEST_MODE__ && (globalThis as any).__TEST_MOCK_GET_TOKEN_CHART__) {
+    return (globalThis as any).__TEST_MOCK_GET_TOKEN_CHART__(tokenAddress, timeframe, limit);
+  }
+  
+  const apiKey = getApiKey();
+  
+  // Validate token address
+  if (!isValidTokenAddress(tokenAddress)) {
+    throw new Error("Invalid token address format");
+  }
+  
+  // Validate timeframe
+  const validTimeframes = ["5m", "15m", "1h", "4h", "1d"];
+  if (!validTimeframes.includes(timeframe)) {
+    throw new Error(`Invalid timeframe. Must be one of: ${validTimeframes.join(", ")}`);
+  }
+  
+  // Validate limit
+  if (limit < 1 || limit > 1000) {
+    throw new Error("Limit must be between 1 and 1000");
+  }
+  
+  const url = `${BASE_URL}/chart/${tokenAddress}?timeframe=${timeframe}&limit=${limit}`;
+  
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `Failed to fetch chart data: ${response.status} ${response.statusText}`;
+      
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+      } catch {
+        if (errorText) {
+          errorMessage = `${errorMessage} - ${errorText}`;
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json() as TokenChartData;
+    return data;
+  } catch (error: any) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(`Failed to fetch chart data: ${error.message || String(error)}`);
+  }
+}
+
+/**
+ * Search Token Result (from /search endpoint)
+ */
+export interface SearchTokenResult {
+  name: string;
+  symbol: string;
+  mint: string;
+  decimals: number;
+  image: string;
+  holders: number;
+  jupiter: boolean;
+  verified: boolean;
+  liquidityUsd: number;
+  marketCapUsd: number;
+  priceUsd: number;
+  volume: number;
+  volume_5m: number;
+  volume_15m: number;
+  volume_30m: number;
+  volume_1h: number;
+  volume_6h: number;
+  volume_12h: number;
+  volume_24h: number;
+  tokenDetails: {
+    creator: string;
+    tx: string;
+    time: number; // Unix timestamp in milliseconds
+  };
+}
+
+/**
+ * Search Token Response
+ */
+export interface SearchTokenResponse {
+  status: string;
+  data: SearchTokenResult[];
+  total: number;
+  pages: number;
+  page: number;
+  nextCursor?: string;
+  hasMore: boolean;
+}
+
+/**
+ * Search tokens by symbol, name, or address
+ * 
+ * @param query - Search term for token symbol, name, or address
+ * @param options - Optional search parameters (sortBy, sortOrder, limit, etc.)
+ * @returns Search results with tokens matching the query
+ * @throws Error if API key is missing or request fails
+ */
+export async function searchTokens(
+  query: string,
+  options?: {
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+    limit?: number;
+    page?: number;
+    minMarketCap?: number;
+    maxMarketCap?: number;
+    minVolume?: number;
+    minHolders?: number;
+  }
+): Promise<SearchTokenResponse> {
+  const apiKey = getApiKey();
+  
+  if (!query || query.trim().length === 0) {
+    throw new Error("Search query cannot be empty");
+  }
+
+  const url = new URL(`${BASE_URL}/search`);
+  url.searchParams.set("query", query.trim());
+  
+  if (options) {
+    if (options.sortBy) url.searchParams.set("sortBy", options.sortBy);
+    if (options.sortOrder) url.searchParams.set("sortOrder", options.sortOrder);
+    if (options.limit) url.searchParams.set("limit", options.limit.toString());
+    if (options.page) url.searchParams.set("page", options.page.toString());
+    if (options.minMarketCap) url.searchParams.set("minMarketCap", options.minMarketCap.toString());
+    if (options.maxMarketCap) url.searchParams.set("maxMarketCap", options.maxMarketCap.toString());
+    if (options.minVolume) url.searchParams.set("minVolume", options.minVolume.toString());
+    if (options.minHolders) url.searchParams.set("minHolders", options.minHolders.toString());
+  }
+
+  try {
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `Failed to search tokens: ${response.status} ${response.statusText}`;
+      
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+      } catch {
+        if (errorText) {
+          errorMessage = `${errorMessage} - ${errorText}`;
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json() as SearchTokenResponse;
+    return data;
+  } catch (error: any) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(`Failed to search tokens: ${error.message || String(error)}`);
+  }
+}
+
+/**
+ * Graduated Token structure (from /tokens/multi/graduated endpoint)
+ * Similar to TokenInfo but for graduated tokens
+ */
+export interface GraduatedToken {
+  token: {
+    name: string;
+    symbol: string;
+    mint: string;
+    image: string;
+    creation: {
+      created_time: number; // Unix timestamp in seconds
+    };
+  };
+  pools: Array<{
+    marketCap: {
+      usd: number;
+    };
+    txns: {
+      volume24h: number;
+    };
+    market?: string; // Market type: "pumpfun", "meteora-dyn-v2", "raydium", etc.
+  }>;
+  holders: number;
+}
+
+/**
+ * Get graduated tokens from Solana Tracker API
+ * Returns tokens that have graduated from bonding curves (e.g., PumpFun)
+ * These are tokens that have successfully completed their bonding curve
+ * 
+ * @param options - Optional parameters (limit, page, filters)
+ * @returns Array of graduated tokens
+ * @throws Error if API key is missing or request fails
+ * @see https://docs.solanatracker.io/data-api/tokens/get-graduated-tokens
+ */
+export async function getGraduatedTokens(options?: {
+  limit?: number;
+  page?: number;
+  reduceSpam?: boolean;
+  minMarketCap?: number;
+  maxMarketCap?: number;
+}): Promise<GraduatedToken[]> {
+  const apiKey = getApiKey();
+  const url = new URL(`${BASE_URL}/tokens/multi/graduated`);
+  
+  if (options) {
+    if (options.limit) url.searchParams.set("limit", options.limit.toString());
+    if (options.page) url.searchParams.set("page", options.page.toString());
+    if (options.reduceSpam !== undefined) url.searchParams.set("reduceSpam", options.reduceSpam.toString());
+    if (options.minMarketCap) url.searchParams.set("minMarketCap", options.minMarketCap.toString());
+    if (options.maxMarketCap) url.searchParams.set("maxMarketCap", options.maxMarketCap.toString());
+  }
+  
+  try {
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `Failed to fetch graduated tokens: ${response.status} ${response.statusText}`;
+      
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+      } catch {
+        if (errorText) {
+          errorMessage = `${errorMessage} - ${errorText}`;
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json() as GraduatedToken[];
+    return data;
+  } catch (error: any) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(`Failed to fetch graduated tokens: ${error.message || String(error)}`);
+  }
+}
+
+

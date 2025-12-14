@@ -29,13 +29,48 @@ export function MarketListView({
     const filter = categoryFilter?.toLowerCase();
 
     // Category forced by prop (e.g. on category pages)
-    if (filter) return cat === filter;
+    if (filter) {
+      const matchesCategory = cat === filter;
+      if (!matchesCategory) return false;
+      
+      // Also filter by search query if provided
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        return (
+          m.question.toLowerCase().includes(query) ||
+          m.tokenAddress?.toLowerCase().includes(query) ||
+          m.tokenAddress2?.toLowerCase().includes(query)
+        );
+      }
+      return true;
+    }
 
-    // If no category is selected → return everything
-    if (!sel) return true;
+    // If no category is selected → return everything (but still filter by search)
+    if (!sel) {
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        return (
+          m.question.toLowerCase().includes(query) ||
+          m.tokenAddress?.toLowerCase().includes(query) ||
+          m.tokenAddress2?.toLowerCase().includes(query)
+        );
+      }
+      return true;
+    }
 
-    // Otherwise filter strictly by category
-    return cat === sel;
+    // Otherwise filter strictly by category and search
+    const matchesCategory = cat === sel;
+    if (!matchesCategory) return false;
+    
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return (
+        m.question.toLowerCase().includes(query) ||
+        m.tokenAddress?.toLowerCase().includes(query) ||
+        m.tokenAddress2?.toLowerCase().includes(query)
+      );
+    }
+    return true;
   });
 
   if (error) {

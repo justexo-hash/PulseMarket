@@ -29,7 +29,9 @@ export function useMarketSearch(markets: Market[]) {
 
       const matchesSearch =
         searchQuery === "" ||
-        market.question.toLowerCase().includes(searchQuery.toLowerCase());
+        market.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        market.tokenAddress?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        market.tokenAddress2?.toLowerCase().includes(searchQuery.toLowerCase());
 
       return matchesCategory && matchesSearch;
     });

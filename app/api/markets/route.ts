@@ -13,8 +13,24 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const allMarkets = await storage.getAllMarkets();
+    const now = new Date();
+    
     const publicMarkets = allMarkets
-      .filter((market) => market.isPrivate !== 1)
+      .filter((market) => {
+        // Only show public markets
+        if (market.isPrivate === 1) return false;
+        
+        // Only show active markets (not resolved or refunded)
+        if (market.status !== "active") return false;
+        
+        // Filter out expired markets
+        if (market.expiresAt) {
+          const expirationDate = new Date(market.expiresAt);
+          if (expirationDate <= now) return false;
+        }
+        
+        return true;
+      })
       .map(recalculateProbability);
 
     return NextResponse.json(publicMarkets);

@@ -5,9 +5,15 @@ import {
   type Transaction, transactions,
   walletNonces,
   marketComments,
+  automatedMarketsConfig,
+  automatedMarketsLog,
+  automatedMarketResolutions,
+  type AutomatedMarketsConfig,
+  type AutomatedMarketsLog,
+  type AutomatedMarketResolution,
 } from "@shared/schema";
 import { db } from "../db";
-import { eq, and, sql, desc } from "drizzle-orm";
+import { eq, and, sql, desc, inArray } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import { generateInviteCode, isValidInviteCode } from "./inviteCodes";
 import { generateSlug } from "./slugs";
@@ -100,6 +106,32 @@ export interface IStorage {
     bio?: string | null;
     avatarUrl?: string | null;
   }): Promise<User>;
+
+  // Automated markets methods
+  getAutomatedMarketsConfig(): Promise<AutomatedMarketsConfig | undefined>;
+  updateAutomatedMarketsConfig(enabled: boolean, lastRun?: Date): Promise<AutomatedMarketsConfig>;
+  createAutomatedMarketLog(data: {
+    marketId?: number;
+    questionType: string;
+    tokenAddress?: string;
+    tokenAddress2?: string;
+    success: boolean;
+    errorMessage?: string;
+  }): Promise<AutomatedMarketsLog>;
+  getMarketsNeedingResolution(): Promise<Array<Market & { resolution: AutomatedMarketResolution }>>;
+  createMarketResolutionTracking(data: {
+    marketId: number;
+    marketType: string;
+    targetValue: number;
+    tokenAddress: string;
+    tokenAddress2?: string;
+  }): Promise<AutomatedMarketResolution>;
+  updateMarketResolutionTracking(marketId: number, data: {
+    lastChecked?: Date;
+    status?: "pending" | "resolved" | "expired";
+  }): Promise<void>;
+  getMarketResolutionTracking(marketId: number): Promise<AutomatedMarketResolution | undefined>;
+  getRecentAutomatedMarketLogs(limit?: number): Promise<AutomatedMarketsLog[]>;
 }
 
 export class DbStorage implements IStorage {
@@ -139,12 +171,15 @@ export class DbStorage implements IStorage {
         payoutType?: string;
         image?: string | null;
         tokenAddress?: string | null;
+        isAutomated?: number;
+        tokenAddress2?: string | null;
       } = {
         question: insertMarket.question,
         category: insertMarket.category,
         probability: 50, // Default to 50% (equal odds) until bets are placed
         isPrivate: insertMarket.isPrivate ? 1 : 0,
         payoutType: insertMarket.payoutType || "proportional",
+        isAutomated: insertMarket.isAutomated ? 1 : 0,
       };
       
       // Only include expiresAt if it's a valid Date object
@@ -175,6 +210,13 @@ export class DbStorage implements IStorage {
         values.tokenAddress = insertMarket.tokenAddress.trim();
       } else {
         values.tokenAddress = null;
+      }
+      
+      // Handle optional tokenAddress2 field (for battle markets)
+      if (insertMarket.tokenAddress2 && insertMarket.tokenAddress2.trim() !== "") {
+        values.tokenAddress2 = insertMarket.tokenAddress2.trim();
+      } else {
+        values.tokenAddress2 = null;
       }
       
       // For private wagers, include invite code and creator
@@ -865,6 +907,201 @@ export class DbStorage implements IStorage {
       .returning();
 
     return result[0];
+  }
+
+  // ==================== AUTOMATED MARKETS METHODS ====================
+
+  /**
+   * Get the current automation configuration
+   * Returns the single config record (there should only be one)
+   */
+  async getAutomatedMarketsConfig(): Promise<AutomatedMarketsConfig | undefined> {
+    const result = await db.select().from(automatedMarketsConfig).limit(1);
+    return result[0];
+  }
+
+  /**
+   * Update or create the automation configuration
+   * Ensures there's only one config record (upsert pattern)
+   * 
+   * @param enabled - Whether automation is enabled
+   * @param lastRun - Optional timestamp to set as last run time (if not provided, keeps existing)
+   */
+  async updateAutomatedMarketsConfig(enabled: boolean, lastRun?: Date): Promise<AutomatedMarketsConfig> {
+    // Check if config exists
+    const existing = await this.getAutomatedMarketsConfig();
+    
+    if (existing) {
+      // Update existing config
+      const updateData: {
+        enabled: number;
+        lastRun: Date | null;
+        updatedAt: Date;
+      } = {
+        enabled: enabled ? 1 : 0,
+        lastRun: lastRun !== undefined ? lastRun : existing.lastRun, // Use provided lastRun or keep existing
+        updatedAt: new Date(),
+      };
+      
+      const result = await db
+        .update(automatedMarketsConfig)
+        .set(updateData)
+        .where(eq(automatedMarketsConfig.id, existing.id))
+        .returning();
+      return result[0];
+    } else {
+      // Create new config (first time setup)
+      const result = await db
+        .insert(automatedMarketsConfig)
+        .values({
+          enabled: enabled ? 1 : 0,
+          lastRun: lastRun || null,
+        })
+        .returning();
+      return result[0];
+    }
+  }
+
+  /**
+   * Log an automated market creation execution
+   * Records success/failure for debugging and monitoring
+   */
+  async createAutomatedMarketLog(data: {
+    marketId?: number;
+    questionType: string;
+    tokenAddress?: string;
+    tokenAddress2?: string;
+    success: boolean;
+    errorMessage?: string;
+  }): Promise<AutomatedMarketsLog> {
+    const result = await db
+      .insert(automatedMarketsLog)
+      .values({
+        marketId: data.marketId ?? null,
+        questionType: data.questionType,
+        tokenAddress: data.tokenAddress ?? null,
+        tokenAddress2: data.tokenAddress2 ?? null,
+        success: data.success ? 1 : 0,
+        errorMessage: data.errorMessage ?? null,
+      })
+      .returning();
+    return result[0];
+  }
+
+  /**
+   * Get all active automated markets that need resolution checking
+   * Joins markets with their resolution tracking records
+   */
+  async getMarketsNeedingResolution(): Promise<Array<Market & { resolution: AutomatedMarketResolution }>> {
+    // Get all active automated markets with pending resolutions
+    const resolutions = await db
+      .select()
+      .from(automatedMarketResolutions)
+      .where(eq(automatedMarketResolutions.status, "pending"));
+
+    // Get the markets for these resolutions
+    const marketIds = resolutions.map((r) => r.marketId);
+    if (marketIds.length === 0) {
+      return [];
+    }
+
+    const marketsList = await db
+      .select()
+      .from(markets)
+      .where(
+        and(
+          inArray(markets.id, marketIds),
+          eq(markets.status, "active")
+        )
+      );
+
+    // Join markets with their resolution tracking
+    return marketsList
+      .map((market) => {
+        const resolution = resolutions.find((r) => r.marketId === market.id);
+        if (!resolution) return null;
+        return { ...market, resolution };
+      })
+      .filter((m): m is Market & { resolution: AutomatedMarketResolution } => m !== null);
+  }
+
+  /**
+   * Create a resolution tracking record for a new automated market
+   * This tells us what to check and when
+   */
+  async createMarketResolutionTracking(data: {
+    marketId: number;
+    marketType: string;
+    targetValue: number;
+    tokenAddress: string;
+    tokenAddress2?: string;
+  }): Promise<AutomatedMarketResolution> {
+    const result = await db
+      .insert(automatedMarketResolutions)
+      .values({
+        marketId: data.marketId,
+        marketType: data.marketType,
+        targetValue: String(data.targetValue),
+        tokenAddress: data.tokenAddress,
+        tokenAddress2: data.tokenAddress2 ?? null,
+        status: "pending",
+        lastChecked: null,
+      })
+      .returning();
+    return result[0];
+  }
+
+  /**
+   * Update resolution tracking (e.g., after checking, when resolved, etc.)
+   */
+  async updateMarketResolutionTracking(marketId: number, data: {
+    lastChecked?: Date;
+    status?: "pending" | "resolved" | "expired";
+  }): Promise<void> {
+    const updateData: {
+      lastChecked?: Date | null;
+      status?: string;
+      updatedAt: Date;
+    } = {
+      updatedAt: new Date(),
+    };
+
+    if (data.lastChecked !== undefined) {
+      updateData.lastChecked = data.lastChecked;
+    }
+    if (data.status !== undefined) {
+      updateData.status = data.status;
+    }
+
+    await db
+      .update(automatedMarketResolutions)
+      .set(updateData)
+      .where(eq(automatedMarketResolutions.marketId, marketId));
+  }
+
+  /**
+   * Get resolution tracking for a specific market
+   */
+  async getMarketResolutionTracking(marketId: number): Promise<AutomatedMarketResolution | undefined> {
+    const result = await db
+      .select()
+      .from(automatedMarketResolutions)
+      .where(eq(automatedMarketResolutions.marketId, marketId))
+      .limit(1);
+    return result[0];
+  }
+
+  /**
+   * Get recent execution logs for the admin panel
+   * Returns most recent logs first
+   */
+  async getRecentAutomatedMarketLogs(limit: number = 50): Promise<AutomatedMarketsLog[]> {
+    const result = await db
+      .select()
+      .from(automatedMarketsLog)
+      .orderBy(desc(automatedMarketsLog.executionTime))
+      .limit(limit);
+    return result;
   }
 }
 
