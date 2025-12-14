@@ -452,7 +452,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div style={{ position: 'relative', width: '100%', paddingBottom: '125%' }}>
                       <iframe 
-                        src={`https://dexscreener.com/solana/${displayMarket.tokenAddress}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=mcap&interval=5`}
+                        src={`https://dexscreener.com/solana/${displayMarket.tokenAddress}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=marketcap&interval=5`}
                         style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, border: 0 }}
                         allowFullScreen
                         title={`Chart for ${token1Name || "Token 1"}`}
@@ -776,8 +776,8 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                     {placeBet.isPending 
                       ? "Placing..." 
                       : displayMarket.tokenAddress2 
-                        ? `Bet ${truncateText(token1Name || "Token 1", 15)}` 
-                        : "Bet Yes"}
+                        ? truncateText(token1Name || "Token 1", 15)
+                        : "Yes"}
                   </span>
                 </Button>
               </div>
@@ -797,8 +797,8 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                     {placeBet.isPending 
                       ? "Placing..." 
                       : displayMarket.tokenAddress2 
-                        ? `Bet ${truncateText(token2Name || "Token 2", 15)}` 
-                        : "Bet No"}
+                        ? truncateText(token2Name || "Token 2", 15)
+                        : "No"}
                   </span>
                 </Button>
               </div>
