@@ -159,7 +159,7 @@ function calculateBattleDumpTarget(token1MC: number, token2MC: number): { target
 
 /**
  * Check if two tokens match for battle markets (similar MC and age)
- * Uses 30% buffer for both MC and age
+ * Uses 50% buffer for both MC and age
  */
 function tokensMatchForBattle(
   token1: GraduatedToken,
@@ -173,15 +173,15 @@ function tokensMatchForBattle(
   const age1 = token1.token.creation?.created_time ? (now - token1.token.creation.created_time) / 3600 : 0;
   const age2 = token2.token.creation?.created_time ? (now - token2.token.creation.created_time) / 3600 : 0;
   
-  // Check if MCs are within 30% buffer
+  // Check if MCs are within 50% buffer
   const avgMC = (mc1 + mc2) / 2;
   const mcDiff = Math.abs(mc1 - mc2) / avgMC;
   
-  // Check if ages are within 30% buffer (handle zero age)
+  // Check if ages are within 50% buffer (handle zero age)
   const avgAge = (age1 + age2) / 2;
   const ageDiff = avgAge > 0 ? Math.abs(age1 - age2) / avgAge : 0;
   
-  return mcDiff <= 0.30 && ageDiff <= 0.30;
+  return mcDiff <= 0.50 && ageDiff <= 0.50;
 }
 
 /**
@@ -334,7 +334,8 @@ async function findUnusedToken(graduatedTokens: GraduatedToken[]): Promise<Gradu
  */
 async function findMatchingTokensForBattle(
   graduatedTokens: GraduatedToken[],
-  marketType: "battle_race" | "battle_dump"
+  marketType: "battle_race" | "battle_dump",
+  testMode: boolean = false
 ): Promise<[GraduatedToken, GraduatedToken] | null> {
   // Try all pairs until we find a match
   for (let i = 0; i < graduatedTokens.length; i++) {
@@ -347,20 +348,22 @@ async function findMatchingTokensForBattle(
     
     const mc1 = token1.pools[0]?.marketCap?.usd || 0;
     
-    // Filter by market type requirements
-    if (marketType === "battle_dump") {
-      // For dump markets: tokens must be >= 50K (so 50% = 25K minimum target)
-      // Lowest dump target is 25K, so 2x = 50K minimum
-      if (mc1 < 50000) {
-        continue;
-      }
-    } else if (marketType === "battle_race") {
-      // For race markets: tokens should be below highest milestone (100M)
-      // AND above minimum (60K) - same as single token market cap markets
-      // Lowest target is 125K, so if MC is 60K, 2x = 120K -> rounds to 125K
-      const maxMilestone = MARKET_CAP_MILESTONES[MARKET_CAP_MILESTONES.length - 1];
-      if (mc1 >= maxMilestone || mc1 < 60000) {
-        continue;
+    // Filter by market type requirements (skip in test mode)
+    if (!testMode) {
+      if (marketType === "battle_dump") {
+        // For dump markets: tokens must be >= 50K (so 50% = 25K minimum target)
+        // Lowest dump target is 25K, so 2x = 50K minimum
+        if (mc1 < 50000) {
+          continue;
+        }
+      } else if (marketType === "battle_race") {
+        // For race markets: tokens should be below highest milestone (100M)
+        // AND above minimum (60K) - same as single token market cap markets
+        // Lowest target is 125K, so if MC is 60K, 2x = 120K -> rounds to 125K
+        const maxMilestone = MARKET_CAP_MILESTONES[MARKET_CAP_MILESTONES.length - 1];
+        if (mc1 >= maxMilestone || mc1 < 60000) {
+          continue;
+        }
       }
     }
     
@@ -384,18 +387,20 @@ async function findMatchingTokensForBattle(
       
       const mc2 = token2.pools[0]?.marketCap?.usd || 0;
       
-      // Filter by market type requirements
-      if (marketType === "battle_dump") {
-        // For dump markets: tokens must be >= 50K (so 50% = 25K minimum target)
-        if (mc2 < 50000) {
-          continue;
-        }
-      } else if (marketType === "battle_race") {
-        // For race markets: tokens should be below highest milestone (100M)
-        // AND above minimum (60K) - same as single token market cap markets
-        const maxMilestone = MARKET_CAP_MILESTONES[MARKET_CAP_MILESTONES.length - 1];
-        if (mc2 >= maxMilestone || mc2 < 60000) {
-          continue;
+      // Filter by market type requirements (skip in test mode)
+      if (!testMode) {
+        if (marketType === "battle_dump") {
+          // For dump markets: tokens must be >= 50K (so 50% = 25K minimum target)
+          if (mc2 < 50000) {
+            continue;
+          }
+        } else if (marketType === "battle_race") {
+          // For race markets: tokens should be below highest milestone (100M)
+          // AND above minimum (60K) - same as single token market cap markets
+          const maxMilestone = MARKET_CAP_MILESTONES[MARKET_CAP_MILESTONES.length - 1];
+          if (mc2 >= maxMilestone || mc2 < 60000) {
+            continue;
+          }
         }
       }
       
@@ -489,8 +494,23 @@ export async function runAutomatedMarketCreation(
 
     if (marketType === "battle_race" || marketType === "battle_dump") {
       // Battle markets need 2 matching tokens
-      const matchingTokens = await findMatchingTokensForBattle(graduatedTokens, marketType);
+      const matchingTokens = await findMatchingTokensForBattle(graduatedTokens, marketType, testMode);
       if (!matchingTokens) {
+        // If no matching tokens found due to filtering, skip to next market type in rotation
+        // Only do this if not forced and it's a filtering error
+        if (!forcedMarketType) {
+          console.log(`[AutomatedMarkets] No matching tokens for ${marketType}, rotating to next market type`);
+          const recentLogs = await storage.getRecentAutomatedMarketLogs(10);
+          const lastMarketType = recentLogs.find(log => log.success && log.questionType && 
+            ["market_cap", "volume", "holders", "battle_race", "battle_dump"].includes(log.questionType))?.questionType as MarketType | undefined;
+          
+          // Get next market type in rotation
+          const nextMarketType = selectMarketTypeByRotation(marketType); // Use current as "last" to get next
+          console.log(`[AutomatedMarkets] Rotating from ${marketType} to ${nextMarketType}`);
+          
+          // Retry with next market type
+          return await runAutomatedMarketCreation(nextMarketType, testMode);
+        }
         throw new Error(`Could not find matching tokens for ${marketType} market (with appropriate MC filters)`);
       }
       
