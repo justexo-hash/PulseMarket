@@ -1,27 +1,27 @@
 /**
- * Test script to fetch and display graduating tokens
+ * Test script to fetch and display graduated tokens
  * Shows top 5 tokens with market cap, age, and name
  * 
  * Run with: npx tsx scripts/test-graduating-tokens.ts
  */
 
 import "dotenv/config";
-import { getGraduatingTokens } from "../server/solanaTracker";
+import { getGraduatedTokens } from "../server/solanaTracker";
 
-async function testGraduatingTokens() {
-  console.log("🔍 Fetching Graduating Tokens...\n");
+async function testGraduatedTokens() {
+  console.log("🔍 Fetching Graduated Tokens...\n");
 
   try {
-    const tokens = await getGraduatingTokens();
+    const tokens = await getGraduatedTokens();
     
     if (!tokens || tokens.length === 0) {
-      console.log("❌ No graduating tokens found");
+      console.log("❌ No graduated tokens found");
       return;
     }
 
-    console.log(`Found ${tokens.length} graduating tokens\n`);
+    console.log(`Found ${tokens.length} graduated tokens\n`);
     console.log("=".repeat(80));
-    console.log("TOP 5 GRADUATING TOKENS");
+    console.log("TOP 5 GRADUATED TOKENS");
     console.log("=".repeat(80));
     console.log("");
 
@@ -66,13 +66,13 @@ async function testGraduatingTokens() {
     console.log("✅ Test complete!");
     
   } catch (error: any) {
-    console.error("\n❌ Error fetching graduating tokens:", error.message);
+    console.error("\n❌ Error fetching graduated tokens:", error.message);
     console.error(error);
     process.exit(1);
   }
 }
 
-testGraduatingTokens().then(() => {
+testGraduatedTokens().then(() => {
   process.exit(0);
 }).catch(error => {
   console.error("Fatal error:", error);

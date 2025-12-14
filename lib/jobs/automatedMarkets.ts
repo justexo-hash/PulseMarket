@@ -1,12 +1,12 @@
 /**
  * Automated Market Creation Job
  * 
- * This job runs every 6 hours to create new markets automatically based on graduating tokens.
+ * This job runs every 6 hours to create new markets automatically based on graduated tokens.
  * It implements the logic defined in blorg.md for market creation, calculations, and rotation.
  */
 
 import { storage } from "@server/storage";
-import { getGraduatingTokens, getMultipleTokens, getTokenChart, type GraduatingToken } from "@server/solanaTracker";
+import { getGraduatedTokens, getMultipleTokens, getTokenChart, type GraduatedToken } from "@server/solanaTracker";
 import { type InsertMarket } from "@shared/schema";
 import { publishEvent } from "@lib/realtime/server";
 import { spliceBattleMarketImages } from "@server/imageUtils";
@@ -163,8 +163,8 @@ function calculateBattleDumpTarget(token1MC: number, token2MC: number): { target
  * Uses 30% buffer for both MC and age
  */
 function tokensMatchForBattle(
-  token1: GraduatingToken,
-  token2: GraduatingToken
+  token1: GraduatedToken,
+  token2: GraduatedToken
 ): boolean {
   const mc1 = token1.pools[0]?.marketCap?.usd || 0;
   const mc2 = token2.pools[0]?.marketCap?.usd || 0;
@@ -236,11 +236,11 @@ async function isTokenAlreadyUsed(tokenAddress: string): Promise<boolean> {
 }
 
 /**
- * Find an unused token from the graduating list
+ * Find an unused token from the graduated list
  * Goes down the list until finding one that hasn't been used
  */
-async function findUnusedToken(graduatingTokens: GraduatingToken[]): Promise<GraduatingToken | null> {
-  for (const token of graduatingTokens) {
+async function findUnusedToken(graduatedTokens: GraduatedToken[]): Promise<GraduatedToken | null> {
+  for (const token of graduatedTokens) {
     const mint = token.token.mint;
     if (!mint) continue;
     
@@ -254,20 +254,20 @@ async function findUnusedToken(graduatingTokens: GraduatingToken[]): Promise<Gra
 
 /**
  * Find two matching tokens for battle markets
- * Searches graduating list for tokens that match (similar MC and age)
+ * Searches graduated list for tokens that match (similar MC and age)
  */
-async function findMatchingTokensForBattle(graduatingTokens: GraduatingToken[]): Promise<[GraduatingToken, GraduatingToken] | null> {
+async function findMatchingTokensForBattle(graduatedTokens: GraduatedToken[]): Promise<[GraduatedToken, GraduatedToken] | null> {
   // Try all pairs until we find a match
-  for (let i = 0; i < graduatingTokens.length; i++) {
-    const token1 = graduatingTokens[i];
+  for (let i = 0; i < graduatedTokens.length; i++) {
+    const token1 = graduatedTokens[i];
     
     // Check if token1 is already used
     if (token1.token.mint && await isTokenAlreadyUsed(token1.token.mint)) {
       continue;
     }
     
-    for (let j = i + 1; j < graduatingTokens.length; j++) {
-      const token2 = graduatingTokens[j];
+    for (let j = i + 1; j < graduatedTokens.length; j++) {
+      const token2 = graduatedTokens[j];
       
       // Check if token2 is already used
       if (token2.token.mint && await isTokenAlreadyUsed(token2.token.mint)) {
@@ -312,11 +312,11 @@ export async function runAutomatedMarketCreation(
       return { success: true };
     }
 
-    // Step 2: Fetch graduating tokens
-    console.log("[AutomatedMarkets] Fetching graduating tokens...");
-    const graduatingTokens = await getGraduatingTokens();
-    if (!graduatingTokens || graduatingTokens.length === 0) {
-      throw new Error("No graduating tokens returned from API");
+    // Step 2: Fetch graduated tokens
+    console.log("[AutomatedMarkets] Fetching graduated tokens...");
+    const graduatedTokens = await getGraduatedTokens();
+    if (!graduatedTokens || graduatedTokens.length === 0) {
+      throw new Error("No graduated tokens returned from API");
     }
 
     // Step 3: Get existing markets to check for duplicates
@@ -348,7 +348,7 @@ export async function runAutomatedMarketCreation(
 
     if (marketType === "battle_race" || marketType === "battle_dump") {
       // Battle markets need 2 matching tokens
-      const matchingTokens = await findMatchingTokensForBattle(graduatingTokens);
+      const matchingTokens = await findMatchingTokensForBattle(graduatedTokens);
       if (!matchingTokens) {
         throw new Error("Could not find matching tokens for battle market");
       }
@@ -436,7 +436,7 @@ export async function runAutomatedMarketCreation(
       };
     } else {
       // Single token markets - try multiple tokens until we find one that works
-      let token: GraduatingToken | null = null;
+      let token: GraduatedToken | null = null;
       
       const maxAttempts = 20; // Try up to 20 tokens
       let attempts = 0;
@@ -445,7 +445,7 @@ export async function runAutomatedMarketCreation(
       while (!marketData && attempts < maxAttempts) {
         attempts++;
         // Get unused token, but filter out ones we've already tried
-        const availableTokens = graduatingTokens.filter(t => {
+        const availableTokens = graduatedTokens.filter(t => {
           if (!t.token.mint) return false;
           if (triedTokens.has(t.token.mint)) return false;
           return true;
@@ -463,7 +463,7 @@ export async function runAutomatedMarketCreation(
         }
         
         if (!token) {
-          throw new Error("Could not find unused token from graduating list");
+          throw new Error("Could not find unused token from graduated list");
         }
         
         const mc = token.pools[0]?.marketCap?.usd || 0;

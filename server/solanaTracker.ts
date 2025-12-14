@@ -541,10 +541,10 @@ export async function searchTokens(
 }
 
 /**
- * Graduating Token structure (from /tokens/multi/graduating endpoint)
- * Similar to TokenInfo but for graduating tokens
+ * Graduated Token structure (from /tokens/multi/graduated endpoint)
+ * Similar to TokenInfo but for graduated tokens
  */
-export interface GraduatingToken {
+export interface GraduatedToken {
   token: {
     name: string;
     symbol: string;
@@ -566,18 +566,35 @@ export interface GraduatingToken {
 }
 
 /**
- * Get graduating tokens from Solana Tracker API
- * Returns tokens that are about to graduate from bonding curves (e.g., PumpFun)
+ * Get graduated tokens from Solana Tracker API
+ * Returns tokens that have graduated from bonding curves (e.g., PumpFun)
+ * These are tokens that have successfully completed their bonding curve
  * 
- * @returns Array of graduating tokens
+ * @param options - Optional parameters (limit, page, filters)
+ * @returns Array of graduated tokens
  * @throws Error if API key is missing or request fails
+ * @see https://docs.solanatracker.io/data-api/tokens/get-graduated-tokens
  */
-export async function getGraduatingTokens(): Promise<GraduatingToken[]> {
+export async function getGraduatedTokens(options?: {
+  limit?: number;
+  page?: number;
+  reduceSpam?: boolean;
+  minMarketCap?: number;
+  maxMarketCap?: number;
+}): Promise<GraduatedToken[]> {
   const apiKey = getApiKey();
-  const url = `${BASE_URL}/tokens/multi/graduating`;
+  const url = new URL(`${BASE_URL}/tokens/multi/graduated`);
+  
+  if (options) {
+    if (options.limit) url.searchParams.set("limit", options.limit.toString());
+    if (options.page) url.searchParams.set("page", options.page.toString());
+    if (options.reduceSpam !== undefined) url.searchParams.set("reduceSpam", options.reduceSpam.toString());
+    if (options.minMarketCap) url.searchParams.set("minMarketCap", options.minMarketCap.toString());
+    if (options.maxMarketCap) url.searchParams.set("maxMarketCap", options.maxMarketCap.toString());
+  }
   
   try {
-    const response = await fetch(url, {
+    const response = await fetch(url.toString(), {
       method: "GET",
       headers: {
         "x-api-key": apiKey,
@@ -587,7 +604,7 @@ export async function getGraduatingTokens(): Promise<GraduatingToken[]> {
 
     if (!response.ok) {
       const errorText = await response.text();
-      let errorMessage = `Failed to fetch graduating tokens: ${response.status} ${response.statusText}`;
+      let errorMessage = `Failed to fetch graduated tokens: ${response.status} ${response.statusText}`;
       
       try {
         const errorJson = JSON.parse(errorText);
@@ -601,13 +618,14 @@ export async function getGraduatingTokens(): Promise<GraduatingToken[]> {
       throw new Error(errorMessage);
     }
 
-    const data = await response.json() as GraduatingToken[];
+    const data = await response.json() as GraduatedToken[];
     return data;
   } catch (error: any) {
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error(`Failed to fetch graduating tokens: ${error.message || String(error)}`);
+    throw new Error(`Failed to fetch graduated tokens: ${error.message || String(error)}`);
   }
 }
+
 
