@@ -116,11 +116,9 @@ export async function spliceBattleMarketImages(
     }
 
     // Save the spliced image
-    // Note: public/uploads/ is in .gitignore (which is correct - we don't want to commit images)
-    // But the directory must exist on the server with write permissions
-    // Save directly to public/ directory (not public/uploads/) so it's served as a static file
-    // This ensures images persist and are accessible even on ephemeral filesystems
-    const uploadsDir = path.join(process.cwd(), "public");
+    // Use UPLOADS_DIR if set (Railway persistent storage), otherwise use public/uploads/
+    // This ensures images persist on Railway's ephemeral filesystem
+    const uploadsDir = process.env.UPLOADS_DIR || path.join(process.cwd(), "public", "uploads");
     
     // Ensure directory exists
     try {
@@ -159,9 +157,9 @@ export async function spliceBattleMarketImages(
       throw new Error(`Failed to save spliced image: ${error.message}`);
     }
 
-    // Return path relative to public/ (e.g., /battle-xxx.png)
-    // This will be served as a static file by Next.js
-    const publicPath = `/${filename}`;
+    // Return path relative to /uploads/ so it's served by the route handler
+    // This works with both Railway persistent storage and local public/uploads/
+    const publicPath = `/uploads/${filename}`;
     console.log(`[ImageUtils] Returning public path: ${publicPath}`);
     return publicPath;
   } catch (error: any) {
