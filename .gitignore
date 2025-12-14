@@ -10,5 +10,6 @@ vite.config.ts.*
 .local/
 client/public/uploads/
 public/uploads/
+public/battle-*.png
 .next
 blorg.md

@@ -118,7 +118,9 @@ export async function spliceBattleMarketImages(
     // Save the spliced image
     // Note: public/uploads/ is in .gitignore (which is correct - we don't want to commit images)
     // But the directory must exist on the server with write permissions
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    // Save directly to public/ directory (not public/uploads/) so it's served as a static file
+    // This ensures images persist and are accessible even on ephemeral filesystems
+    const uploadsDir = path.join(process.cwd(), "public");
     
     // Ensure directory exists
     try {
@@ -157,7 +159,9 @@ export async function spliceBattleMarketImages(
       throw new Error(`Failed to save spliced image: ${error.message}`);
     }
 
-    const publicPath = `/uploads/${filename}`;
+    // Return path relative to public/ (e.g., /battle-xxx.png)
+    // This will be served as a static file by Next.js
+    const publicPath = `/${filename}`;
     console.log(`[ImageUtils] Returning public path: ${publicPath}`);
     return publicPath;
   } catch (error: any) {

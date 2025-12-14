@@ -356,9 +356,10 @@ async function findMatchingTokensForBattle(
       }
     } else if (marketType === "battle_race") {
       // For race markets: tokens should be below highest milestone (100M)
-      // Lowest target is 250K, so if MC is 125K, 2x = 250K (lowest target)
+      // AND above minimum (60K) - same as single token market cap markets
+      // Lowest target is 125K, so if MC is 60K, 2x = 120K -> rounds to 125K
       const maxMilestone = MARKET_CAP_MILESTONES[MARKET_CAP_MILESTONES.length - 1];
-      if (mc1 >= maxMilestone) {
+      if (mc1 >= maxMilestone || mc1 < 60000) {
         continue;
       }
     }
@@ -390,9 +391,10 @@ async function findMatchingTokensForBattle(
           continue;
         }
       } else if (marketType === "battle_race") {
-        // For race markets: tokens should be below highest milestone
+        // For race markets: tokens should be below highest milestone (100M)
+        // AND above minimum (60K) - same as single token market cap markets
         const maxMilestone = MARKET_CAP_MILESTONES[MARKET_CAP_MILESTONES.length - 1];
-        if (mc2 >= maxMilestone) {
+        if (mc2 >= maxMilestone || mc2 < 60000) {
           continue;
         }
       }
