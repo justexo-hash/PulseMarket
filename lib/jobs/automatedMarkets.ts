@@ -236,6 +236,58 @@ async function isTokenAlreadyUsed(tokenAddress: string): Promise<boolean> {
 }
 
 /**
+ * Check if a token name has already been used in an active automated market
+ * Prevents creating markets with duplicate token names (even if different addresses)
+ * This avoids confusing markets like "Multi-Tx Max vs Multi-Tx Max"
+ * 
+ * @internal - Exported for testing purposes
+ */
+export async function isTokenNameAlreadyUsed(tokenName: string): Promise<boolean> {
+  if (!tokenName || tokenName.trim() === "") return false;
+  
+  const allMarkets = await storage.getAllMarkets();
+  const now = new Date();
+  const normalizedName = tokenName.trim().toLowerCase();
+  
+  return allMarkets.some(
+    m => {
+      // Must be automated market
+      if (m.isAutomated !== 1) return false;
+      // Must be active (not resolved/refunded)
+      if (m.status !== "active") return false;
+      // Must not be expired
+      if (m.expiresAt && new Date(m.expiresAt) <= now) return false;
+      
+      // Extract token names from question (for both single and battle markets)
+      // Single token markets: "Will [TokenName]'s current..."
+      // Battle markets: "Which token will... first: [TokenName1] or [TokenName2]?"
+      const question = m.question || "";
+      
+      // Check for single token pattern: "Will [Name]'s"
+      // Pattern matches: "Will TokenName's" or "Will Token Name's"
+      // Use [^']+ to match everything up to the apostrophe (not including apostrophe)
+      const singleTokenMatch = question.match(/Will\s+([^']+)'s/i);
+      if (singleTokenMatch) {
+        const marketTokenName = singleTokenMatch[1].trim().toLowerCase();
+        if (marketTokenName === normalizedName) {
+          return true;
+        }
+      }
+      
+      // Check for battle market pattern: "...first: [Name1] or [Name2]?"
+      const battleMatch = question.match(/first:\s*([^?]+)\s*or\s*([^?]+)\?/i);
+      if (battleMatch) {
+        const token1Name = battleMatch[1].trim().toLowerCase();
+        const token2Name = battleMatch[2].trim().toLowerCase();
+        if (token1Name === normalizedName || token2Name === normalizedName) return true;
+      }
+      
+      return false;
+    }
+  );
+}
+
+/**
  * Find an unused token from the graduated list
  * Goes down the list until finding one that hasn't been used
  */
@@ -244,10 +296,18 @@ async function findUnusedToken(graduatedTokens: GraduatedToken[]): Promise<Gradu
     const mint = token.token.mint;
     if (!mint) continue;
     
-    const used = await isTokenAlreadyUsed(mint);
-    if (!used) {
-      return token;
+    // Check if address is already used
+    const addressUsed = await isTokenAlreadyUsed(mint);
+    if (addressUsed) continue;
+    
+    // Check if token name is already used (prevents duplicate names)
+    const tokenName = token.token.name;
+    if (tokenName) {
+      const nameUsed = await isTokenNameAlreadyUsed(tokenName);
+      if (nameUsed) continue;
     }
+
+    return token;
   }
   return null;
 }
@@ -261,17 +321,33 @@ async function findMatchingTokensForBattle(graduatedTokens: GraduatedToken[]): P
   for (let i = 0; i < graduatedTokens.length; i++) {
     const token1 = graduatedTokens[i];
     
-    // Check if token1 is already used
+    // Check if token1 is already used (by address)
     if (token1.token.mint && await isTokenAlreadyUsed(token1.token.mint)) {
+      continue;
+    }
+    
+    // Check if token1 name is already used
+    if (token1.token.name && await isTokenNameAlreadyUsed(token1.token.name)) {
       continue;
     }
     
     for (let j = i + 1; j < graduatedTokens.length; j++) {
       const token2 = graduatedTokens[j];
       
-      // Check if token2 is already used
+      // Check if token2 is already used (by address)
       if (token2.token.mint && await isTokenAlreadyUsed(token2.token.mint)) {
         continue;
+      }
+      
+      // Check if token2 name is already used
+      if (token2.token.name && await isTokenNameAlreadyUsed(token2.token.name)) {
+        continue;
+      }
+      
+      // Check if both tokens have the same name (prevent duplicate names in battle)
+      if (token1.token.name && token2.token.name && 
+          token1.token.name.trim().toLowerCase() === token2.token.name.trim().toLowerCase()) {
+        continue; // Skip if same name
       }
       
       // Check if they match for battle
@@ -454,12 +530,20 @@ export async function runAutomatedMarketCreation(
         // Find unused token from available list
         for (const t of availableTokens) {
           if (!t.token.mint) continue;
-          const used = await isTokenAlreadyUsed(t.token.mint);
-          if (!used) {
-            token = t;
-            triedTokens.add(t.token.mint);
-            break;
+          
+          // Check if address is already used
+          const addressUsed = await isTokenAlreadyUsed(t.token.mint);
+          if (addressUsed) continue;
+          
+          // Check if token name is already used (prevents duplicate names)
+          if (t.token.name) {
+            const nameUsed = await isTokenNameAlreadyUsed(t.token.name);
+            if (nameUsed) continue;
           }
+          
+          token = t;
+          triedTokens.add(t.token.mint);
+          break;
         }
         
         if (!token) {
