@@ -430,24 +430,20 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                   }
                 `}</style>
                 {displayMarket.tokenAddress2 ? (
-                  // Battle market - show two charts side by side
+                  // Battle market - show two charts side by side with increased height
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="dexscreener-embed">
+                    <div style={{ position: 'relative', width: '100%', paddingBottom: '125%' }}>
                       <iframe 
                         src={`https://dexscreener.com/solana/${displayMarket.tokenAddress}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=0&chartType=usd&interval=15`}
-                        width="100%" 
-                        height="400" 
-                        frameBorder="0"
+                        style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, border: 0 }}
                         allowFullScreen
                         title={`Chart for ${token1Name || "Token 1"}`}
                       />
                     </div>
-                    <div className="dexscreener-embed">
+                    <div style={{ position: 'relative', width: '100%', paddingBottom: '125%' }}>
                       <iframe 
                         src={`https://dexscreener.com/solana/${displayMarket.tokenAddress2}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=0&chartType=usd&interval=15`}
-                        width="100%" 
-                        height="400" 
-                        frameBorder="0"
+                        style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, border: 0 }}
                         allowFullScreen
                         title={`Chart for ${token2Name || "Token 2"}`}
                       />

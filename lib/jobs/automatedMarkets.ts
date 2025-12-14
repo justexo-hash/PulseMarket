@@ -734,7 +734,15 @@ export async function runAutomatedMarketCreation(
 
     // Step 6: Create the market
     console.log("[AutomatedMarkets] Creating market...");
+    console.log("[AutomatedMarkets] Market data:", {
+      question: marketData.question,
+      image: marketData.image,
+      tokenAddress: marketData.tokenAddress,
+      tokenAddress2: marketData.tokenAddress2,
+    });
     const market = await storage.createMarket(marketData);
+    console.log("[AutomatedMarkets] Market created with ID:", market.id);
+    console.log("[AutomatedMarkets] Market image path:", market.image);
     
     // Step 7: Create resolution tracking
     await storage.createMarketResolutionTracking({

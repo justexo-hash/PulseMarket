@@ -103,6 +103,27 @@ export function MarketCard({ market }: MarketCardProps) {
       ? `/wager/${market.inviteCode}`
       : `/markets/${market.slug || market.id}`;
 
+  // Extract token names for battle markets
+  let token1Name: string | null = null;
+  let token2Name: string | null = null;
+  
+  if (market.tokenAddress2) {
+    // Battle market - extract names from question
+    // Format: "Which token will... first: TokenName1 or TokenName2?"
+    const match = market.question.match(/first:\s*([^?]+)\s*or\s*([^?]+)\?/i);
+    if (match) {
+      token1Name = match[1].trim();
+      token2Name = match[2].trim();
+    }
+  } else if (market.tokenAddress) {
+    // Single token market - extract name from question
+    // Format: "Will TokenName's current..."
+    const match = market.question.match(/Will\s+([^']+)'s/i);
+    if (match) {
+      token1Name = match[1].trim();
+    }
+  }
+
   return (
     <Link href={marketPath} data-testid={`group z-1 card-market-${market.id}`}>
       <div
@@ -187,10 +208,10 @@ export function MarketCard({ market }: MarketCardProps) {
         {/* ========================================================= */}
         <div className="flex gap-4 w-full">
           <button className="flex-1 py-2 rounded-md bg-green-400/20 text-green-400 font-semibold hover:bg-green-700/40 transition">
-            Yes
+            {market.tokenAddress2 ? (token1Name || "Token 1") : "Yes"}
           </button>
           <button className="flex-1 py-2 rounded-md bg-red-400/20 text-red-400 font-semibold hover:bg-red-700/40 transition">
-            No
+            {market.tokenAddress2 ? (token2Name || "Token 2") : "No"}
           </button>
         </div>
 
