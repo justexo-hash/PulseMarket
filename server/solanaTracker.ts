@@ -274,6 +274,10 @@ export async function getTrendingTokens(): Promise<TrendingToken[]> {
  * @throws Error if API key is missing, too many tokens, or request fails
  */
 export async function getMultipleTokens(tokenAddresses: string[]): Promise<Record<string, TokenInfo>> {
+  // Check for test mocks
+  if ((globalThis as any).__TEST_MODE__ && (globalThis as any).__TEST_MOCK_GET_MULTIPLE_TOKENS__) {
+    return (globalThis as any).__TEST_MOCK_GET_MULTIPLE_TOKENS__(tokenAddresses);
+  }
   const apiKey = getApiKey();
   
   // Validate input
@@ -366,6 +370,11 @@ export async function getTokenChart(
   timeframe: "5m" | "15m" | "1h" | "4h" | "1d" = "5m",
   limit: number = 1000
 ): Promise<TokenChartData> {
+  // Check for test mocks
+  if ((globalThis as any).__TEST_MODE__ && (globalThis as any).__TEST_MOCK_GET_TOKEN_CHART__) {
+    return (globalThis as any).__TEST_MOCK_GET_TOKEN_CHART__(tokenAddress, timeframe, limit);
+  }
+  
   const apiKey = getApiKey();
   
   // Validate token address

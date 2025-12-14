@@ -196,22 +196,16 @@ async function runTests() {
   console.log("🧪 Starting Resolution Scenario Tests\n");
   console.log("=".repeat(80));
 
-  // Mock the API functions FIRST, before importing the resolution function
-  const solanaTrackerModule = require("../server/solanaTracker");
+  // For ESM, we can't directly mock module exports
+  // Instead, we'll use a global test configuration that the functions can check
+  // Set up global mocks that will be used by the resolution functions
+  (globalThis as any).__TEST_MOCK_GET_MULTIPLE_TOKENS__ = mockGetMultipleTokens;
+  (globalThis as any).__TEST_MOCK_GET_TOKEN_CHART__ = mockGetTokenChart;
+  (globalThis as any).__TEST_MODE__ = true;
   
-  // Store originals for restoration
-  originalGetMultipleTokens = solanaTrackerModule.getMultipleTokens;
-  originalGetTokenChart = solanaTrackerModule.getTokenChart;
-  
-  // Replace with mocks
-  solanaTrackerModule.getMultipleTokens = mockGetMultipleTokens;
-  solanaTrackerModule.getTokenChart = mockGetTokenChart;
-  
-  // Clear module cache so automatedMarkets re-imports with mocked functions
-  delete require.cache[require.resolve("../lib/jobs/automatedMarkets")];
-  
-  // Now import the resolution function (it will use our mocks)
-  const { checkAutomatedMarketResolutions } = require("../lib/jobs/automatedMarkets");
+  // Import modules - they will use the global mocks if available
+  const automatedMarketsModule = await import("../lib/jobs/automatedMarkets");
+  const { checkAutomatedMarketResolutions } = automatedMarketsModule;
   
   console.log("   ℹ️  API functions mocked for testing");
 
@@ -559,17 +553,10 @@ async function runTests() {
     console.error("\n❌ Fatal error during testing:", error);
     console.error(error.stack);
   } finally {
-    // Restore original functions
-    const solanaTrackerModule = require("../server/solanaTracker");
-    if (originalGetMultipleTokens) {
-      solanaTrackerModule.getMultipleTokens = originalGetMultipleTokens;
-    }
-    if (originalGetTokenChart) {
-      solanaTrackerModule.getTokenChart = originalGetTokenChart;
-    }
-    
-    // Clear module cache
-    delete require.cache[require.resolve("../lib/jobs/automatedMarkets")];
+    // Clean up global test mocks
+    delete (globalThis as any).__TEST_MODE__;
+    delete (globalThis as any).__TEST_MOCK_GET_MULTIPLE_TOKENS__;
+    delete (globalThis as any).__TEST_MOCK_GET_TOKEN_CHART__;
 
     // Cleanup
     console.log("\n🧹 Cleaning up test markets...");
