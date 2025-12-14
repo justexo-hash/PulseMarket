@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { type Market } from "@shared/schema";
@@ -9,13 +9,62 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, ThumbsUp, ThumbsDown, CheckCircle2, DollarSign, Shield, Copy, XCircle } from "lucide-react";
+import { ArrowLeft, ThumbsUp, ThumbsDown, CheckCircle2, DollarSign, Shield, Copy, XCircle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { verifyCommitmentHash } from "@/lib/provablyFair";
 import { PnLSidebar } from "./PnLSidebar";
+
+// Live expiration timer component
+function ExpirationTimer({ expiresAt }: { expiresAt: Date | string }) {
+  const [timeRemaining, setTimeRemaining] = useState<string>("");
+
+  useEffect(() => {
+    const updateTimer = () => {
+      const now = new Date().getTime();
+      const expiration = new Date(expiresAt).getTime();
+      const diff = expiration - now;
+
+      if (diff <= 0) {
+        setTimeRemaining("Expired");
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      if (days > 0) {
+        setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
+      } else if (hours > 0) {
+        setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
+      } else if (minutes > 0) {
+        setTimeRemaining(`${minutes}m ${seconds}s`);
+      } else {
+        setTimeRemaining(`${seconds}s`);
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  if (!timeRemaining) return null;
+
+  const isUrgent = new Date(expiresAt).getTime() - Date.now() < 60 * 60 * 1000; // Less than 60 minutes
+
+  return (
+    <div className={`flex items-center gap-2 ${isUrgent ? "text-destructive" : "text-secondary-foreground"}`}>
+      <Clock className="h-4 w-4" />
+      <p className="text-base font-semibold">{timeRemaining}</p>
+    </div>
+  );
+}
 
 interface MarketDetailViewProps {
   slug?: string;
@@ -334,27 +383,79 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
               </h1>
             </div>
             
-            {/* Show token address if available as subheader */}
-            {displayMarket.tokenAddress && (
-              <div className="mb-4 flex items-center gap-2">
-                <p className="text-sm text-muted-foreground font-mono">
-                  {displayMarket.tokenAddress}
-                </p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2"
-                  onClick={() => {
-                    navigator.clipboard.writeText(displayMarket.tokenAddress || "");
-                    toast({
-                      title: "Copied!",
-                      description: "Token address copied to clipboard",
-                    });
-                  }}
-                >
-                  <Copy className="h-3 w-3" />
-                </Button>
+            {/* Show token address(es) if available as subheader */}
+            {(displayMarket.tokenAddress || displayMarket.tokenAddress2) && (
+              <div className="mb-4 space-y-2">
+                {displayMarket.tokenAddress && (
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-muted-foreground">Token 1:</p>
+                    <p className="text-sm text-muted-foreground font-mono">
+                      {displayMarket.tokenAddress}
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2"
+                      onClick={() => {
+                        navigator.clipboard.writeText(displayMarket.tokenAddress || "");
+                        toast({
+                          title: "Copied!",
+                          description: "Token address copied to clipboard",
+                        });
+                      }}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+                {displayMarket.tokenAddress2 && (
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-muted-foreground">Token 2:</p>
+                    <p className="text-sm text-muted-foreground font-mono">
+                      {displayMarket.tokenAddress2}
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2"
+                      onClick={() => {
+                        navigator.clipboard.writeText(displayMarket.tokenAddress2 || "");
+                        toast({
+                          title: "Copied!",
+                          description: "Token address copied to clipboard",
+                        });
+                      }}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
               </div>
+            )}
+            
+            {/* Show expiration datetime and live timer */}
+            {displayMarket.expiresAt && (
+              <Card className="p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Expires</p>
+                    <p className="text-base font-semibold text-secondary-foreground">
+                      {new Date(displayMarket.expiresAt).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Time Remaining</p>
+                    <ExpirationTimer expiresAt={displayMarket.expiresAt} />
+                  </div>
+                </div>
+              </Card>
             )}
             
             {/* Show invite code for private wagers */}

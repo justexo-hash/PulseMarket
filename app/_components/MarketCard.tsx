@@ -60,7 +60,7 @@ function CountdownTimer({ expiresAt }: { expiresAt: Date | string | null }) {
   if (!expiresAt || !timeRemaining) return null;
 
   const isUrgent =
-    new Date(expiresAt).getTime() - Date.now() < 24 * 60 * 60 * 1000;
+    new Date(expiresAt).getTime() - Date.now() < 60 * 60 * 1000; // Less than 60 minutes
 
   return (
     <Badge
@@ -195,11 +195,14 @@ export function MarketCard({ market }: MarketCardProps) {
         </div>
 
         {/* ========================================================= */}
-        {/* SECTION 4 — VOLUME INFO                                   */}
+        {/* SECTION 4 — VOLUME INFO & COUNTDOWN                       */}
         {/* ========================================================= */}
         <div className="flex items-center w-full justify-between text-xs text-muted-foreground mt-auto">
           <span>{volume.toFixed(2)} SOL Vol.</span>
-          <div className=" flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5">
+            {!isResolved && market.expiresAt && (
+              <CountdownTimer expiresAt={market.expiresAt} />
+            )}
             {isResolved && (
               <Badge
                 variant="secondary"

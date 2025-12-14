@@ -188,69 +188,50 @@ function tokensMatchForBattle(
 /**
  * Select the next market type based on rotation (25% each: MC, Volume, Holders, Battles)
  * Battles alternate between Race and Dump
+ * Rotation order: market_cap -> volume -> holders -> battle_race -> battle_dump -> repeat
  * 
- * @param existingMarkets - All existing markets to check for active markets of each type
- * @param lastBattleType - Last battle type used ("battle_race" or "battle_dump")
- * @returns The selected market type
+ * @param lastMarketType - The last market type that was created (from logs)
+ * @returns The next market type in rotation
  */
-function selectMarketType(
-  existingMarkets: Array<{ category: string; status: string; isAutomated: number; question: string }>,
-  lastBattleType: "battle_race" | "battle_dump" | null
-): MarketType {
-  const activeMarkets = existingMarkets.filter(m => m.status === "active" && m.isAutomated === 1);
+function selectMarketTypeByRotation(lastMarketType?: MarketType): MarketType {
+  // Define rotation order
+  const rotation: MarketType[] = ["market_cap", "volume", "holders", "battle_race", "battle_dump"];
   
-  // Check for active markets of each type by examining question text
-  const hasActiveMC = activeMarkets.some(m => 
-    m.category === "memecoins" && 
-    m.question.includes("market cap") && 
-    m.question.includes("120 minutes")
-  );
-  const hasActiveVolume = activeMarkets.some(m => 
-    m.category === "memecoins" && 
-    m.question.includes("24h volume") && 
-    m.question.includes("1 day")
-  );
-  const hasActiveHolders = activeMarkets.some(m => 
-    m.category === "memecoins" && 
-    m.question.includes("holders") && 
-    m.question.includes("1 day")
-  );
-  const hasActiveBattle = activeMarkets.some(m => 
-    m.category === "memecoins" && 
-    (m.question.includes("Which token will") || m.question.includes("first:"))
-  );
-  
-  // Rotation priority: MC -> Volume -> Holders -> Battles
-  // Skip if that type already has an active market
-  if (!hasActiveMC) {
+  if (!lastMarketType) {
+    // First market - start with market_cap
     return "market_cap";
   }
-  if (!hasActiveVolume) {
-    return "volume";
-  }
-  if (!hasActiveHolders) {
-    return "holders";
-  }
-  if (!hasActiveBattle) {
-    // Alternate between race and dump
-    if (lastBattleType === "battle_race" || lastBattleType === null) {
-      return "battle_dump";
-    } else {
-      return "battle_race";
-    }
+  
+  // Find current index
+  const currentIndex = rotation.indexOf(lastMarketType);
+  if (currentIndex === -1) {
+    // Unknown type, default to market_cap
+    return "market_cap";
   }
   
-  // If all types have active markets, default to market_cap
-  return "market_cap";
+  // Get next in rotation (wrap around)
+  const nextIndex = (currentIndex + 1) % rotation.length;
+  return rotation[nextIndex];
 }
 
 /**
- * Check if a token address has already been used in an automated market
+ * Check if a token address has already been used in an active automated market
+ * Only checks active markets - expired/resolved markets allow token reuse
  */
 async function isTokenAlreadyUsed(tokenAddress: string): Promise<boolean> {
   const allMarkets = await storage.getAllMarkets();
+  const now = new Date();
   return allMarkets.some(
-    m => (m.tokenAddress === tokenAddress || m.tokenAddress2 === tokenAddress) && m.isAutomated === 1
+    m => {
+      // Must be automated market
+      if (m.isAutomated !== 1) return false;
+      // Must be active (not resolved/refunded)
+      if (m.status !== "active") return false;
+      // Must not be expired
+      if (m.expiresAt && new Date(m.expiresAt) <= now) return false;
+      // Check if token matches
+      return (m.tokenAddress === tokenAddress || m.tokenAddress2 === tokenAddress);
+    }
   );
 }
 
@@ -332,26 +313,26 @@ export async function runAutomatedMarketCreation(): Promise<{
       throw new Error("No trending tokens returned from API");
     }
 
-    // Step 3: Get existing markets to check for duplicates and active markets
+    // Step 3: Get existing markets to check for duplicates
     const allMarkets = await storage.getAllMarkets();
     
-    // Step 4: Select market type (round-robin rotation)
-    // For now, we'll track last battle type in config (we can enhance this later)
-    // Cast markets to include question field for type checking
-    const marketType = selectMarketType(
-      allMarkets.map(m => ({ ...m, question: m.question })),
-      null
-    );
-    console.log(`[AutomatedMarkets] Selected market type: ${marketType}`);
+    // Step 4: Get last market type from logs to determine rotation
+    const recentLogs = await storage.getRecentAutomatedMarketLogs(10);
+    const lastMarketType = recentLogs.find(log => log.success && log.questionType && 
+      ["market_cap", "volume", "holders", "battle_race", "battle_dump"].includes(log.questionType))?.questionType as MarketType | undefined;
+    
+    // Step 5: Select market type (round-robin rotation based on last created type)
+    const marketType = selectMarketTypeByRotation(lastMarketType);
+    console.log(`[AutomatedMarkets] Selected market type: ${marketType} (last was: ${lastMarketType || "none"})`);
 
     // Step 5: Get token(s) and generate market
-    let marketData: InsertMarket;
+    let marketData: InsertMarket | null = null;
     let resolutionData: {
       marketType: string;
       targetValue: number;
       tokenAddress: string;
       tokenAddress2?: string;
-    };
+    } | null = null;
 
     if (marketType === "battle_race" || marketType === "battle_dump") {
       // Battle markets need 2 matching tokens
@@ -420,92 +401,136 @@ export async function runAutomatedMarketCreation(): Promise<{
         tokenAddress2: token2.token.mint,
       };
     } else {
-      // Single token markets
-      const token = await findUnusedToken(trendingTokens);
-      if (!token) {
-        throw new Error("Could not find unused token from trending list");
+      // Single token markets - try multiple tokens until we find one that works
+      let token: TrendingToken | null = null;
+      
+      const maxAttempts = 20; // Try up to 20 tokens
+      let attempts = 0;
+      const triedTokens = new Set<string>(); // Track tokens we've already tried
+      
+      while (!marketData && attempts < maxAttempts) {
+        attempts++;
+        // Get unused token, but filter out ones we've already tried
+        const availableTokens = trendingTokens.filter(t => {
+          if (!t.token.mint) return false;
+          if (triedTokens.has(t.token.mint)) return false;
+          return true;
+        });
+        
+        // Find unused token from available list
+        for (const t of availableTokens) {
+          if (!t.token.mint) continue;
+          const used = await isTokenAlreadyUsed(t.token.mint);
+          if (!used) {
+            token = t;
+            triedTokens.add(t.token.mint);
+            break;
+          }
+        }
+        
+        if (!token) {
+          throw new Error("Could not find unused token from trending list");
+        }
+        
+        const mc = token.pools[0]?.marketCap?.usd || 0;
+        const volume24h = token.pools[0]?.txns?.volume24h || 0;
+        const holders = token.holders || 0;
+        
+        try {
+          let target: number;
+          let question: string;
+          let expiresAt: Date;
+          
+          if (marketType === "market_cap") {
+            // Check edge case: token already above all milestones - skip this token
+            const maxMilestone = MARKET_CAP_MILESTONES[MARKET_CAP_MILESTONES.length - 1];
+            if (mc >= maxMilestone) {
+              console.log(`[AutomatedMarkets] Skipping token ${token.token.symbol}: MC (${mc}) already above all milestones`);
+              continue; // Try next token
+            }
+            
+            const result = calculateMarketCapTarget(mc);
+            target = result.target;
+            question = result.question.replace("this token", token.token.name || token.token.symbol);
+            
+            // Expiration: 120 minutes from now
+            expiresAt = new Date();
+            expiresAt.setMinutes(expiresAt.getMinutes() + 120);
+          } else if (marketType === "volume") {
+            // Check edge case: token already above all milestones - skip this token
+            const maxMilestone = VOLUME_MILESTONES[VOLUME_MILESTONES.length - 1];
+            if (volume24h >= maxMilestone) {
+              console.log(`[AutomatedMarkets] Skipping token ${token.token.symbol}: volume (${volume24h}) already above all milestones`);
+              continue; // Try next token
+            }
+            
+            const result = calculateVolumeTarget(volume24h);
+            target = result.target;
+            question = result.question.replace("this token", token.token.name || token.token.symbol);
+            
+            // Expiration: 1 day from now
+            expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 1);
+          } else if (marketType === "holders") {
+            // Check edge case: holders < 100 - skip this token
+            if (holders < 100) {
+              console.log(`[AutomatedMarkets] Skipping token ${token.token.symbol}: too few holders (${holders} < 100)`);
+              continue; // Try next token
+            }
+            
+            const result = calculateHolderTarget(holders);
+            target = result.target;
+            
+            // Check edge case: 2x rounds to same number
+            if (target <= holders) {
+              // Add minimum increment (10% of current)
+              target = Math.ceil(holders * 1.1);
+              // Round up to nearest milestone
+              target = roundUpToMilestone(target, HOLDER_MILESTONES);
+            }
+            
+            const targetFormatted = target >= 1000 
+              ? `${(target / 1000).toFixed(1)}K`
+              : `${target}`;
+            question = `Will ${token.token.name || token.token.symbol} have more than ${targetFormatted} holders after 1 day?`;
+            
+            // Expiration: 1 day from now
+            expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 1);
+          } else {
+            throw new Error(`Unknown market type: ${marketType}`);
+          }
+          
+          marketData = {
+            question,
+            category: "memecoins",
+            expiresAt: expiresAt.toISOString(),
+            isPrivate: false,
+            image: token.token.image || undefined,
+            tokenAddress: token.token.mint,
+            isAutomated: true,
+          };
+          
+          resolutionData = {
+            marketType,
+            targetValue: target,
+            tokenAddress: token.token.mint,
+          };
+        } catch (error: any) {
+          // If this token fails, try the next one
+          console.log(`[AutomatedMarkets] Token ${token.token.symbol} failed: ${error.message}, trying next...`);
+          continue;
+        }
       }
       
-      const mc = token.pools[0]?.marketCap?.usd || 0;
-      const volume24h = token.pools[0]?.txns?.volume24h || 0;
-      const holders = token.holders || 0;
-      
-      let target: number;
-      let question: string;
-      let expiresAt: Date;
-      
-      if (marketType === "market_cap") {
-        // Check edge case: token already above all milestones
-        const maxMilestone = MARKET_CAP_MILESTONES[MARKET_CAP_MILESTONES.length - 1];
-        if (mc >= maxMilestone) {
-          throw new Error(`Token MC (${mc}) already above all milestones`);
-        }
-        
-        const result = calculateMarketCapTarget(mc);
-        target = result.target;
-        question = result.question.replace("this token", token.token.name || token.token.symbol);
-        
-        // Expiration: 120 minutes from now
-        expiresAt = new Date();
-        expiresAt.setMinutes(expiresAt.getMinutes() + 120);
-      } else if (marketType === "volume") {
-        // Check edge case: token already above all milestones
-        const maxMilestone = VOLUME_MILESTONES[VOLUME_MILESTONES.length - 1];
-        if (volume24h >= maxMilestone) {
-          throw new Error(`Token volume (${volume24h}) already above all milestones`);
-        }
-        
-        const result = calculateVolumeTarget(volume24h);
-        target = result.target;
-        question = result.question.replace("this token", token.token.name || token.token.symbol);
-        
-        // Expiration: 1 day from now
-        expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 1);
-      } else if (marketType === "holders") {
-        // Check edge case: holders < 100
-        if (holders < 100) {
-          throw new Error(`Token has too few holders (${holders} < 100)`);
-        }
-        
-        const result = calculateHolderTarget(holders);
-        target = result.target;
-        
-        // Check edge case: 2x rounds to same number
-        if (target <= holders) {
-          // Add minimum increment (10% of current)
-          target = Math.ceil(holders * 1.1);
-          // Round up to nearest milestone
-          target = roundUpToMilestone(target, HOLDER_MILESTONES);
-        }
-        
-        const targetFormatted = target >= 1000 
-          ? `${(target / 1000).toFixed(1)}K`
-          : `${target}`;
-        question = `Will ${token.token.name || token.token.symbol} have more than ${targetFormatted} holders after 1 day?`;
-        
-        // Expiration: 1 day from now
-        expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 1);
-      } else {
-        throw new Error(`Unknown market type: ${marketType}`);
+      if (!marketData || !resolutionData) {
+        throw new Error(`Could not create market after trying ${attempts} tokens`);
       }
-      
-      marketData = {
-        question,
-        category: "memecoins",
-        expiresAt: expiresAt.toISOString(),
-        isPrivate: false,
-        image: token.token.image || undefined,
-        tokenAddress: token.token.mint,
-        isAutomated: true,
-      };
-      
-      resolutionData = {
-        marketType,
-        targetValue: target,
-        tokenAddress: token.token.mint,
-      };
+    }
+
+    // Validate that we have market data before proceeding
+    if (!marketData || !resolutionData) {
+      throw new Error("Failed to generate market data");
     }
 
     // Step 6: Create the market
