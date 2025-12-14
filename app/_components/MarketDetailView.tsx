@@ -411,9 +411,17 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
               )}
             </div>
             <div className="flex items-start justify-between gap-4 mb-2">
-              <h1 className="text-4xl font-bold text-secondary-foreground " data-testid="text-question">
-                {displayMarket.question}
-              </h1>
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold text-secondary-foreground " data-testid="text-question">
+                  {displayMarket.question}
+                </h1>
+                {/* Battle market refund notice */}
+                {displayMarket.tokenAddress2 && (
+                  <p className="text-sm text-muted-foreground mt-2 italic">
+                    If neither token reaches the target, all bets will be refunded.
+                  </p>
+                )}
+              </div>
             </div>
             
             {/* DexScreener Chart(s) - Replace image with live charts */}
@@ -444,7 +452,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div style={{ position: 'relative', width: '100%', paddingBottom: '125%' }}>
                       <iframe 
-                        src={`https://dexscreener.com/solana/${displayMarket.tokenAddress}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=0&chartType=usd&interval=15`}
+                        src={`https://dexscreener.com/solana/${displayMarket.tokenAddress}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=mcap&interval=5`}
                         style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, border: 0 }}
                         allowFullScreen
                         title={`Chart for ${token1Name || "Token 1"}`}
@@ -452,7 +460,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                     </div>
                     <div style={{ position: 'relative', width: '100%', paddingBottom: '125%' }}>
                       <iframe 
-                        src={`https://dexscreener.com/solana/${displayMarket.tokenAddress2}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=0&chartType=usd&interval=15`}
+                        src={`https://dexscreener.com/solana/${displayMarket.tokenAddress2}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=mcap&interval=5`}
                         style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, border: 0 }}
                         allowFullScreen
                         title={`Chart for ${token2Name || "Token 2"}`}
@@ -463,7 +471,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                   // Single token market - show one chart
                   <div className="dexscreener-embed">
                     <iframe 
-                      src={`https://dexscreener.com/solana/${displayMarket.tokenAddress}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=0&chartType=usd&interval=15`}
+                      src={`https://dexscreener.com/solana/${displayMarket.tokenAddress}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=mcap&interval=5`}
                       width="100%" 
                       height="400" 
                       frameBorder="0"
@@ -763,7 +771,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                   disabled={placeBet.isPending || displayMarket.status !== "active"}
                   data-testid="button-bet-yes"
                 >
-                  <ThumbsUp className="mr-2 h-5 w-5" />
+                  {!displayMarket.tokenAddress2 && <ThumbsUp className="mr-2 h-5 w-5" />}
                   <span className="truncate" title={displayMarket.tokenAddress2 ? (token1Name || "Token 1") : "Yes"}>
                     {placeBet.isPending 
                       ? "Placing..." 
@@ -784,7 +792,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                   disabled={placeBet.isPending || displayMarket.status !== "active"}
                   data-testid="button-bet-no"
                 >
-                  <ThumbsDown className="mr-2 h-5 w-5" />
+                  {!displayMarket.tokenAddress2 && <ThumbsDown className="mr-2 h-5 w-5" />}
                   <span className="truncate" title={displayMarket.tokenAddress2 ? (token2Name || "Token 2") : "No"}>
                     {placeBet.isPending 
                       ? "Placing..." 

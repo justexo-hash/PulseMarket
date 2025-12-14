@@ -15,9 +15,11 @@ import { spliceBattleMarketImages } from "@server/imageUtils";
 export type MarketType = "market_cap" | "volume" | "holders" | "battle_race" | "battle_dump";
 
 // Target milestones for different market types
-const MARKET_CAP_MILESTONES = [250000, 500000, 750000, 1000000, 2000000, 3000000, 5000000, 10000000, 20000000, 50000000, 100000000];
-const VOLUME_MILESTONES = [250000, 500000, 750000, 1000000, 2000000, 3000000, 5000000, 10000000, 20000000, 50000000, 100000000];
-const HOLDER_MILESTONES = [500, 1000, 2000, 3000, 5000, 7500, 10000, 15000, 20000, 30000, 50000];
+const MARKET_CAP_MILESTONES = [125000, 250000, 500000, 750000, 1000000, 2000000, 3000000, 5000000, 10000000, 20000000, 50000000, 100000000];
+const VOLUME_MILESTONES = [125000, 250000, 500000, 750000, 1000000, 2000000, 3000000, 5000000, 10000000, 20000000, 50000000, 100000000];
+const HOLDER_MILESTONES = [200, 350, 500, 750, 1000, 2000, 3000, 5000, 7500, 10000, 15000, 20000, 30000, 50000];
+// Dump battle market targets (50% below, rounded to nearest milestone)
+const DUMP_TARGETS = [25000, 50000, 100000, 200000, 300000, 500000, 750000, 1000000, 2000000, 3000000, 5000000, 10000000, 20000000, 50000000];
 
 /**
  * Round a number up to the nearest milestone
@@ -132,7 +134,7 @@ function calculateBattleRaceTarget(token1MC: number, token2MC: number): { target
 }
 
 /**
- * Calculate battle dump target (50% below, rounded to nearest 100K)
+ * Calculate battle dump target (50% below, rounded to nearest milestone)
  */
 function calculateBattleDumpTarget(token1MC: number, token2MC: number): { target: number; question: string; token1Name: string; token2Name: string } {
   // Calculate 50% below for both tokens, use the average or lower one
@@ -142,11 +144,8 @@ function calculateBattleDumpTarget(token1MC: number, token2MC: number): { target
   // Use the lower target (more conservative)
   const lowerTarget = Math.min(token1Target, token2Target);
   
-  // Round to nearest 100K, but ensure minimum of 100K
-  let target = roundToNearest100K(lowerTarget);
-  if (target < 100000) {
-    target = 100000;
-  }
+  // Round up to nearest dump milestone
+  const target = roundUpToMilestone(lowerTarget, DUMP_TARGETS);
   
   // Format target
   const targetFormatted = target >= 1000000 
@@ -333,7 +332,10 @@ async function findUnusedToken(graduatedTokens: GraduatedToken[]): Promise<Gradu
  * Find two matching tokens for battle markets
  * Searches graduated list for tokens that match (similar MC and age)
  */
-async function findMatchingTokensForBattle(graduatedTokens: GraduatedToken[]): Promise<[GraduatedToken, GraduatedToken] | null> {
+async function findMatchingTokensForBattle(
+  graduatedTokens: GraduatedToken[],
+  marketType: "battle_race" | "battle_dump"
+): Promise<[GraduatedToken, GraduatedToken] | null> {
   // Try all pairs until we find a match
   for (let i = 0; i < graduatedTokens.length; i++) {
     const token1 = graduatedTokens[i];
@@ -341,6 +343,24 @@ async function findMatchingTokensForBattle(graduatedTokens: GraduatedToken[]): P
     // Filter: Only use PumpFun tokens
     if (!isPumpFunToken(token1)) {
       continue;
+    }
+    
+    const mc1 = token1.pools[0]?.marketCap?.usd || 0;
+    
+    // Filter by market type requirements
+    if (marketType === "battle_dump") {
+      // For dump markets: tokens must be >= 50K (so 50% = 25K minimum target)
+      // Lowest dump target is 25K, so 2x = 50K minimum
+      if (mc1 < 50000) {
+        continue;
+      }
+    } else if (marketType === "battle_race") {
+      // For race markets: tokens should be below highest milestone (100M)
+      // Lowest target is 250K, so if MC is 125K, 2x = 250K (lowest target)
+      const maxMilestone = MARKET_CAP_MILESTONES[MARKET_CAP_MILESTONES.length - 1];
+      if (mc1 >= maxMilestone) {
+        continue;
+      }
     }
     
     // Check if token1 is already used (by address)
@@ -359,6 +379,22 @@ async function findMatchingTokensForBattle(graduatedTokens: GraduatedToken[]): P
       // Filter: Only use PumpFun tokens
       if (!isPumpFunToken(token2)) {
         continue;
+      }
+      
+      const mc2 = token2.pools[0]?.marketCap?.usd || 0;
+      
+      // Filter by market type requirements
+      if (marketType === "battle_dump") {
+        // For dump markets: tokens must be >= 50K (so 50% = 25K minimum target)
+        if (mc2 < 50000) {
+          continue;
+        }
+      } else if (marketType === "battle_race") {
+        // For race markets: tokens should be below highest milestone
+        const maxMilestone = MARKET_CAP_MILESTONES[MARKET_CAP_MILESTONES.length - 1];
+        if (mc2 >= maxMilestone) {
+          continue;
+        }
       }
       
       // Check if token2 is already used (by address)
@@ -451,9 +487,9 @@ export async function runAutomatedMarketCreation(
 
     if (marketType === "battle_race" || marketType === "battle_dump") {
       // Battle markets need 2 matching tokens
-      const matchingTokens = await findMatchingTokensForBattle(graduatedTokens);
+      const matchingTokens = await findMatchingTokensForBattle(graduatedTokens, marketType);
       if (!matchingTokens) {
-        throw new Error("Could not find matching tokens for battle market");
+        throw new Error(`Could not find matching tokens for ${marketType} market (with appropriate MC filters)`);
       }
       
       const [token1, token2] = matchingTokens;
@@ -604,9 +640,17 @@ export async function runAutomatedMarketCreation(
             }
             
             // Check edge case: token already above all milestones - skip this token
+            // For market cap markets, tokens should be below highest milestone (100M)
+            // Lowest target is 250K, so if MC is 125K, 2x = 250K (lowest target)
             const maxMilestone = MARKET_CAP_MILESTONES[MARKET_CAP_MILESTONES.length - 1];
             if (mc >= maxMilestone) {
               console.log(`[AutomatedMarkets] Skipping token ${token.token.symbol || token.token.name}: MC (${mc}) already above all milestones`);
+              continue; // Try next token
+            }
+            // Also check minimum: if MC is too low, 2x might not reach lowest milestone (125K)
+            // So MC should be at least 60K (2x = 120K, rounds to 125K)
+            if (mc < 60000) {
+              console.log(`[AutomatedMarkets] Skipping token ${token.token.symbol || token.token.name}: MC (${mc}) too low for market cap market (need >= 60K)`);
               continue; // Try next token
             }
             
@@ -622,10 +666,18 @@ export async function runAutomatedMarketCreation(
               expiresAt.setMinutes(expiresAt.getMinutes() + 120);
             }
           } else if (marketType === "volume") {
-            // Check edge case: token already above all milestones - skip this token
+            // Check edge case: volume already above all milestones
+            // For volume markets, tokens should be below highest milestone (100M)
+            // Lowest target is 250K, so if volume is 125K, 2x = 250K (lowest target)
             const maxMilestone = VOLUME_MILESTONES[VOLUME_MILESTONES.length - 1];
             if (volume24h >= maxMilestone) {
               console.log(`[AutomatedMarkets] Skipping token ${token.token.symbol}: volume (${volume24h}) already above all milestones`);
+              continue; // Try next token
+            }
+            // Also check minimum: if volume is too low, 2x might not reach lowest milestone (125K)
+            // So volume should be at least 60K (2x = 120K, rounds to 125K)
+            if (volume24h < 60000) {
+              console.log(`[AutomatedMarkets] Skipping token ${token.token.symbol}: volume (${volume24h}) too low for volume market (need >= 60K)`);
               continue; // Try next token
             }
             
@@ -652,8 +704,15 @@ export async function runAutomatedMarketCreation(
             }
           } else if (marketType === "holders") {
             // Check edge case: holders < 100 - skip this token
+            // Lowest target is 200, so if holders is 100, 2x = 200 (lowest target)
             if (holders < 100) {
-              console.log(`[AutomatedMarkets] Skipping token ${token.token.symbol}: too few holders (${holders} < 100)`);
+              console.log(`[AutomatedMarkets] Skipping token ${token.token.symbol}: too few holders (${holders} < 100, need >= 100 for 2x to reach 200)`);
+              continue; // Try next token
+            }
+            // Also check maximum: holders should be below highest milestone (50K)
+            const maxMilestone = HOLDER_MILESTONES[HOLDER_MILESTONES.length - 1];
+            if (holders >= maxMilestone) {
+              console.log(`[AutomatedMarkets] Skipping token ${token.token.symbol}: holders (${holders}) already above all milestones`);
               continue; // Try next token
             }
             
