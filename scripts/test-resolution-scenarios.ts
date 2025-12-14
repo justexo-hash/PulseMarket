@@ -496,11 +496,11 @@ async function runTests() {
       .where(eq(automatedMarketResolutions.marketId, marketId8))
       .limit(1);
     
-    if (resolution8[0]?.status === "expired" && market8?.status === "active") {
-      console.log("   ✅ PASS: Battle market expired, marked for refund");
+    if (resolution8[0]?.status === "expired" && market8?.status === "resolved" && market8.resolvedOutcome === "refunded") {
+      console.log("   ✅ PASS: Battle market expired, refunded and resolved");
       passed++;
     } else {
-      console.log(`   ❌ FAIL: Expected expired status, got resolution=${resolution8[0]?.status}, market=${market8?.status}`);
+      console.log(`   ❌ FAIL: Expected resolution=expired, market=resolved with outcome=refunded, got resolution=${resolution8[0]?.status}, market=${market8?.status}, outcome=${market8?.resolvedOutcome}`);
       failed++;
     }
 
