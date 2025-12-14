@@ -12,6 +12,8 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
 import { CheckCircle2, XCircle, DollarSign, Shield, Wallet, RefreshCw, Play, Settings, Clock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { formatDistanceToNow } from "date-fns";
 import {
   AlertDialog,
@@ -29,6 +31,8 @@ export default function AdminPanelPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const isAdmin = !!user?.isAdmin;
+  const [selectedMarketType, setSelectedMarketType] = React.useState<string>("standard");
+  const [testMode, setTestMode] = React.useState<boolean>(false);
 
   // Debug logging
   console.log("[AdminPanel] Component rendered", { 
@@ -197,7 +201,14 @@ export default function AdminPanelPage() {
 
   const runMarketCreation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/automated-markets/create");
+      const body: { marketType?: string; testMode?: boolean } = {};
+      if (selectedMarketType !== "standard") {
+        body.marketType = selectedMarketType;
+      }
+      if (testMode) {
+        body.testMode = true;
+      }
+      const response = await apiRequest("POST", "/api/automated-markets/create", body);
       return await response.json();
     },
     onSuccess: (data) => {
@@ -284,17 +295,6 @@ export default function AdminPanelPage() {
       
       {/* Content */}
       <div className="relative z-10 container mx-auto py-12" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 100 }}>
-        {/* TEST BUTTON - Remove after debugging */}
-        <Button 
-          onClick={() => {
-            console.log("[TEST] Simple button clicked!");
-            alert("Test button works!");
-          }}
-          className="mb-4"
-        >
-          TEST BUTTON - Click Me
-        </Button>
-        
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <Shield className="h-8 w-8 text-secondary-foreground" />
@@ -447,6 +447,41 @@ export default function AdminPanelPage() {
                   </span>
                 </div>
               )}
+
+              {/* Market Type Selection */}
+              <div className="space-y-2">
+                <Label className="text-white font-semibold">Market Type</Label>
+                <Select value={selectedMarketType} onValueChange={setSelectedMarketType}>
+                  <SelectTrigger className="w-full bg-black/20 border-white/20 text-white">
+                    <SelectValue placeholder="Select market type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="standard">Standard (Rotation)</SelectItem>
+                    <SelectItem value="market_cap">Market Cap</SelectItem>
+                    <SelectItem value="volume">Volume</SelectItem>
+                    <SelectItem value="holders">Holders</SelectItem>
+                    <SelectItem value="battle_race">Battle Race</SelectItem>
+                    <SelectItem value="battle_dump">Battle Dump</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-white/60">
+                  Select a specific type or use "Standard" for automatic rotation
+                </p>
+              </div>
+
+              {/* Test Mode Toggle */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white font-semibold">Test Mode</p>
+                  <p className="text-sm text-white/60">
+                    Use 5% of normal expiration time (for testing)
+                  </p>
+                </div>
+                <Switch
+                  checked={testMode}
+                  onCheckedChange={setTestMode}
+                />
+              </div>
 
               {/* Run Now Button */}
               <Button

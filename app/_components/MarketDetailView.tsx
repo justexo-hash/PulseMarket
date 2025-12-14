@@ -384,54 +384,77 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
             </div>
             
             {/* Show token address(es) if available as subheader */}
-            {(displayMarket.tokenAddress || displayMarket.tokenAddress2) && (
-              <div className="mb-4 space-y-2">
-                {displayMarket.tokenAddress && (
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs text-muted-foreground">Token 1:</p>
-                    <p className="text-sm text-muted-foreground font-mono">
-                      {displayMarket.tokenAddress}
-                    </p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2"
-                      onClick={() => {
-                        navigator.clipboard.writeText(displayMarket.tokenAddress || "");
-                        toast({
-                          title: "Copied!",
-                          description: "Token address copied to clipboard",
-                        });
-                      }}
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                )}
-                {displayMarket.tokenAddress2 && (
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs text-muted-foreground">Token 2:</p>
-                    <p className="text-sm text-muted-foreground font-mono">
-                      {displayMarket.tokenAddress2}
-                    </p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2"
-                      onClick={() => {
-                        navigator.clipboard.writeText(displayMarket.tokenAddress2 || "");
-                        toast({
-                          title: "Copied!",
-                          description: "Token address copied to clipboard",
-                        });
-                      }}
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
+            {(displayMarket.tokenAddress || displayMarket.tokenAddress2) && (() => {
+              // Extract token names from question for battle markets
+              // Format: "Which token will... first: TokenName1 or TokenName2?"
+              let token1Name: string | null = null;
+              let token2Name: string | null = null;
+              
+              if (displayMarket.tokenAddress2) {
+                // Battle market - extract names from question
+                const match = displayMarket.question.match(/first:\s*([^?]+)\s*or\s*([^?]+)\?/i);
+                if (match) {
+                  token1Name = match[1].trim();
+                  token2Name = match[2].trim();
+                }
+              } else {
+                // Single token market - extract name from question
+                // Format: "Will TokenName's current..."
+                const match = displayMarket.question.match(/Will\s+([^'s]+)'s/i);
+                if (match) {
+                  token1Name = match[1].trim();
+                }
+              }
+              
+              return (
+                <div className="mb-4 space-y-2">
+                  {displayMarket.tokenAddress && (
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-muted-foreground">{token1Name || "Token 1"}:</p>
+                      <p className="text-sm text-muted-foreground font-mono">
+                        {displayMarket.tokenAddress}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2"
+                        onClick={() => {
+                          navigator.clipboard.writeText(displayMarket.tokenAddress || "");
+                          toast({
+                            title: "Copied!",
+                            description: "Token address copied to clipboard",
+                          });
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                  {displayMarket.tokenAddress2 && (
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-muted-foreground">{token2Name || "Token 2"}:</p>
+                      <p className="text-sm text-muted-foreground font-mono">
+                        {displayMarket.tokenAddress2}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2"
+                        onClick={() => {
+                          navigator.clipboard.writeText(displayMarket.tokenAddress2 || "");
+                          toast({
+                            title: "Copied!",
+                            description: "Token address copied to clipboard",
+                          });
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             
             {/* Show expiration datetime and live timer */}
             {displayMarket.expiresAt && (

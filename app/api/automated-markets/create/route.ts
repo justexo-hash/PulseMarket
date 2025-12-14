@@ -17,13 +17,18 @@ export const dynamic = "force-dynamic";
  * 
  * Manually trigger automated market creation
  * Useful for testing or admin-triggered creation
+ * 
+ * Body: { marketType?: string, testMode?: boolean }
  */
-export async function POST() {
+export async function POST(request: Request) {
   try {
     await requireAdmin();
 
+    const body = await request.json().catch(() => ({}));
+    const { marketType, testMode } = body;
+
     // Run the automated market creation job
-    const result = await runAutomatedMarketCreation();
+    const result = await runAutomatedMarketCreation(marketType || undefined, testMode || false);
 
     if (result.success) {
       return NextResponse.json({

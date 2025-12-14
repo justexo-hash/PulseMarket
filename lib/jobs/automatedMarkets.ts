@@ -287,8 +287,14 @@ async function findMatchingTokensForBattle(trendingTokens: TrendingToken[]): Pro
 /**
  * Main function to run automated market creation
  * This is called by the cron job every 6 hours
+ * 
+ * @param forcedMarketType - Optional: Force a specific market type (for testing)
+ * @param testMode - Optional: If true, use 5% of normal expiration time (for testing)
  */
-export async function runAutomatedMarketCreation(): Promise<{
+export async function runAutomatedMarketCreation(
+  forcedMarketType?: MarketType,
+  testMode: boolean = false
+): Promise<{
   success: boolean;
   marketCreated?: number;
   marketType?: MarketType;
@@ -316,14 +322,20 @@ export async function runAutomatedMarketCreation(): Promise<{
     // Step 3: Get existing markets to check for duplicates
     const allMarkets = await storage.getAllMarkets();
     
-    // Step 4: Get last market type from logs to determine rotation
-    const recentLogs = await storage.getRecentAutomatedMarketLogs(10);
-    const lastMarketType = recentLogs.find(log => log.success && log.questionType && 
-      ["market_cap", "volume", "holders", "battle_race", "battle_dump"].includes(log.questionType))?.questionType as MarketType | undefined;
-    
-    // Step 5: Select market type (round-robin rotation based on last created type)
-    const marketType = selectMarketTypeByRotation(lastMarketType);
-    console.log(`[AutomatedMarkets] Selected market type: ${marketType} (last was: ${lastMarketType || "none"})`);
+    // Step 4: Get last market type from logs to determine rotation (unless forced)
+    let marketType: MarketType;
+    if (forcedMarketType) {
+      marketType = forcedMarketType;
+      console.log(`[AutomatedMarkets] Using forced market type: ${marketType}`);
+    } else {
+      const recentLogs = await storage.getRecentAutomatedMarketLogs(10);
+      const lastMarketType = recentLogs.find(log => log.success && log.questionType && 
+        ["market_cap", "volume", "holders", "battle_race", "battle_dump"].includes(log.questionType))?.questionType as MarketType | undefined;
+      
+      // Step 5: Select market type (round-robin rotation based on last created type)
+      marketType = selectMarketTypeByRotation(lastMarketType);
+      console.log(`[AutomatedMarkets] Selected market type: ${marketType} (last was: ${lastMarketType || "none"})`);
+    }
 
     // Step 5: Get token(s) and generate market
     let marketData: InsertMarket | null = null;
@@ -351,36 +363,58 @@ export async function runAutomatedMarketCreation(): Promise<{
       if (marketType === "battle_race") {
         const result = calculateBattleRaceTarget(mc1, mc2);
         target = result.target;
-        question = `Which token will reach ${result.question.split(": ")[1]} first: ${token1.token.name || token1.token.symbol} or ${token2.token.name || token2.token.symbol}?`;
+        // Format target for display
+        const targetFormatted = target >= 1000000 
+          ? `$${(target / 1000000).toFixed(1)}M`
+          : `$${(target / 1000).toFixed(0)}K`;
+        question = `Which token will reach ${targetFormatted} market cap first: ${token1.token.name || token1.token.symbol} or ${token2.token.name || token2.token.symbol}?`;
       } else {
         const result = calculateBattleDumpTarget(mc1, mc2);
         target = result.target;
-        question = `Which token will dump 50% first (to ${result.question.split("(to ")[1]?.split(")")[0]}): ${token1.token.name || token1.token.symbol} or ${token2.token.name || token2.token.symbol}?`;
+        // Format target for display
+        const targetFormatted = target >= 1000000 
+          ? `$${(target / 1000000).toFixed(1)}M`
+          : `$${(target / 1000).toFixed(0)}K`;
+        question = `Which token will dump 50% first (to ${targetFormatted} market cap): ${token1.token.name || token1.token.symbol} or ${token2.token.name || token2.token.symbol}?`;
       }
       
-      // Calculate expiration: 2 days from now
+      // Validate required fields for battle markets
+      if (!token1.token.mint || !token2.token.mint) {
+        throw new Error("Battle market tokens missing mint addresses");
+      }
+      if (!token1.token.name && !token1.token.symbol) {
+        throw new Error("Battle market token1 missing name and symbol");
+      }
+      if (!token2.token.name && !token2.token.symbol) {
+        throw new Error("Battle market token2 missing name and symbol");
+      }
+      
+      // Calculate expiration: 2 days from now (or 5 minutes in test mode)
       const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 2);
+      if (testMode) {
+        expiresAt.setMinutes(expiresAt.getMinutes() + 5);
+      } else {
+        expiresAt.setDate(expiresAt.getDate() + 2);
+      }
       
       // For battle markets, splice the two token images together
       // Take left half of token1 and right half of token2
+      // Both images are REQUIRED for battle markets
       let battleImage: string | undefined = undefined;
+      if (!token1.token.image || !token2.token.image) {
+        throw new Error(`Battle market missing images: token1=${!!token1.token.image}, token2=${!!token2.token.image}`);
+      }
+      
       try {
-        if (token1.token.image && token2.token.image) {
-          // Both tokens have images - splice them together
-          battleImage = await spliceBattleMarketImages(
-            token1.token.image,
-            token2.token.image
-          );
-          console.log(`[AutomatedMarkets] Created spliced battle image: ${battleImage}`);
-        } else {
-          // Fallback to whichever token has an image, or undefined
-          battleImage = token1.token.image || token2.token.image || undefined;
-        }
+        // Both tokens have images - splice them together
+        battleImage = await spliceBattleMarketImages(
+          token1.token.image,
+          token2.token.image
+        );
+        console.log(`[AutomatedMarkets] Created spliced battle image: ${battleImage}`);
       } catch (error: any) {
-        // If image splicing fails, fallback to token1's image or token2's
-        console.warn(`[AutomatedMarkets] Failed to splice images, using fallback: ${error.message}`);
-        battleImage = token1.token.image || token2.token.image || undefined;
+        // If image splicing fails, we can't create the market
+        throw new Error(`Failed to splice battle images: ${error.message}`);
       }
       
       marketData = {
@@ -442,10 +476,20 @@ export async function runAutomatedMarketCreation(): Promise<{
           let expiresAt: Date;
           
           if (marketType === "market_cap") {
+            // Validate required token fields
+            if (!token.token.name && !token.token.symbol) {
+              console.log(`[AutomatedMarkets] Skipping token: missing name and symbol`);
+              continue; // Try next token
+            }
+            if (!token.token.mint) {
+              console.log(`[AutomatedMarkets] Skipping token: missing mint address`);
+              continue; // Try next token
+            }
+            
             // Check edge case: token already above all milestones - skip this token
             const maxMilestone = MARKET_CAP_MILESTONES[MARKET_CAP_MILESTONES.length - 1];
             if (mc >= maxMilestone) {
-              console.log(`[AutomatedMarkets] Skipping token ${token.token.symbol}: MC (${mc}) already above all milestones`);
+              console.log(`[AutomatedMarkets] Skipping token ${token.token.symbol || token.token.name}: MC (${mc}) already above all milestones`);
               continue; // Try next token
             }
             
@@ -453,9 +497,13 @@ export async function runAutomatedMarketCreation(): Promise<{
             target = result.target;
             question = result.question.replace("this token", token.token.name || token.token.symbol);
             
-            // Expiration: 120 minutes from now
+            // Expiration: 120 minutes from now (or 5 minutes in test mode)
             expiresAt = new Date();
-            expiresAt.setMinutes(expiresAt.getMinutes() + 120);
+            if (testMode) {
+              expiresAt.setMinutes(expiresAt.getMinutes() + 5);
+            } else {
+              expiresAt.setMinutes(expiresAt.getMinutes() + 120);
+            }
           } else if (marketType === "volume") {
             // Check edge case: token already above all milestones - skip this token
             const maxMilestone = VOLUME_MILESTONES[VOLUME_MILESTONES.length - 1];
@@ -466,11 +514,25 @@ export async function runAutomatedMarketCreation(): Promise<{
             
             const result = calculateVolumeTarget(volume24h);
             target = result.target;
+            // Validate required token fields
+            if (!token.token.name && !token.token.symbol) {
+              console.log(`[AutomatedMarkets] Skipping token: missing name and symbol`);
+              continue; // Try next token
+            }
+            if (!token.token.mint) {
+              console.log(`[AutomatedMarkets] Skipping token: missing mint address`);
+              continue; // Try next token
+            }
+            
             question = result.question.replace("this token", token.token.name || token.token.symbol);
             
-            // Expiration: 1 day from now
+            // Expiration: 1 day from now (or 5 minutes in test mode)
             expiresAt = new Date();
-            expiresAt.setDate(expiresAt.getDate() + 1);
+            if (testMode) {
+              expiresAt.setMinutes(expiresAt.getMinutes() + 5);
+            } else {
+              expiresAt.setDate(expiresAt.getDate() + 1);
+            }
           } else if (marketType === "holders") {
             // Check edge case: holders < 100 - skip this token
             if (holders < 100) {
@@ -492,13 +554,33 @@ export async function runAutomatedMarketCreation(): Promise<{
             const targetFormatted = target >= 1000 
               ? `${(target / 1000).toFixed(1)}K`
               : `${target}`;
+            // Validate required token fields
+            if (!token.token.name && !token.token.symbol) {
+              console.log(`[AutomatedMarkets] Skipping token: missing name and symbol`);
+              continue; // Try next token
+            }
+            if (!token.token.mint) {
+              console.log(`[AutomatedMarkets] Skipping token: missing mint address`);
+              continue; // Try next token
+            }
+            
             question = `Will ${token.token.name || token.token.symbol} have more than ${targetFormatted} holders after 1 day?`;
             
-            // Expiration: 1 day from now
+            // Expiration: 1 day from now (or 5 minutes in test mode)
             expiresAt = new Date();
-            expiresAt.setDate(expiresAt.getDate() + 1);
+            if (testMode) {
+              expiresAt.setMinutes(expiresAt.getMinutes() + 5);
+            } else {
+              expiresAt.setDate(expiresAt.getDate() + 1);
+            }
           } else {
             throw new Error(`Unknown market type: ${marketType}`);
+          }
+          
+          // Validate required fields before creating market
+          if (!token.token.mint) {
+            console.log(`[AutomatedMarkets] Skipping token: missing mint address`);
+            continue; // Try next token
           }
           
           marketData = {
@@ -506,7 +588,7 @@ export async function runAutomatedMarketCreation(): Promise<{
             category: "memecoins",
             expiresAt: expiresAt.toISOString(),
             isPrivate: false,
-            image: token.token.image || undefined,
+            image: token.token.image || undefined, // Image is optional, can be undefined
             tokenAddress: token.token.mint,
             isAutomated: true,
           };
