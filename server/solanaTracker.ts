@@ -90,6 +90,75 @@ interface TokenInfo {
 
 const BASE_URL = "https://data.solanatracker.io";
 
+// Rate limiting: Track last API call time to ensure 1 req/sec minimum
+let lastApiCallTime = 0;
+const MIN_API_INTERVAL_MS = 1100; // 1.1 seconds to be safe (slightly above 1 req/sec)
+
+/**
+ * Rate limiter: Ensures minimum 1.1 seconds between API calls
+ */
+async function rateLimit(): Promise<void> {
+  const now = Date.now();
+  const timeSinceLastCall = now - lastApiCallTime;
+  
+  if (timeSinceLastCall < MIN_API_INTERVAL_MS) {
+    const waitTime = MIN_API_INTERVAL_MS - timeSinceLastCall;
+    console.log(`[RateLimit] Waiting ${waitTime}ms to respect rate limit...`);
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+  }
+  
+  lastApiCallTime = Date.now();
+}
+
+/**
+ * Retry logic with exponential backoff for rate limit errors
+ */
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  maxRetries: number = 3
+): Promise<Response> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      // Apply rate limiting before each request
+      await rateLimit();
+      
+      const response = await fetch(url, options);
+      
+      // If rate limited (429), retry with exponential backoff
+      if (response.status === 429) {
+        if (attempt < maxRetries) {
+          const backoffMs = Math.min(1000 * Math.pow(2, attempt), 10000); // Max 10 seconds
+          console.log(`[RateLimit] Rate limit hit (429), retrying in ${backoffMs}ms (attempt ${attempt + 1}/${maxRetries + 1})...`);
+          await new Promise(resolve => setTimeout(resolve, backoffMs));
+          continue;
+        } else {
+          throw new Error("Rate limit reached, please wait and try again.");
+        }
+      }
+      
+      return response;
+    } catch (error: any) {
+      lastError = error;
+      
+      // If it's a rate limit error message, retry
+      if (error?.message?.toLowerCase().includes("rate limit") && attempt < maxRetries) {
+        const backoffMs = Math.min(1000 * Math.pow(2, attempt), 10000);
+        console.log(`[RateLimit] Rate limit error detected, retrying in ${backoffMs}ms (attempt ${attempt + 1}/${maxRetries + 1})...`);
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
+        continue;
+      }
+      
+      // For other errors, throw immediately
+      throw error;
+    }
+  }
+  
+  throw lastError || new Error("Failed after retries");
+}
+
 /**
  * Get API key from environment variables
  */
@@ -119,7 +188,7 @@ export async function getTokenInfo(tokenAddress: string): Promise<TokenInfo> {
   const url = `${BASE_URL}/tokens/${tokenAddress}`;
   
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       method: "GET",
       headers: {
         "x-api-key": apiKey,
@@ -231,7 +300,7 @@ export async function getTrendingTokens(): Promise<TrendingToken[]> {
   const url = `${BASE_URL}/tokens/trending`;
   
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       method: "GET",
       headers: {
         "x-api-key": apiKey,
@@ -299,7 +368,7 @@ export async function getMultipleTokens(tokenAddresses: string[]): Promise<Recor
   const url = `${BASE_URL}/tokens/multi`;
   
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       method: "POST",
       headers: {
         "x-api-key": apiKey,
@@ -396,7 +465,7 @@ export async function getTokenChart(
   const url = `${BASE_URL}/chart/${tokenAddress}?timeframe=${timeframe}&limit=${limit}`;
   
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       method: "GET",
       headers: {
         "x-api-key": apiKey,
@@ -515,7 +584,7 @@ export async function searchTokens(
   }
 
   try {
-    const response = await fetch(url.toString(), {
+    const response = await fetchWithRetry(url.toString(), {
       method: "GET",
       headers: {
         "x-api-key": apiKey,
@@ -604,7 +673,7 @@ export async function getGraduatedTokens(options?: {
   }
   
   try {
-    const response = await fetch(url.toString(), {
+    const response = await fetchWithRetry(url.toString(), {
       method: "GET",
       headers: {
         "x-api-key": apiKey,

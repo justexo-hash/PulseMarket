@@ -439,7 +439,8 @@ async function findMatchingTokensForBattle(
  */
 export async function runAutomatedMarketCreation(
   forcedMarketType?: MarketType,
-  testMode: boolean = false
+  testMode: boolean = false,
+  preFetchedTokens?: GraduatedToken[] // Allow passing already-fetched tokens to avoid re-fetching
 ): Promise<{
   success: boolean;
   marketCreated?: number;
@@ -458,11 +459,17 @@ export async function runAutomatedMarketCreation(
       return { success: true };
     }
 
-    // Step 2: Fetch graduated tokens
-    console.log("[AutomatedMarkets] Fetching graduated tokens...");
-    const graduatedTokens = await getGraduatedTokens();
-    if (!graduatedTokens || graduatedTokens.length === 0) {
-      throw new Error("No graduated tokens returned from API");
+    // Step 2: Fetch graduated tokens (only if not already provided)
+    let graduatedTokens: GraduatedToken[];
+    if (preFetchedTokens && preFetchedTokens.length > 0) {
+      console.log("[AutomatedMarkets] Using pre-fetched tokens (avoiding duplicate API call)");
+      graduatedTokens = preFetchedTokens;
+    } else {
+      console.log("[AutomatedMarkets] Fetching graduated tokens...");
+      graduatedTokens = await getGraduatedTokens();
+      if (!graduatedTokens || graduatedTokens.length === 0) {
+        throw new Error("No graduated tokens returned from API");
+      }
     }
 
     // Step 3: Get existing markets to check for duplicates
@@ -508,8 +515,12 @@ export async function runAutomatedMarketCreation(
           const nextMarketType = selectMarketTypeByRotation(marketType); // Use current as "last" to get next
           console.log(`[AutomatedMarkets] Rotating from ${marketType} to ${nextMarketType}`);
           
-          // Retry with next market type
-          return await runAutomatedMarketCreation(nextMarketType, testMode);
+          // Wait 1 second before retrying to respect rate limit
+          console.log("[AutomatedMarkets] Waiting 1 second before retry to respect rate limit...");
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Retry with next market type, passing already-fetched tokens to avoid duplicate API call
+          return await runAutomatedMarketCreation(nextMarketType, testMode, graduatedTokens);
         }
         throw new Error(`Could not find matching tokens for ${marketType} market (with appropriate MC filters)`);
       }
