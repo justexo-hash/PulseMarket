@@ -450,18 +450,18 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                 {displayMarket.tokenAddress2 ? (
                   // Battle market - show two charts side by side with increased height
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div style={{ position: 'relative', width: '100%', paddingBottom: '125%' }}>
+                    <div style={{ position: 'relative', width: '100%'}}>
                       <iframe 
                         src={`https://dexscreener.com/solana/${displayMarket.tokenAddress}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=mktcap&interval=5`}
-                        style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, border: 0 }}
+                        style={{ width: '100%', height: '600px'}}
                         allowFullScreen
                         title={`Chart for ${token1Name || "Token 1"}`}
                       />
                     </div>
-                    <div style={{ position: 'relative', width: '100%', paddingBottom: '125%' }}>
+                    <div style={{ position: 'relative', width: '100%' }}>
                       <iframe 
                         src={`https://dexscreener.com/solana/${displayMarket.tokenAddress2}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=mktcap&interval=5`}
-                        style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, border: 0 }}
+                        style={{ width: '100%', height: '600px'}}
                         allowFullScreen
                         title={`Chart for ${token2Name || "Token 2"}`}
                       />
@@ -473,8 +473,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                     <iframe 
                       src={`https://dexscreener.com/solana/${displayMarket.tokenAddress}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=mktcap&interval=5`}
                       width="100%" 
-                      height="400" 
-                      frameBorder="0"
+                      height="600px" 
                       allowFullScreen
                       title={`Chart for ${token1Name || "Token"}`}
                     />
@@ -507,7 +506,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
               }
               
               return (
-                <div className="mb-4 space-y-2">
+                <div className="mb-4 flex items-center gap-6 justify-between">
                   {displayMarket.tokenAddress && (
                     <div className="flex items-center gap-2">
                       <p className="text-sm text-muted-foreground font-mono">
@@ -530,7 +529,7 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                     </div>
                   )}
                   {displayMarket.tokenAddress2 && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center">
                       <p className="text-sm text-muted-foreground font-mono">
                         {token2Name || "Token 2"}: {displayMarket.tokenAddress2}
                       </p>
