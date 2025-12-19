@@ -35,10 +35,10 @@ export const metadata: Metadata = {
     "onchain markets",
   ],
   authors: [
-    { name: "PulseMarket Team", url: "https://pulsemarket.fun" }
+    { name: "Polymeme Team", url: "https://pulsemarket.fun" }
   ],
   category: "finance",
-  applicationName: "PulseMarket",
+  applicationName: "Polymeme",
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
   metadataBase: new URL("https://pulsemarket.fun"),
@@ -63,7 +63,7 @@ export default function PrivacyPage() {
             <p className="text-sm text-muted-foreground mb-6">Last updated: {lastUpdated}</p>
             <h2 className="text-2xl font-semibold text-secondary-foreground  mb-3">1. Overview</h2>
             <p className="text-muted-foreground leading-relaxed">
-              PulseMarket respects your privacy. This Privacy Policy explains how we collect, use, and protect
+              Polymeme respects your privacy. This Privacy Policy explains how we collect, use, and protect
               your information when you use our platform.
             </p>
           </section>
@@ -95,7 +95,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-2xl font-semibold text-secondary-foreground  mb-3">4. Blockchain Transparency</h2>
             <p className="text-muted-foreground leading-relaxed">
-              All transactions on PulseMarket are conducted on the Solana blockchain, which is public and transparent.
+              All transactions on Polymeme are conducted on the Solana blockchain, which is public and transparent.
               Your wallet address and transaction history are visible on-chain. We cannot and do not hide this information.
             </p>
           </section>

@@ -84,7 +84,7 @@ export function HowItWorksButton() {
           <DialogHeader className="px-6 pt-6">
             <DialogTitle className="text-xl">How it works</DialogTitle>
             <DialogDescription>
-              A quick walkthrough of placing a bet on PulseMarket.
+              A quick walkthrough of placing a bet on Polymeme.
             </DialogDescription>
           </DialogHeader>
 

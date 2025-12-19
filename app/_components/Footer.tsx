@@ -109,7 +109,7 @@ export function Footer() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-start sm:items-center gap-3 sm:gap-4 py-6">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} PulseMarket
+              © {new Date().getFullYear()} Polymeme
             </p>
 
           <div className="flex items-start sm:items-center gap-2 sm:gap-6 text-sm text-muted-foreground">
@@ -142,7 +142,7 @@ export function Footer() {
             </Link>
             <span className="text-muted-foreground/50 hidden lg:block">•</span>
 
-            <Link href="https://twitter.com/PulseMarket"> Twitter</Link>
+            <Link href="https://twitter.com/Polymeme"> Twitter</Link>
           </div>
 
           <div className="hidden lg:flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 min-w-0">

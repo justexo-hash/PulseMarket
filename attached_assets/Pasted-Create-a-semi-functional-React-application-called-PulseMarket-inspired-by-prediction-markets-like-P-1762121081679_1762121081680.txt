@@ -1,4 +1,4 @@
-Create a semi-functional React application called PulseMarket, inspired by prediction markets like Polymarket. The app will be a single-page application (SPA) that uses react-router-dom for navigation. It will display a list of markets, allow users to click for details, and simulate creating a new market.
+Create a semi-functional React application called Polymeme, inspired by prediction markets like Polymarket. The app will be a single-page application (SPA) that uses react-router-dom for navigation. It will display a list of markets, allow users to click for details, and simulate creating a new market.
 
 🛠️ Tech Stack & Setup
 Framework: React (using Hooks: useState, useEffect)
@@ -65,7 +65,7 @@ Header.jsx
 
 A simple navigation bar.
 
-Shows the name "PulseMarket".
+Shows the name "Polymeme".
 
 Uses the Link component from react-router-dom to link to:
 

@@ -76,7 +76,7 @@ export function WalletContextProvider({ children }: WalletContextProviderProps) 
     try {
       registerMwa({
         appIdentity: {
-          name: process.env.NEXT_PUBLIC_APP_NAME || "PulseMarket",
+          name: process.env.NEXT_PUBLIC_APP_NAME || "Polymeme",
           uri:
             process.env.NEXT_PUBLIC_APP_URL ||
             window.location.origin ||

@@ -23,35 +23,11 @@ export function SearchCategories() {
           >
             <Button
               variant={
-                activeCategory === "" ? "default" : "secondary"
+                activeCategory === "" ? "link" : "selected"
               }
               className="whitespace-nowrap capitalize font-bold text-base"
             >
               Trending
-            </Button>
-          </Link>
-          <Link
-            href={`/breaking`}
-          >
-            <Button
-              variant={
-                activeCategory === "breaking" ? "default" : "secondary"
-              }
-              className="whitespace-nowrap capitalize font-bold text-base"
-            >
-              Breaking
-            </Button>
-          </Link>
-          <Link
-            href={`/new`}
-          >
-            <Button
-              variant={
-                activeCategory === "new" ? "default" : "secondary"
-              }
-              className="whitespace-nowrap capitalize font-bold text-base"
-            >
-              New
             </Button>
           </Link>
         </div>
@@ -64,7 +40,7 @@ export function SearchCategories() {
             <Button
               key={cat}
               variant={
-                activeCategory === cat.toLowerCase() ? "default" : "secondary"
+                activeCategory === cat.toLowerCase() ? "link" : "selected"
               }
               className="whitespace-nowrap capitalize font-bold text-base"
             >

@@ -1,4 +1,4 @@
-# PulseMarket Design Guidelines
+# Polymeme Design Guidelines
 
 ## Design Approach
 

@@ -1,6 +1,6 @@
 # Setting Up Neon Database - Quick Guide
 
-Neon is a serverless PostgreSQL platform that's perfect for PulseMarket. It's free to start and handles all the server management for you!
+Neon is a serverless PostgreSQL platform that's perfect for Polymeme. It's free to start and handles all the server management for you!
 
 ## Step 1: Create a Neon Account
 
@@ -42,7 +42,7 @@ postgresql://neondb_owner:npg_xxxxx@ep-cool-darkness-123456.us-east-2.aws.neon.t
 
 ## Step 4: Add to Your .env File
 
-In your PulseMarket project, create or edit the `.env` file in the root directory:
+In your Polymeme project, create or edit the `.env` file in the root directory:
 
 ```env
 DATABASE_URL=postgresql://username:password@ep-xxx-xxx.region.neon.tech/dbname?sslmode=require
@@ -161,7 +161,7 @@ Once connected:
 1. ✅ Your database is set up
 2. ✅ Run `npm run db:push` to create tables
 3. ✅ Start your app with `npm run dev`
-4. ✅ Generate a wallet, register, and start using PulseMarket!
+4. ✅ Generate a wallet, register, and start using Polymeme!
 
 That's it! Neon handles everything else - no server management, no configuration, no headaches! 🎉
 

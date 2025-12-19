@@ -230,7 +230,7 @@ export function DepositView() {
             <Alert className="mb-6 border-primary/20 bg-primary/5">
               <Wallet className="h-4 w-4 text-secondary-foreground" />
               <AlertDescription>
-                <strong>Real blockchain deposit:</strong> SOL will be sent from your connected wallet ({wallet.publicKey?.toBase58().slice(0, 8)}...) to the PulseMarket treasury.
+                <strong>Real blockchain deposit:</strong> SOL will be sent from your connected wallet ({wallet.publicKey?.toBase58().slice(0, 8)}...) to the Polymeme treasury.
               </AlertDescription>
             </Alert>
           )}
@@ -276,7 +276,7 @@ export function DepositView() {
               </div>
               <p className="text-sm text-muted-foreground mt-2">
                 {wallet.connected 
-                  ? "This will send real SOL from your wallet to the PulseMarket treasury."
+                  ? "This will send real SOL from your wallet to the Polymeme treasury."
                   : "This is a simulated deposit. Connect your wallet for real blockchain transactions."}
               </p>
             </div>

@@ -2,19 +2,19 @@ import Link from "next/link";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Featured | Pulsemarket",
+  title: `FEATURED | ${process.env.BRAND_NAME}`,
   description: "Building the future of memecoin prediction markets.",
   icons: {
     icon: "/favicon.png",
   },
   openGraph: {
-    title: "Featured | Pulsemarket",
+    title: `FEATURED | ${process.env.BRAND_NAME}`,
     description: "Building the future of memecoin prediction markets.",
     url: "https://pulsemarket.fun",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Featured | Pulsemarket",
+    title: `FEATURED | ${process.env.BRAND_NAME}`,
     description:
       "Predict memecoin markets, track sentiment and trade probabilities instantly.",
     creator: "@pulsemkt",
@@ -31,9 +31,9 @@ export const metadata: Metadata = {
     "web3 trading",
     "onchain markets",
   ],
-  authors: [{ name: "PulseMarket Team", url: "https://pulsemarket.fun" }],
+  authors: [{ name: "Polymeme Team", url: "https://pulsemarket.fun" }],
   category: "finance",
-  applicationName: "PulseMarket",
+  applicationName: "Polymeme",
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
   metadataBase: new URL("https://pulsemarket.fun"),
@@ -56,13 +56,13 @@ const posts: BlogPost[] = [
     excerpt:
       "A beginner-friendly guide explaining how prediction markets work and why memecoins are the perfect asset class to trade narratives.",
     date: "2025-02-01",
-    author: "PulseMarket Research",
+    author: "Polymeme Research",
     tags: ["education", "memecoins"],
     cover: "/blog/memecoin-intro.png",
   },
   {
     slug: "how-pulsemarket-calculates-probabilities",
-    title: "How PulseMarket Calculates Market Probabilities",
+    title: "How Polymeme Calculates Market Probabilities",
     excerpt:
       "A deep dive into the pricing engine behind YES/NO markets, liquidity behavior, and crowd-based probability formation.",
     date: "2025-02-10",
@@ -76,17 +76,17 @@ const posts: BlogPost[] = [
     excerpt:
       "From ETF approvals to celebrity memecoins, explore the narratives that consistently shape market sentiment and volatility.",
     date: "2025-02-15",
-    author: "PulseMarket Editorial",
+    author: "Polymeme Editorial",
     tags: ["trends", "narratives"],
     cover: "/blog/narratives.png",
   },
   {
     slug: "pulsemarket-weekly-roundup",
-    title: "PulseMarket Weekly Roundup",
+    title: "Polymeme Weekly Roundup",
     excerpt:
       "A digest-style summary of the most traded markets, biggest winners, top traders, and emerging meme trends of the week.",
     date: "2025-02-20",
-    author: "PulseMarket Team",
+    author: "Polymeme Team",
     tags: ["roundup", "weekly"],
     cover: "/blog/weekly-roundup.png",
   },
@@ -97,7 +97,7 @@ export default function Blog() {
     <main className="max-w-7xl mx-auto pt-8">
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-secondary-foreground  mb-2">
-          PulseMarket Blog
+          Polymeme Blog
         </h1>
         <p className="text-muted-foreground text-lg">
           Updates, stories, and insights about prediction markets, events, and

@@ -1,8 +1,8 @@
-# PulseMarket - Prediction Markets Platform
+# Polymeme - Prediction Markets Platform
 
 ## Overview
 
-PulseMarket is a fully functional prediction market application with Solana wallet-based authentication, inspired by platforms like Polymarket, Kalshi, and Robinhood. The application allows users to:
+Polymeme is a fully functional prediction market application with Solana wallet-based authentication, inspired by platforms like Polymarket, Kalshi, and Robinhood. The application allows users to:
 - Generate Solana wallets on-site and register accounts using wallet address + password
 - Authenticate with wallet-based login and secure session management
 - Browse prediction markets across categories (Crypto, Entertainment, Technology, etc.)

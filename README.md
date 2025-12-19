@@ -1,4 +1,4 @@
-# PulseMarket - Local Development Setup
+# Polymeme - Local Development Setup
 
 ## Prerequisites
 
@@ -136,7 +136,7 @@ This will:
 ## Project Structure
 
 ```
-PulseMarket/
+Polymeme/
 ├── app/            # Next.js App Router (pages + API routes)
 ├── components/     # Shared UI primitives (shadcn/ui, HowItWorks, ErrorBoundary)
 ├── hooks/          # Reusable client hooks (toast helpers, etc.)
@@ -175,5 +175,5 @@ This executes `/api/jobs/expired-markets` logic server-side and can be wired int
 - ✅ Transaction history tracking
 - ✅ Portfolio tracking
 
-Enjoy building on PulseMarket! 🚀
+Enjoy building on Polymeme! 🚀
 

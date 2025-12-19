@@ -104,7 +104,7 @@ export function MarketCard({ market }: MarketCardProps) {
       : `/markets/${market.slug || market.id}`;
 
   return (
-    <Link href={marketPath} data-testid={`group z-1 card-market-${market.id}`}>
+    <Link href={marketPath} data-testid={`group z-1 cursor-pointer card-market-${market.id}`}>
       <div
         className={`group bg-secondary rounded-lg border border-border p-3 gap-4 shadow-lg hover-elevate active-elevate-2 transition-all duration-200 cursor-pointer h-full flex flex-col justify-between`}
       >
@@ -209,7 +209,7 @@ export function MarketCard({ market }: MarketCardProps) {
                 Resolved
               </Badge>
             )}
-            <Star
+            {/* <Star
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();                setFavorited(!favorited);
@@ -220,7 +220,7 @@ export function MarketCard({ market }: MarketCardProps) {
               `}
               size="18"
               fill={favorited ? "currentColor" : "none"}
-            />
+            /> */}
           </div>
         </div>
       </div>

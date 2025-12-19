@@ -22,7 +22,7 @@
 ### Step 2: Deploy Repository
 1. Click "New Project"
 2. "Deploy from GitHub repo"
-3. Select `PulseMarket` repository
+3. Select `Polymeme` repository
 4. Railway auto-detects Node.js
 
 ### Step 3: Add PostgreSQL (Optional - or use existing Neon)

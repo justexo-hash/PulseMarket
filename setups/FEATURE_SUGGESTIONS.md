@@ -1,4 +1,4 @@
-# Feature Suggestions for PulseMarket
+# Feature Suggestions for Polymeme
 
 ## High-Impact Features (Recommended to Add)
 

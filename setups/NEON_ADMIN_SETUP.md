@@ -8,7 +8,7 @@
 
 ### Step 2: Select Your Database
 1. In the Neon dashboard, you'll see your projects
-2. Click on the project that contains your PulseMarket database (usually named something like "neondb" or similar)
+2. Click on the project that contains your Polymeme database (usually named something like "neondb" or similar)
 
 ### Step 3: Open SQL Editor
 1. In your project dashboard, look for a **"SQL Editor"** or **"Query"** button/tab
@@ -16,7 +16,7 @@
 3. You should see a query editor interface
 
 ### Step 4: Get Your Wallet Address
-1. In your PulseMarket app, connect your wallet
+1. In your Polymeme app, connect your wallet
 2. Your wallet address is shown in the header (e.g., "4kaj...X7m2")
 3. Or check your browser's developer console - it might be logged there
 4. **Copy the full wallet address** (it should be a long string starting with a letter/number)
@@ -52,7 +52,7 @@ WHERE wallet_address = 'YOUR_WALLET_ADDRESS_HERE';
 You should see `is_admin = 1` in the results.
 
 ### Step 7: Refresh Your App
-1. Go back to your PulseMarket app
+1. Go back to your Polymeme app
 2. **Refresh the page** (or log out and log back in)
 3. You should now see the **"Admin"** link in the header
 4. Click it to access the Admin Panel at `/admin`
@@ -83,7 +83,7 @@ If you prefer command line:
 - It's usually in the top navigation of your Neon project
 
 **Don't see your wallet address?**
-- Connect your wallet in the PulseMarket app
+- Connect your wallet in the Polymeme app
 - Check the browser console (F12) for logged wallet address
 - Or look at the header where it shows your truncated address - click on it if it's clickable
 

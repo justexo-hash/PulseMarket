@@ -227,7 +227,7 @@ export function WithdrawView() {
             <Alert className="mb-6 border-primary/20 bg-primary/5">
               <Wallet className="h-4 w-4 text-secondary-foreground" />
               <AlertDescription>
-                <strong>Withdrawal:</strong> SOL will be sent from the PulseMarket treasury to your connected wallet ({wallet.publicKey?.toBase58().slice(0, 8)}...).
+                <strong>Withdrawal:</strong> SOL will be sent from the Polymeme treasury to your connected wallet ({wallet.publicKey?.toBase58().slice(0, 8)}...).
               </AlertDescription>
             </Alert>
           )}

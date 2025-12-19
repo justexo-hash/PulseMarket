@@ -35,10 +35,10 @@ export const metadata: Metadata = {
     "onchain markets",
   ],
   authors: [
-    { name: "PulseMarket Team", url: "https://pulsemarket.fun" }
+    { name: "Polymeme Team", url: "https://pulsemarket.fun" }
   ],
   category: "finance",
-  applicationName: "PulseMarket",
+  applicationName: "Polymeme",
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
   metadataBase: new URL("https://pulsemarket.fun"),
@@ -63,7 +63,7 @@ export default function TermsPage() {
             <p className="text-sm text-muted-foreground mb-6">Last updated: {lastUpdated}</p>
             <h2 className="text-2xl font-semibold text-secondary-foreground  mb-3">1. Acceptance of Terms</h2>
             <p className="text-muted-foreground leading-relaxed">
-              By accessing and using PulseMarket, you accept and agree to be bound by these Terms of Service.
+              By accessing and using Polymeme, you accept and agree to be bound by these Terms of Service.
               If you do not agree with these terms, please do not use our platform.
             </p>
           </section>
@@ -71,7 +71,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-semibold text-secondary-foreground  mb-3">2. Eligibility</h2>
             <p className="text-muted-foreground leading-relaxed">
-              You must be at least 18 years old to use PulseMarket. You are responsible for ensuring that your
+              You must be at least 18 years old to use Polymeme. You are responsible for ensuring that your
               use of the platform complies with all applicable laws in your jurisdiction.
             </p>
           </section>
@@ -79,7 +79,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-semibold text-secondary-foreground  mb-3">3. Platform Use</h2>
             <p className="text-muted-foreground leading-relaxed">
-              PulseMarket provides a decentralized prediction market platform. You are responsible for your account
+              Polymeme provides a decentralized prediction market platform. You are responsible for your account
               security and all activities that occur under your wallet address. We do not store your private keys.
             </p>
           </section>
@@ -105,7 +105,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-semibold text-secondary-foreground  mb-3">6. Disclaimer</h2>
             <p className="text-muted-foreground leading-relaxed">
-              PulseMarket is provided &quot;as is&quot; without warranties of any kind. We do not guarantee the accuracy
+              Polymeme is provided &quot;as is&quot; without warranties of any kind. We do not guarantee the accuracy
               of market information or outcomes. You participate in markets at your own risk.
             </p>
           </section>
@@ -113,7 +113,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-semibold text-secondary-foreground  mb-3">7. Limitation of Liability</h2>
             <p className="text-muted-foreground leading-relaxed">
-              To the maximum extent permitted by law, PulseMarket and its operators shall not be liable for any damages
+              To the maximum extent permitted by law, Polymeme and its operators shall not be liable for any damages
               arising from your use of the platform.
             </p>
           </section>

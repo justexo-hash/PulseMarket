@@ -18,9 +18,9 @@ export default function AboutPage() {
 
         <Card className="">
           <section>
-            <h2 className="text-2xl font-semibold text-secondary-foreground  mb-3">What is PulseMarket?</h2>
+            <h2 className="text-2xl font-semibold text-secondary-foreground  mb-3">What is Polymeme?</h2>
             <p className="text-muted-foreground leading-relaxed">
-              PulseMarket is a decentralized prediction market platform built on Solana.
+              Polymeme is a decentralized prediction market platform built on Solana.
               We enable users to bet on future events with complete transparency and
               provably fair outcomes.
             </p>
@@ -50,7 +50,7 @@ export default function AboutPage() {
           <section>
             <h2 className="text-2xl font-semibold text-secondary-foreground  mb-3">Technology</h2>
             <p className="text-muted-foreground leading-relaxed">
-              PulseMarket is built on the Solana blockchain, ensuring fast transactions
+              Polymeme is built on the Solana blockchain, ensuring fast transactions
               and low fees. All deposits, bets, and payouts are handled on-chain with
               full transparency. Our provably fair system ensures that market outcomes
               cannot be manipulated.

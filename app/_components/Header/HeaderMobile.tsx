@@ -34,7 +34,7 @@ export function HeaderMobile(props: any) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo-white.png" className="w-8 h-8" alt="" />
               <span className="text-xl font-bold text-secondary-foreground ">
-                PulseMarket
+                Polymeme
               </span>
             </Link>
             {/* MOBILE NAVIGATION (Sheet Menu) */}

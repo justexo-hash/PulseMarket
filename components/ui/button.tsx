@@ -21,7 +21,8 @@ const buttonVariants = cva(
         secondary: "w-full border bg-secondary text-secondary-foreground hover:bg-secondary/20",
         // Add a transparent border so that when someone toggles a border on later, it doesn't shift layout/size.
         ghost: "text-muted-foreground hover:text-foreground",
-        selected: "border border-transparent",
+        link: "text-foreground border border-transparent",
+        selected: "text-muted-foreground/75 border border-transparent",
         sidebar:"text-muted-foreground hover:text-foreground"
       },
       // Heights are set as "min" heights, because sometimes Ai will place large amount of content

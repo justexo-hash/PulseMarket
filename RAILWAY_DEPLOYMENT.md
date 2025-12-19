@@ -25,7 +25,7 @@ DELETE FROM markets;
 1. In Railway dashboard, click "New Project"
 2. Select "Deploy from GitHub repo"
 3. Authorize Railway to access your GitHub
-4. Select your `PulseMarket` repository
+4. Select your `Polymeme` repository
 5. Railway will auto-detect it's a Node.js project and start deploying!
 
 ### 4. Add PostgreSQL Database
@@ -151,7 +151,7 @@ Just push to GitHub! Railway automatically:
 ### 2. Create New Project
 1. Click "New Project"
 2. Select "Deploy from GitHub repo"
-3. Connect your GitHub account and select the PulseMarket repository
+3. Connect your GitHub account and select the Polymeme repository
 
 ### 3. Add PostgreSQL Database
 1. In your project, click "New"

@@ -213,10 +213,10 @@ Enter your password when prompted. If it connects, PostgreSQL is working.
 
 ```bash
 # Install psql client if you don't have it, or use a GUI tool
-# Or test with Node.js from your PulseMarket project
+# Or test with Node.js from your Polymeme project
 ```
 
-**Or test from your PulseMarket project:**
+**Or test from your Polymeme project:**
 
 Create a test file `test-db.js` in your project root:
 
@@ -365,7 +365,7 @@ Once everything is configured:
    DATABASE_URL=postgresql://pulsemarket_user:password@YOUR_SERVER_IP:5432/pulsemarket?sslmode=require
    ```
 
-2. **Test from PulseMarket:**
+2. **Test from Polymeme:**
    ```bash
    npm run db:push
    ```

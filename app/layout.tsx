@@ -36,19 +36,20 @@ const openSauce = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "PulseMarket | World largest memecoin prediction markets",
+  title: `${process.env.BRAND_NAME} | World largest memecoin prediction markets`,
+
   description: "Building the future of memecoin prediction markets.",
   icons: {
     icon: "/favicon.png",
   },
   openGraph: {
-    title: "PulseMarket | World largest memecoin prediction markets",
+    title: `${process.env.BRAND_NAME} | World largest memecoin prediction markets`,
     description: "Building the future of memecoin prediction markets.",
     url: "https://pulsemarket.fun",
   },
   twitter: {
     card: "summary_large_image",
-    title: "PulseMarket | World largest memecoin prediction markets",
+    title: `${process.env.BRAND_NAME} | World largest memecoin prediction markets`,
     description:
       "Predict memecoin markets, track sentiment and trade probabilities instantly.",
     creator: "@pulsemkt",
@@ -65,9 +66,9 @@ export const metadata: Metadata = {
     "web3 trading",
     "onchain markets",
   ],
-  authors: [{ name: "PulseMarket Team", url: "https://pulsemarket.fun" }],
+  authors: [{ name: "Polymeme Team", url: "https://Polymeme.fun" }],
   category: "finance",
-  applicationName: "PulseMarket",
+  applicationName: "Polymeme",
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
   metadataBase: new URL("https://pulsemarket.fun"),

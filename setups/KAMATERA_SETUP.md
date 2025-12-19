@@ -243,7 +243,7 @@ sudo -u postgres psql pulsemarket
 
 Once you have your connection string:
 
-1. Add it to your `.env` file in the PulseMarket project:
+1. Add it to your `.env` file in the Polymeme project:
    ```env
    DATABASE_URL=postgresql://pulsemarket_user:password@YOUR_SERVER_IP:5432/pulsemarket
    ```
@@ -258,5 +258,5 @@ Once you have your connection string:
    npm run dev
    ```
 
-That's it! Your PulseMarket app will now connect to your PostgreSQL database on Kamatera.
+That's it! Your Polymeme app will now connect to your PostgreSQL database on Kamatera.
 
