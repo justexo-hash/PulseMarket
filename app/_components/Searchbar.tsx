@@ -89,9 +89,14 @@ export function MarketSearchBar() {
   }, [mode, trimmedQuery]);
 
   const filteredResults = trimmedQuery.length
-    ? markets.filter((m) =>
-        m.question.toLowerCase().includes(trimmedQuery.toLowerCase())
-      )
+    ? markets.filter((m) => {
+        const query = trimmedQuery.toLowerCase();
+        return (
+          m.question.toLowerCase().includes(query) ||
+          m.tokenAddress?.toLowerCase().includes(query) ||
+          m.tokenAddress2?.toLowerCase().includes(query)
+        );
+      })
     : [];
 
   return (

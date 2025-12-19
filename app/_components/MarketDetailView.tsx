@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { type Market } from "@shared/schema";
@@ -9,13 +9,62 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, ThumbsUp, ThumbsDown, CheckCircle2, DollarSign, Shield, Copy, XCircle } from "lucide-react";
+import { ArrowLeft, ThumbsUp, ThumbsDown, CheckCircle2, DollarSign, Shield, Copy, XCircle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { verifyCommitmentHash } from "@/lib/provablyFair";
 import { PnLSidebar } from "./PnLSidebar";
+
+// Live expiration timer component
+function ExpirationTimer({ expiresAt }: { expiresAt: Date | string }) {
+  const [timeRemaining, setTimeRemaining] = useState<string>("");
+
+  useEffect(() => {
+    const updateTimer = () => {
+      const now = new Date().getTime();
+      const expiration = new Date(expiresAt).getTime();
+      const diff = expiration - now;
+
+      if (diff <= 0) {
+        setTimeRemaining("Expired");
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      if (days > 0) {
+        setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
+      } else if (hours > 0) {
+        setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
+      } else if (minutes > 0) {
+        setTimeRemaining(`${minutes}m ${seconds}s`);
+      } else {
+        setTimeRemaining(`${seconds}s`);
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  if (!timeRemaining) return null;
+
+  const isUrgent = new Date(expiresAt).getTime() - Date.now() < 60 * 60 * 1000; // Less than 60 minutes
+
+  return (
+    <div className={`flex items-center gap-2 ${isUrgent ? "text-destructive" : "text-secondary-foreground"}`}>
+      <Clock className="h-4 w-4" />
+      <p className="text-base font-semibold">{timeRemaining}</p>
+    </div>
+  );
+}
 
 interface MarketDetailViewProps {
   slug?: string;
@@ -42,6 +91,39 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
   const displayMarket = marketOverride || market;
   const marketId = displayMarket?.id?.toString() || slug;
   const querySlug = slug || displayMarket?.slug || displayMarket?.id?.toString();
+
+  // Extract token names for use in charts and buttons
+  let token1Name: string | null = null;
+  let token2Name: string | null = null;
+  
+  if (displayMarket) {
+    if (displayMarket.tokenAddress2) {
+      // Battle market - extract names from question
+      // Multiple formats:
+      // - "Which token will reach $250K market cap first: TokenName1 or TokenName2?"
+      // - "Which token will dump 50% first (to $800K market cap): TokenName1 or TokenName2?"
+      // Pattern: Look for ": TokenName1 or TokenName2?" at the end
+      const match = displayMarket.question.match(/:\s*([^?]+?)\s+or\s+([^?]+?)\s*\?/i);
+      if (match && match[1] && match[2]) {
+        token1Name = match[1].trim();
+        token2Name = match[2].trim();
+      }
+    } else if (displayMarket.tokenAddress) {
+      // Single token market - extract name from question
+      // Format: "Will TokenName's current..."
+      const match = displayMarket.question.match(/Will\s+([^']+)'s/i);
+      if (match) {
+        token1Name = match[1].trim();
+      }
+    }
+  }
+  
+  // Helper function to truncate text with ellipses
+  const truncateText = (text: string | null, maxLength: number = 20): string => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength - 3) + "...";
+  };
 
   const resolveMarket = useMutation({
     mutationFn: async (outcome: "yes" | "no") => {
@@ -329,32 +411,172 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
               )}
             </div>
             <div className="flex items-start justify-between gap-4 mb-2">
-              <h1 className="text-4xl font-bold text-secondary-foreground " data-testid="text-question">
-                {displayMarket.question}
-              </h1>
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold text-secondary-foreground " data-testid="text-question">
+                  {displayMarket.question}
+                </h1>
+                {/* Battle market refund notice */}
+                {displayMarket.tokenAddress2 && (
+                  <p className="text-sm text-muted-foreground mt-2 italic">
+                    If neither token reaches the target, all bets will be refunded.
+                  </p>
+                )}
+              </div>
             </div>
             
-            {/* Show token address if available as subheader */}
-            {displayMarket.tokenAddress && (
-              <div className="mb-4 flex items-center gap-2">
-                <p className="text-sm text-muted-foreground font-mono">
-                  {displayMarket.tokenAddress}
-                </p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2"
-                  onClick={() => {
-                    navigator.clipboard.writeText(displayMarket.tokenAddress || "");
-                    toast({
-                      title: "Copied!",
-                      description: "Token address copied to clipboard",
-                    });
-                  }}
-                >
-                  <Copy className="h-3 w-3" />
-                </Button>
+            {/* DexScreener Chart(s) - Replace image with live charts */}
+            {(displayMarket.tokenAddress || displayMarket.tokenAddress2) && (
+              <div className="mb-4">
+                <style jsx>{`
+                  .dexscreener-embed {
+                    position: relative;
+                    width: 100%;
+                    padding-bottom: 125%;
+                  }
+                  @media(min-width:1400px) {
+                    .dexscreener-embed {
+                      padding-bottom: 65%;
+                    }
+                  }
+                  .dexscreener-embed iframe {
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    top: 0;
+                    left: 0;
+                    border: 0;
+                  }
+                `}</style>
+                {displayMarket.tokenAddress2 ? (
+                  // Battle market - show two charts side by side with increased height
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div style={{ position: 'relative', width: '100%', paddingBottom: '125%' }}>
+                      <iframe 
+                        src={`https://dexscreener.com/solana/${displayMarket.tokenAddress}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=mktcap&interval=5`}
+                        style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, border: 0 }}
+                        allowFullScreen
+                        title={`Chart for ${token1Name || "Token 1"}`}
+                      />
+                    </div>
+                    <div style={{ position: 'relative', width: '100%', paddingBottom: '125%' }}>
+                      <iframe 
+                        src={`https://dexscreener.com/solana/${displayMarket.tokenAddress2}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=mktcap&interval=5`}
+                        style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, border: 0 }}
+                        allowFullScreen
+                        title={`Chart for ${token2Name || "Token 2"}`}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  // Single token market - show one chart
+                  <div className="dexscreener-embed">
+                    <iframe 
+                      src={`https://dexscreener.com/solana/${displayMarket.tokenAddress}?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=mktcap&interval=5`}
+                      width="100%" 
+                      height="400" 
+                      frameBorder="0"
+                      allowFullScreen
+                      title={`Chart for ${token1Name || "Token"}`}
+                    />
+                  </div>
+                )}
               </div>
+            )}
+            
+            {/* Show token address(es) if available as subheader */}
+            {(displayMarket.tokenAddress || displayMarket.tokenAddress2) && (() => {
+              // Extract token names from question for battle markets
+              // Format: "Which token will... first: TokenName1 or TokenName2?"
+              let token1Name: string | null = null;
+              let token2Name: string | null = null;
+              
+              if (displayMarket.tokenAddress2) {
+                // Battle market - extract names from question
+                const match = displayMarket.question.match(/first:\s*([^?]+)\s*or\s*([^?]+)\?/i);
+                if (match) {
+                  token1Name = match[1].trim();
+                  token2Name = match[2].trim();
+                }
+              } else {
+                // Single token market - extract name from question
+                // Format: "Will TokenName's current..."
+                const match = displayMarket.question.match(/Will\s+([^'s]+)'s/i);
+                if (match) {
+                  token1Name = match[1].trim();
+                }
+              }
+              
+              return (
+                <div className="mb-4 space-y-2">
+                  {displayMarket.tokenAddress && (
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground font-mono">
+                        {token1Name || "Token 1"}: {displayMarket.tokenAddress}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2"
+                        onClick={() => {
+                          navigator.clipboard.writeText(displayMarket.tokenAddress || "");
+                          toast({
+                            title: "Copied!",
+                            description: "Token address copied to clipboard",
+                          });
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                  {displayMarket.tokenAddress2 && (
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground font-mono">
+                        {token2Name || "Token 2"}: {displayMarket.tokenAddress2}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2"
+                        onClick={() => {
+                          navigator.clipboard.writeText(displayMarket.tokenAddress2 || "");
+                          toast({
+                            title: "Copied!",
+                            description: "Token address copied to clipboard",
+                          });
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+            
+            {/* Show expiration datetime and live timer */}
+            {displayMarket.expiresAt && (
+              <Card className="p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Expires</p>
+                    <p className="text-base font-semibold text-secondary-foreground">
+                      {new Date(displayMarket.expiresAt).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Time Remaining</p>
+                    <ExpirationTimer expiresAt={displayMarket.expiresAt} />
+                  </div>
+                </div>
+              </Card>
             )}
             
             {/* Show invite code for private wagers */}
@@ -549,8 +771,14 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                   disabled={placeBet.isPending || displayMarket.status !== "active"}
                   data-testid="button-bet-yes"
                 >
-                  <ThumbsUp className="mr-2 h-5 w-5" />
-                  {placeBet.isPending ? "Placing..." : "Bet Yes"}
+                  {!displayMarket.tokenAddress2 && <ThumbsUp className="mr-2 h-5 w-5" />}
+                  <span className="truncate" title={displayMarket.tokenAddress2 ? (token1Name || "Token 1") : "Yes"}>
+                    {placeBet.isPending 
+                      ? "Placing..." 
+                      : displayMarket.tokenAddress2 
+                        ? truncateText(token1Name || "Token 1", 15)
+                        : "Yes"}
+                  </span>
                 </Button>
               </div>
               <div
@@ -564,8 +792,14 @@ export function MarketDetailView({ slug, marketOverride }: MarketDetailViewProps
                   disabled={placeBet.isPending || displayMarket.status !== "active"}
                   data-testid="button-bet-no"
                 >
-                  <ThumbsDown className="mr-2 h-5 w-5" />
-                  {placeBet.isPending ? "Placing..." : "Bet No"}
+                  {!displayMarket.tokenAddress2 && <ThumbsDown className="mr-2 h-5 w-5" />}
+                  <span className="truncate" title={displayMarket.tokenAddress2 ? (token2Name || "Token 2") : "No"}>
+                    {placeBet.isPending 
+                      ? "Placing..." 
+                      : displayMarket.tokenAddress2 
+                        ? truncateText(token2Name || "Token 2", 15)
+                        : "No"}
+                  </span>
                 </Button>
               </div>
             </div>
