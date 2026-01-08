@@ -11,11 +11,12 @@ export function ProbabilityGauge({
   resolved = false,
   outcome
 }: ProbabilityGaugeProps) {
-  const color = resolved
+  // Use CSS variable colors
+  const colorClass = resolved
     ? outcome === "yes"
-      ? "#16a34a" // green
-      : "#dc2626" // red
-    : "#3b82f6"; // primary blue (customize)
+      ? "stroke-success"
+      : "stroke-destructive"
+    : "stroke-primary";
 
   return (
     <div className="flex flex-col items-center justify-center">
@@ -24,21 +25,19 @@ export function ProbabilityGauge({
         <path
           d="M5,35 A30,30 0 0 1 65,35"
           fill="none"
-          stroke="#334155"
+          className="stroke-muted"
           strokeWidth="5"
-          className="opacity-40"
         />
 
         {/* Progress arc */}
         <path
           d="M5,35 A30,30 0 0 1 65,35"
           fill="none"
-          stroke={color}
+          className={`${colorClass} transition-all duration-300`}
           strokeWidth="5"
           strokeDasharray={Math.PI * 30}
           strokeDashoffset={(1 - value / 100) * Math.PI * 30}
           strokeLinecap="round"
-          className="transition-all duration-300"
         />
       </svg>
 

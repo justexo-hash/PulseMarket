@@ -428,7 +428,7 @@ ActivityFeedView() {
                             }
                             className={`text-xs ${
                               market.resolvedOutcome === "yes"
-                                ? "bg-green-400/20 text-green-400"
+                                ? "bg-success/20 text-success"
                                 : ""
                             }`}
                           >

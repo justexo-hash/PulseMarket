@@ -1,138 +1,72 @@
+"use client";
+
 import Link from "next/link";
 import { MarketSearchBar } from "../Searchbar";
-import HowItWorksButton from "@/components/HowItWorks";
 import { Button } from "@/components/ui/button";
 import { Plus, Users } from "lucide-react";
 import { WalletDropdown } from "./WalletDropdown";
-import { useAuth } from "@/lib/auth";
 import FilterHeader from "./FilterHeader";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
-import { Card, CardContent } from "@/components/ui/card";
-// Static navigation links for both desktop and mobile menus
-const NAV_LINKS = [
-  { href: "/", label: "Discover" },
-  { href: "/portfolio", label: "Portfolio", requiresAuth: true },
-  { href: "/activity", label: "Activity" },
-];
+import { NotificationsDropdown } from "./NotificationsDropdown";
+import type { HeaderProps } from "./types";
 
-// DESKTOP HEADER COMPONENT
-export function HeaderDesktop(props: any) {
-  const { user } = useAuth();
+export function HeaderDesktop({
+  user,
+  wallet,
+  onChainBalance,
+  solPriceUsd,
+  isMounted,
+  handleLogout,
+}: HeaderProps) {
   return (
-    <header className="z-50 w-full border-b mb-6">
-      <div className="px-[1.5rem] pt-[1.5rem] flex flex-col gap-6 mb-6">
-        {/* LEFT SIDE: Logo + Searchbar + Mobile Burger Menu */}
+    <header className="z-50 w-full mb-6">
+      <div className="px-4 xl:px-6 pt-4 xl:pt-6 flex flex-col gap-4 xl:gap-6 mb-4 xl:mb-6">
+        {/* Main header row */}
         <div className="flex items-center justify-between gap-3">
-          <div className="flex justify-between md:justify-start gap-3 desktop">
-            {/* Searchbar — desktop & mobile responsive */}
+          {/* Left side: Searchbar */}
+          <div className="flex-1 max-w-2xl">
             <MarketSearchBar />
-            <HowItWorksButton />
           </div>
 
-          {/* RIGHT SIDE: Wallet actions, notifications, login/signup dialog, and desktop menu */}
-          <div className="hidden md:flex items-center gap-3">
+          {/* Right side: Actions */}
+          <div className="flex items-center gap-2 xl:gap-3">
             {user && (
-              <div className="flex items-start justify-between">
-                <div className="flex gap-2">
-                  {user?.isAdmin && (
-                    <Button size="sm" className="gap-2" asChild>
-                      <Link href="/create">
-                        <Plus className="h-5 w-5" />
-                        Create Market
-                      </Link>
-                    </Button>
-                  )}
-
-                  <Button size="sm" className="gap-2" asChild>
+              <>
+                {user.isAdmin && (
+                  <Button size="sm" className="gap-2 hidden lg:flex" asChild>
                     <Link href="/create">
-                      <Users className="h-5 w-5" />
-                      Private Wager
+                      <Plus className="h-4 w-4" />
+                      <span className="hidden xl:inline">Create Market</span>
                     </Link>
                   </Button>
-                </div>
-              </div>
-            )}
-            <WalletDropdown
-              wallet={props.wallet}
-              isMounted={props.isMounted}
-              onChainBalance={props.onChainBalance}
-              solPriceUsd={props.solPriceUsd}
-              onDisconnect={props.handleLogout}
-            />
-            {/* DESKTOP DROPDOWN MENU
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="hidden md:flex">
-                  <Menu className="h-5 w-5" />
+                )}
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-2 hidden lg:flex"
+                  asChild
+                >
+                  <Link href="/create">
+                    <Users className="h-4 w-4" />
+                    <span className="hidden xl:inline">Private Wager</span>
+                  </Link>
                 </Button>
-              </DropdownMenuTrigger>
+              </>
+            )}
 
-              <DropdownMenuContent
-                className="w-56 bg-background text-secondary-foreground-foreground border-none shadow-lg"
-                align="end"
-              >
-                <DropdownMenuLabel className="text-secondary-foreground ">
-                  Navigation
-                </DropdownMenuLabel>
-                <DropdownMenuGroup>
-                  {NAV_LINKS.filter(({ requiresAuth }) => {
-                    if (!requiresAuth) return true;
-                    return Boolean(props.user);
-                  }).map(({ href, label }) => (
-                    <DropdownMenuItem
-                      className="hover:bg-primary/20 transition-colors"
-                      asChild
-                      key={href}
-                    >
-                      <Link
-                        href={href}
-                        className="text-base px-3 py-2 text-secondary-foreground/50 hover:text-secondary-foreground !cursor-pointer font-bold"
-                      >
-                        {label}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuGroup>
-                
-                {props.user && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel className="text-secondary-foreground ">
-                      Account
-                    </DropdownMenuLabel>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        href={`/profile/${props.user.username}`}
-                        className="text-base px-3 py-2 text-secondary-foreground/50 hover:text-secondary-foreground !cursor-pointer font-bold"
-                      >
-                        Profile
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
+            <WalletDropdown
+              wallet={wallet}
+              isMounted={isMounted}
+              onChainBalance={onChainBalance}
+              solPriceUsd={solPriceUsd}
+              onDisconnect={handleLogout}
+            />
 
-                {props.user?.isAdmin && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel>Admin</DropdownMenuLabel>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        href="/admin"
-                        className="text-base px-3 py-2 text-secondary-foreground/50 hover:text-secondary-foreground !cursor-pointer font-bold"
-                      >
-                        Admin
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu> */}
+            <NotificationsDropdown enabled={Boolean(user)} align="end" />
           </div>
         </div>
+
+        {/* Filter categories */}
         <FilterHeader />
       </div>
     </header>

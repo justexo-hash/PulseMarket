@@ -136,7 +136,7 @@ export function NotificationsDropdown({
                   {notification.type === "follower" ? (
                     <UserPlus className="h-4 w-4 text-primary" />
                   ) : (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                    <CheckCircle2 className="h-4 w-4 text-success" />
                   )}
                 </div>
                 <div className="flex-1 space-y-1">
@@ -144,7 +144,7 @@ export function NotificationsDropdown({
                   <p className="text-sm text-muted-foreground">
                     {notification.message}
                   </p>
-                  <p className="text-xs text-muted-foreground/80">
+                  <p className="text-xs text-muted-foreground">
                     {formatDistanceToNow(new Date(notification.createdAt), {
                       addSuffix: true,
                     })}
@@ -157,7 +157,7 @@ export function NotificationsDropdown({
                 <DropdownMenuItem
                   key={notification.id}
                   asChild
-                  className="focus:bg-muted/40 focus:text-secondary-foreground"
+                  className="focus:bg-muted focus:text-secondary-foreground"
                 >
                   <Link href={notification.href} className="block w-full">
                     {content}

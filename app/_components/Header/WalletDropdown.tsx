@@ -1,7 +1,6 @@
 "use client";
-// WalletDropdown: manages connecting, displaying, and managing Solana wallets in the header UI
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -15,18 +14,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-
-import { Button, type ButtonProps } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
-import type { WalletContextState } from "@solana/wallet-adapter-react";
-import { WalletReadyState, type WalletName } from "@solana/wallet-adapter-base";
+import { WalletReadyState } from "@solana/wallet-adapter-base";
 import {
-  Check,
   ChevronDown,
   CircleDollarSign,
   Copy,
@@ -37,27 +30,9 @@ import {
   Wallet2,
 } from "lucide-react";
 import Link from "next/link";
-import { NotificationsDropdown } from "./NotificationsDropdown";
-// Props expected by the WalletDropdown component
-interface WalletDropdownProps {
-  wallet: WalletContextState;
-  isMounted?: boolean;
-  align?: "start" | "center" | "end";
-  triggerClassName?: string;
-  triggerVariant?: ButtonProps["variant"];
-  triggerSize?: ButtonProps["size"];
-  onDisconnect?: () => void;
-  onChainBalance?: number | null;
-  solPriceUsd?: number | null;
-}
-
-// Human-readable labels for Solana wallet readiness states
-const READY_STATE_LABEL: Record<WalletReadyState, string> = {
-  [WalletReadyState.Installed]: "Installed",
-  [WalletReadyState.Loadable]: "Loadable",
-  [WalletReadyState.NotDetected]: "Not detected",
-  [WalletReadyState.Unsupported]: "Unsupported",
-};
+import type { WalletDropdownProps } from "./types";
+import { useWalletConnection } from "./hooks";
+import { truncateAddress, WALLET_READY_STATE_LABELS } from "./constants";
 
 export function WalletDropdown({
   wallet,
@@ -70,180 +45,43 @@ export function WalletDropdown({
   onChainBalance,
   solPriceUsd,
 }: WalletDropdownProps) {
-  const { toast } = useToast();
-  const [pendingWallet, setPendingWallet] = useState<WalletName | null>(null);
   const { user } = useAuth();
   const [viewWalletOpen, setViewWalletOpen] = useState(false);
+  const [connectDialogOpen, setConnectDialogOpen] = useState(false);
 
-  if (user) console.log("USER:" + user);
+  const {
+    pendingWallet,
+    isConnecting,
+    connectedAddress,
+    connectedWalletName,
+    availableWallets,
+    handleSelectWallet,
+    handleDisconnect,
+    handleCopyAddress,
+  } = useWalletConnection({ wallet, onDisconnect });
 
-  const connectedAddress = wallet.publicKey?.toBase58();
-  const connectedWalletName = wallet.wallet?.adapter.name;
-
-  const wallets = wallet.wallets;
-
-  // Build a deduplicated and priority-sorted list of detected wallets
-  const availableWallets = useMemo(() => {
-    const priority: Record<WalletReadyState, number> = {
-      [WalletReadyState.Installed]: 0,
-      [WalletReadyState.Loadable]: 1,
-      [WalletReadyState.NotDetected]: 2,
-      [WalletReadyState.Unsupported]: 3,
-    };
-
-    const deduped: typeof wallets = [];
-    const seen = new Set<string>();
-
-    for (const entry of wallets) {
-      const dedupeKey = `${entry.adapter.name}-${entry.adapter.url ?? ""}`;
-      if (seen.has(dedupeKey)) continue;
-      seen.add(dedupeKey);
-      deduped.push(entry);
-    }
-
-    return deduped.sort(
-      (a, b) => priority[a.readyState] - priority[b.readyState]
-    );
-  }, [wallets]);
-
-  // Format a wallet address to a short readable form (e.g. 8zxf...A91k)
-  const truncateAddress = (address?: string) => {
-    if (!address) return "";
-    return `${address.slice(0, 4)}...${address.slice(-4)}`;
-  };
-
-  // Handle the user selecting a specific wallet provider
-  const handleSelectWallet = async (name: WalletName) => {
-    setPendingWallet(name);
-    try {
-      const target = availableWallets.find(
-        ({ adapter }) => adapter.name === name
-      );
-      if (!target) {
-        throw new Error("Wallet not available");
-      }
-
-      const canConnect =
-        target.readyState === WalletReadyState.Installed ||
-        target.readyState === WalletReadyState.Loadable;
-
-      if (!canConnect) {
-        if (target.adapter.url) {
-          window.open(target.adapter.url, "_blank", "noopener,noreferrer");
-        }
-        throw new Error(
-          `${name} is not installed. Install the wallet to continue.`
-        );
-      }
-
-      if (wallet.wallet?.adapter.name !== name) {
-        wallet.select(name);
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      }
-
-      await wallet.connect();
-      toast({
-        title: "Wallet Connected",
-        description: `Connected to ${name}.`,
-      });
-    } catch (error: any) {
-      const selectedWalletMatches = wallet.wallet?.adapter.name === name;
-      const alreadyConnected = wallet.connected && selectedWalletMatches;
-      const isWalletNotSelectedError =
-        error?.name === "WalletNotSelectedError" ||
-        /WalletNotSelectedError/i.test(error?.message || "");
-
-      if (alreadyConnected) {
-        toast({
-          title: "Wallet Connected",
-          description: `Connected to ${name}.`,
-        });
-        return;
-      }
-
-      if (isWalletNotSelectedError && !selectedWalletMatches) {
-        toast({
-          title: "Wallet Not Selected",
-          description: "Please choose a wallet from the list to continue.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "Connection Failed",
-        description: error?.message || "Unable to connect wallet.",
-        variant: "destructive",
-      });
-    } finally {
-      setPendingWallet(null);
-    }
-  };
-
-  // Disconnect the currently connected wallet
-  const handleDisconnect = async () => {
-    try {
-      await wallet.disconnect();
-      onDisconnect?.();
-      toast({
-        title: "Wallet Disconnected",
-        description: "You have disconnected your wallet.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Disconnect Failed",
-        description: error?.message || "Unable to disconnect wallet.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Copy the connected wallet address to clipboard
-  const handleCopyAddress = async () => {
-    if (!connectedAddress || typeof navigator === "undefined") return;
-    try {
-      await navigator.clipboard.writeText(connectedAddress);
-      toast({
-        title: "Address Copied",
-        description: connectedAddress,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Copy Failed",
-        description: error?.message || "Unable to copy address.",
-        variant: "destructive",
-      });
-    }
-  };
+  const personalBalance = onChainBalance ?? 0;
+  const personalUsdValue =
+    typeof solPriceUsd === "number" ? personalBalance * solPriceUsd : null;
 
   // Determine the label shown on the trigger button
   const triggerLabel = !isMounted
     ? "Loading..."
-    : wallet.connecting || pendingWallet
+    : isConnecting
     ? "Connecting..."
     : connectedAddress
     ? truncateAddress(connectedAddress)
     : "Connect Wallet";
 
-  // Render the wallet selection modal when user is not connected
-  const personalBalance = onChainBalance ?? 0;
-  const personalUsdValue =
-    typeof solPriceUsd === "number" ? personalBalance * solPriceUsd : null;
-
+  // Not connected - show wallet selection dialog
   if (!connectedAddress) {
     return (
-      <Dialog
-        onOpenChange={(open) => {
-          if (!open && wallet.connected) {
-            // close modal automatically once connected
-          }
-        }}
-      >
+      <Dialog open={connectDialogOpen} onOpenChange={setConnectDialogOpen}>
         <DialogTrigger asChild>
           <Button
-            variant={connectedAddress ? "secondary" : triggerVariant}
+            variant={triggerVariant}
             size={triggerSize}
-            disabled={!isMounted || wallet.connecting}
+            disabled={!isMounted || isConnecting}
             className={cn(
               "flex items-center gap-3 min-w-[140px] justify-center",
               triggerClassName
@@ -254,17 +92,27 @@ export function WalletDropdown({
           </Button>
         </DialogTrigger>
 
-        <DialogContent className="max-w-sm bg-background text-secondary-foreground px-1.5">
-          <DialogHeader>
-            <DialogTitle>Select a wallet</DialogTitle>
+        <DialogContent className="max-w-[440px] p-0 gap-0 bg-background border-border overflow-hidden">
+          <DialogHeader className="px-5 pt-6 pb-5">
+            <DialogTitle className="text-xl font-semibold text-foreground">
+              Connect Wallet
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground mt-2">
+              Choose your preferred wallet to continue
+            </p>
           </DialogHeader>
 
-          {/* Render each available wallet with its installation status */}
-          <div className="flex flex-col gap-3 px-1.5 max-h-64 overflow-y-auto">
+          <div className="flex flex-col gap-3 px-5 pb-6">
             {availableWallets.length === 0 && (
-              <p className="text-muted-foreground text-sm">
-                No wallets detected. Install a Solana wallet to continue.
-              </p>
+              <div className="py-8 text-center">
+                <Wallet className="h-10 w-10 mx-auto mb-3 text-muted-foreground/50" />
+                <p className="text-muted-foreground text-sm">
+                  No wallets detected
+                </p>
+                <p className="text-muted-foreground/70 text-xs mt-1">
+                  Install a Solana wallet to continue
+                </p>
+              </div>
             )}
 
             {availableWallets.map(({ adapter, readyState }) => {
@@ -272,40 +120,53 @@ export function WalletDropdown({
               const isInstalled =
                 readyState === WalletReadyState.Installed ||
                 readyState === WalletReadyState.Loadable;
+              const isPending = pendingWallet === adapter.name;
+              const isDisabled =
+                readyState === WalletReadyState.Unsupported ||
+                isConnecting ||
+                (pendingWallet !== null && !isPending);
+
               return (
-                <Button
+                <button
                   key={walletKey}
-                  variant="outline"
-                  className="flex items-center justify-start gap-3 px-1.5"
                   onClick={async () => {
                     await handleSelectWallet(adapter.name);
                     if (wallet.connected) {
-                      document
-                        .querySelector('[data-state="open"]')
-                        ?.dispatchEvent(new Event("close"));
+                      setConnectDialogOpen(false);
                     }
                   }}
-                  disabled={
-                    readyState === WalletReadyState.Unsupported ||
-                    wallet.connecting ||
-                    Boolean(pendingWallet && pendingWallet !== adapter.name)
-                  }
+                  disabled={isDisabled}
+                  className={cn(
+                    "group flex items-center gap-4 w-full p-4 rounded-xl transition-all duration-200",
+                    "bg-secondary/50 hover:bg-secondary",
+                    "disabled:opacity-50 disabled:cursor-not-allowed",
+                    isPending && "ring-1 ring-primary/50 bg-primary/5"
+                  )}
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={adapter.icon}
                     alt={adapter.name}
-                    className="h-6 w-6 rounded-full"
+                    className="h-10 w-10 rounded-xl"
                   />
-                  <div className="flex flex-col text-left">
-                    <span className="text-sm font-medium">{adapter.name}</span>
+                  <div className="flex flex-col text-left flex-1">
+                    <span className="text-sm font-semibold text-foreground">
+                      {adapter.name}
+                    </span>
                     <span className="text-xs text-muted-foreground">
-                      {isInstalled
-                        ? READY_STATE_LABEL[readyState]
-                        : "Install required"}
-                      {pendingWallet === adapter.name && " • Connecting"}
+                      {isPending ? (
+                        <span className="text-primary">Connecting...</span>
+                      ) : isInstalled ? (
+                        WALLET_READY_STATE_LABELS[readyState]
+                      ) : (
+                        "Not installed"
+                      )}
                     </span>
                   </div>
-                </Button>
+                  {isInstalled && !isPending && (
+                    <div className="w-2 h-2 rounded-full bg-success opacity-0 group-hover:opacity-100 transition-opacity" />
+                  )}
+                </button>
               );
             })}
           </div>
@@ -314,49 +175,68 @@ export function WalletDropdown({
     );
   }
 
+  // Connected - show dropdown with wallet info
   return (
     <div className="relative">
+      {/* View Wallet Dialog */}
       <Dialog open={viewWalletOpen} onOpenChange={setViewWalletOpen}>
-        <DialogContent className=" bg-background text-secondary-foreground px-4">
-          {user && 
-          <DialogHeader className="flex flex-row items-center justify-between my-6">
-            <DialogTitle className="flex items-center gap-3"><img className="border w-8 h-8 rounded-full" src=""/>{user.username}</DialogTitle>
-            <Link  href={`/profile/${user.username}`}>
-            <Button variant="ghost"><Edit/> Edit profile</Button>
-            </Link>
-          </DialogHeader>
-          }
-
-          <div className="flex flex-col gap-4 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Address</span>
-              <span>{connectedAddress}</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Wallet</span>
-              <span>{connectedWalletName}</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Balance</span>
-              <span>{personalBalance} SOL</span>
-            </div>
-
-            {personalUsdValue !== null && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">USD Value</span>
-                <span>${personalUsdValue.toFixed(2)}</span>
+        <DialogContent className="max-w-[440px] p-0 gap-0 bg-background border-border overflow-hidden">
+          {user && (
+            <DialogHeader className="px-5 pt-6 pb-5 border-b border-border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-base font-semibold text-foreground">
+                      {user.username}
+                    </DialogTitle>
+                    <p className="text-xs text-muted-foreground">{connectedWalletName}</p>
+                  </div>
+                </div>
+                <Link href={`/profile/${user.username}`}>
+                  <Button variant="ghost" size="sm" className="h-8">
+                    <Edit className="h-3.5 w-3.5" />
+                  </Button>
+                </Link>
               </div>
-            )}
+            </DialogHeader>
+          )}
+
+          <div className="p-5 space-y-4">
+            {/* Balance Card */}
+            <div className="p-5 rounded-xl bg-secondary/50">
+              <p className="text-xs text-muted-foreground mb-1">Balance</p>
+              <p className="text-2xl font-bold text-foreground">
+                {personalBalance.toFixed(4)} <span className="text-base font-medium text-muted-foreground">SOL</span>
+              </p>
+              {personalUsdValue !== null && (
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  ≈ ${personalUsdValue.toFixed(2)} USD
+                </p>
+              )}
+            </div>
+
+            {/* Address */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/30">
+              <div>
+                <p className="text-xs text-muted-foreground mb-0.5">Address</p>
+                <p className="font-mono text-xs text-foreground">{truncateAddress(connectedAddress, 8)}</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={handleCopyAddress} className="h-8">
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
 
+      {/* Connected Wallet Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            variant={connectedAddress ? "secondary" : triggerVariant}
+            variant="secondary"
             size={triggerSize}
             className={cn(
               "flex items-center gap-3 min-w-[140px] justify-center",
@@ -370,55 +250,57 @@ export function WalletDropdown({
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
-          align="end"
+          align={align}
           className="mt-2 text-secondary-foreground bg-secondary shadow-xl px-1.5"
         >
-          {user && 
-            <Link
-            href={`/profile/${user.username}`}
-            >
-          <DropdownMenuItem>
-            <User /> Profil
-          </DropdownMenuItem>
-            </Link>
-                      }
+          {user && (
+            <DropdownMenuItem asChild>
+              <Link
+                href={`/profile/${user.username}`}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <User className="h-4 w-4" />
+                Profile
+              </Link>
+            </DropdownMenuItem>
+          )}
+
           <DropdownMenuItem
-            onClick={(e) => {
-              const menu = e.currentTarget.closest("[data-radix-menu-content]");
-              if (menu) {
-                (menu as HTMLElement).dispatchEvent(new Event("close", { bubbles: true }));
-              }
-              setTimeout(() => setViewWalletOpen(true), 0);
-            }}
+            onClick={() => setViewWalletOpen(true)}
+            className="cursor-pointer"
           >
-            <Wallet2 /> View wallet
+            <Wallet2 className="h-4 w-4 mr-2" />
+            View wallet
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleCopyAddress}>
-            <Copy /> Copy Address
+
+          <DropdownMenuItem onClick={handleCopyAddress} className="cursor-pointer">
+            <Copy className="h-4 w-4 mr-2" />
+            Copy Address
           </DropdownMenuItem>
+
           <DropdownMenuSeparator />
 
-          {/* Wallet actions available to the user */}
-
-          {/* If wallet is connected, display deposit + balance + notifications */}
           {user && wallet.connected && wallet.publicKey && (
             <>
-              <DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link
-                  className="text-orange-400 w-full flex gap-3 items-center"
                   href="/deposit"
+                  className="text-primary flex items-center gap-2 cursor-pointer"
                 >
-                  <CircleDollarSign />
+                  <CircleDollarSign className="h-4 w-4" />
                   Deposit
                 </Link>
-
-                {/* <NotificationsDropdown enabled={Boolean(user)} /> */}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>
           )}
-          <DropdownMenuItem onClick={handleDisconnect} className="text-red-400">
-            <LogOut /> Log out
+
+          <DropdownMenuItem
+            onClick={handleDisconnect}
+            className="text-destructive cursor-pointer"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Log out
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

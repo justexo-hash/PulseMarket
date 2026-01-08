@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -113,10 +114,10 @@ export function MarketSearchBar() {
             setOpen(true);
           }}
           className={
-            "pl-9 text-muted-secondar bg-secondary w-full cursor-pointer border-muted-foreground/20 outline-none focus:bg-transparent focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none " +
+            "pl-9 text-muted-foreground bg-secondary w-full cursor-pointer border-border outline-none focus:bg-transparent focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none " +
             (open
-              ? "rounded-t-md rounded-b-none text-muted-secondary border-muted-foreground/20 border "
-              : "rounded-md text-muted-secondary ")
+              ? "rounded-t-md rounded-b-none text-muted-foreground border border-border"
+              : "rounded-md text-muted-foreground")
           }
         />
       </div>
@@ -125,41 +126,38 @@ export function MarketSearchBar() {
       {open && (
         <div
           className="
-          absolute left-0 top-full z-50 
+          absolute left-0 top-full z-50
           w-full md:min-w-[400px]
-         bg-background rounded-t-none rounded-lg overflow-hidden shadow-md 
-          border border-muted-foreground/20 border-t-0
+         bg-background rounded-t-none rounded-lg overflow-hidden shadow-md
+          border border-border border-t-0
         "
         >
           {/* LIVE RESULTS SECTION */}
           {trimmedQuery.length > 0 && (
-            <div className="flex flex-col gap-2 border-b border-muted-foreground/20">
+            <div className="flex flex-col gap-2 border-b border-border">
               <div className="flex items-center justify-between px-3 py-2">
                 <p className="text-xs font-medium text-muted-foreground uppercase">
                   Search
                 </p>
                 <div className="inline-flex rounded-full bg-muted/30 p-1 text-xs font-semibold">
                   {(["markets", "users"] as const).map((option) => (
-                    <button
+                    <Button
                       key={option}
                       type="button"
                       onClick={() => setMode(option)}
-                      className={cn(
-                        "px-3 py-1 rounded-full transition",
-                        mode === option
-                          ? "bg-background text-secondary-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-secondary-foreground"
-                      )}
+                      size="sm"
+                      variant={mode === option ? "selected" : "ghost"}
+                      className="rounded-full px-3 py-1 h-auto"
                     >
                       {option === "markets" ? "Markets" : "Users"}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
 
               {mode === "markets" ? (
                 filteredResults.length > 0 ? (
-                  <div className="flex flex-col gap-2 p-4 border-t border-muted-foreground/10">
+                  <div className="flex flex-col gap-2 p-4 border-t border-border">
                     {filteredResults.map((m) => (
                       <Link
                         key={m.id}
@@ -196,7 +194,7 @@ export function MarketSearchBar() {
                   </p>
                 )
               ) : (
-                <div className="flex flex-col gap-2 p-4 border-t border-muted-foreground/10">
+                <div className="flex flex-col gap-2 p-4 border-t border-border">
                   {usersLoading ? (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -212,7 +210,7 @@ export function MarketSearchBar() {
                         onClick={() => setOpen(false)}
                         className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-muted/20 transition"
                       >
-                        <Avatar className="h-9 w-9 border border-muted-foreground/20">
+                        <Avatar className="h-9 w-9 border border-border">
                           {user.avatarUrl ? (
                             <AvatarImage src={user.avatarUrl} alt={user.username} />
                           ) : (
@@ -264,7 +262,7 @@ export function MarketSearchBar() {
           )}
           {/* BROWSE SECTION */}
           {trimmedQuery.length === 0 && (
-            <div className="flex flex-col gap-2 p-4 border-b border-muted-foreground/20 pointer-events-none select-none">
+            <div className="flex flex-col gap-2 p-4 border-b border-border pointer-events-none select-none">
               <p className="text-xs font-medium text-muted-foreground uppercase">
                 Browse{" "}
                 <span className="text-chart-3 animate-pulse">(soon)</span>

@@ -77,8 +77,8 @@ export function MarketListView({
     return (
         <div className="relative z-10 mx-auto py-12">
           <div className="text-center py-20">
-            <p className="text-2xl text-red-400 mb-4">Failed to load markets</p>
-            <p className="text-white/70">{(error as Error).message}</p>
+            <p className="text-2xl text-destructive mb-4">Failed to load markets</p>
+            <p className="text-muted-foreground">{(error as Error).message}</p>
           </div>
         </div>
     );
@@ -89,19 +89,19 @@ export function MarketListView({
       <div className="relative z-10">
         {filteredMarkets.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-2xl text-white mb-4">
+            <p className="text-2xl text-secondary-foreground mb-4">
               {searchQuery || selectedCategory
                 ? "No markets match your filters"
                 : "No markets available yet"}
             </p>
-            <p className="text-white/70">
+            <p className="text-muted-foreground">
               {searchQuery || selectedCategory
                 ? "Try adjusting your filters"
                 : "Be the first to create a market!"}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
             {filteredMarkets.map((market) => (
               <MarketCard key={market.id} market={market} />
             ))}

@@ -1,31 +1,29 @@
 "use client";
 
-import { useAuth } from "@/lib/auth";
-import { useToast } from "@/hooks/use-toast";
+import { useEffect, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useAuth } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 import { useSolanaConnection, getSOLBalance } from "@/lib/solana";
-import { useEffect, useState } from "react";
+import { useMediaQuery } from "app/(markets)/_hooks/useMediaQuery";
 import { HeaderDesktop } from "./Header/HeaderDesktop";
 import { HeaderMobile } from "./Header/HeaderMobile";
-import { useMediaQuery } from "app/(markets)/_hooks/useMediaQuery";
+import { DESKTOP_QUERY } from "./Header/types";
 
-// Main Header component — responsive navbar + wallet + search + menus
 export function Header() {
-  // AUTH / WALLET / QUERY HOOKS
-  // - user authentication
-  // - wallet connection
-  // - on-chain balance fetching
-  // - mounting state (to avoid hydration issues with WalletMultiButton)
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const wallet = useWallet();
   const connection = useSolanaConnection();
+  const isDesktop = useMediaQuery(DESKTOP_QUERY);
   const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
+  // Fetch on-chain SOL balance
   const { data: onChainBalance } = useQuery({
     queryKey: ["wallet-balance", wallet.publicKey?.toBase58()],
     queryFn: async () => {
@@ -34,15 +32,19 @@ export function Header() {
     },
     enabled: !!wallet.publicKey && !!connection,
     refetchInterval: 10000,
+    staleTime: 5000,
   });
 
+  // Fetch platform balance
   const { data: balanceData } = useQuery<{ balance: string }>({
     queryKey: ["/api/wallet/balance"],
     enabled: !!user,
     retry: false,
     refetchInterval: 30000,
+    staleTime: 15000,
   });
 
+  // Fetch SOL/USD price
   const { data: solPriceUsd } = useQuery<number>({
     queryKey: ["sol-price-header"],
     queryFn: async () => {
@@ -57,53 +59,34 @@ export function Header() {
     },
     enabled: !!wallet.connected,
     refetchInterval: 60000,
+    staleTime: 30000,
   });
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     toast({
       title: "Logged Out",
       description: "You have been logged out successfully.",
     });
-  };
+  }, [logout, toast]);
 
-  const truncateAddress = (address?: string) => {
-    if (!address) return "";
-    return `${address.slice(0, 4)}...${address.slice(-4)}`;
-  };
-
-  const isAuthenticated = Boolean(user);
-  const canShowWalletActions = Boolean(
-    isAuthenticated && wallet.connected && wallet.publicKey
-  );
-
-  const isDesktop = useMediaQuery("(min-width: 1280px)");
   const platformBalance = balanceData
     ? parseFloat(balanceData.balance || "0")
     : 0;
 
+  const headerProps = {
+    user,
+    wallet,
+    onChainBalance,
+    platformBalance,
+    solPriceUsd,
+    isMounted,
+    handleLogout,
+  };
+
   if (isDesktop) {
-    return (
-      <HeaderDesktop
-        user={user}
-        wallet={wallet}
-        onChainBalance={onChainBalance}
-        platformBalance={platformBalance}
-        solPriceUsd={solPriceUsd}
-        isMounted={isMounted}
-        handleLogout={handleLogout}
-      />
-    );
+    return <HeaderDesktop {...headerProps} />;
   }
-  return (
-    <HeaderMobile
-      user={user}
-      wallet={wallet}
-      onChainBalance={onChainBalance}
-      platformBalance={platformBalance}
-      solPriceUsd={solPriceUsd}
-      handleLogout={handleLogout}
-      isMounted={isMounted}
-    />
-  );
+
+  return <HeaderMobile {...headerProps} />;
 }

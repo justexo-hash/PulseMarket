@@ -205,9 +205,9 @@ export function Footer() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 px-2 py-1 bg-chart-2/20 rounded-lg border border-green-500/30">
-                  <div className="w-2 h-2 bg-chart-2 rounded-full animate-pulse" />
-                  <span className="text-xs font-medium text-chart-2">
+                <div className="flex items-center gap-2 px-2 py-1 bg-success/20 rounded-lg border border-success/30">
+                  <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
+                  <span className="text-xs font-medium text-success">
                     Connected
                   </span>
                 </div>
