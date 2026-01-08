@@ -94,7 +94,7 @@ const posts: BlogPost[] = [
 
 export default function Blog() {
   return (
-    <main className="max-w-7xl mx-auto pt-8">
+    <main className="max-w-7xl mx-auto pt-3">
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-secondary-foreground  mb-2">
           Polymeme Blog

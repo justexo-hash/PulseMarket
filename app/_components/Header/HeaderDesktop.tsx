@@ -18,8 +18,8 @@ export function HeaderDesktop({
   handleLogout,
 }: HeaderProps) {
   return (
-    <header className="z-50 w-full mb-6">
-      <div className="px-4 xl:px-6 pt-4 xl:pt-6 flex flex-col gap-4 xl:gap-6 mb-4 xl:mb-6">
+    <header className="z-50 w-full">
+      <div className="px-4 xl:px-6 pt-4 xl:pt-6 flex flex-col gap-4 xl:gap-6 mb-4 xl:mb-0">
         {/* Main header row */}
         <div className="flex items-center justify-between gap-3">
           {/* Left side: Searchbar */}

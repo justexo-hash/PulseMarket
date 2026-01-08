@@ -221,14 +221,14 @@ function BattleTokenChart({
     <div>
       {/* Stats header */}
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="bg-success/10 rounded-lg p-3 border border-success/20">
+        <div className="bg-success/10 rounded-lg p-3 border border-border">
           <p className="text-xs text-muted-foreground mb-1">{tokenName1 || "Token 1"}</p>
           <p className="text-lg font-bold text-secondary-foreground">{formatMarketCap(lastMc1)}</p>
           <p className={`text-sm font-semibold ${change1 >= 0 ? "text-success" : "text-destructive"}`}>
             {change1 >= 0 ? "+" : ""}{change1.toFixed(2)}%
           </p>
         </div>
-        <div className="bg-primary/10 rounded-lg p-3 border border-primary/20">
+        <div className="bg-primary/10 rounded-lg p-3 border-border border">
           <p className="text-xs text-muted-foreground mb-1">{tokenName2 || "Token 2"}</p>
           <p className="text-lg font-bold text-secondary-foreground">{formatMarketCap(lastMc2)}</p>
           <p className={`text-sm font-semibold ${change2 >= 0 ? "text-success" : "text-destructive"}`}>

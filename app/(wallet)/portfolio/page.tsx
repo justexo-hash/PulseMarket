@@ -351,7 +351,7 @@ export default function PortfolioPage() {
   const isProfit = profitLoss >= 0;
 
   return (
-    <div className="max-w-7xl mx-auto pt-8 ">
+    <div className="max-w-7xl mx-auto pt-3 ">
         {/** Page Header */}
         <div className="mb-8 flex flex-col md:flex-row items-start md:items-center gap-6 justify-between">
             {/** Title and subtitle */}

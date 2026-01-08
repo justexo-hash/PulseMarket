@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { type Market } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 import { ProbabilityGauge } from "./ProbabilityGauge";
 
@@ -131,70 +132,72 @@ export function MarketCard({ market }: MarketCardProps) {
       data-testid={`card-market-${market.id}`}
       className="group block h-full"
     >
-      <div className="bg-secondary rounded-xl border border-border p-4 shadow-sm hover:shadow-md hover:border-primary transition-all duration-200 h-full flex flex-col">
-        {/* Header: Image + Question + Gauge */}
-        <div className="flex gap-3 mb-4">
-          {/* Market Image */}
-          <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-muted">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={market.image || "/placeholder.png"}
-              alt=""
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.src = "/placeholder.png";
-              }}
-            />
+      <Card className="h-full flex flex-col p-4">
+        <CardContent className="p-0 flex-1">
+          {/* Header: Image + Question + Gauge */}
+          <div className="flex gap-3 mb-4">
+            {/* Market Image */}
+            <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-muted">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={market.image || "/placeholder.png"}
+                alt=""
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = "/placeholder.png";
+                }}
+              />
+            </div>
+
+            {/* Question */}
+            <div className="flex-1 min-w-0">
+              <h2
+                className="text-sm font-semibold text-foreground line-clamp-2 leading-snug"
+                data-testid={`text-question-${market.id}`}
+              >
+                {market.question}
+              </h2>
+            </div>
+
+            {/* Probability Gauge */}
+            <div className="shrink-0">
+              <ProbabilityGauge
+                value={displayProbability}
+                resolved={isResolved}
+                outcome={resolvedOutcome as "yes" | "no"}
+              />
+            </div>
           </div>
 
-          {/* Question */}
-          <div className="flex-1 min-w-0">
-            <h2
-              className="text-sm font-semibold text-foreground line-clamp-2 leading-snug"
-              data-testid={`text-question-${market.id}`}
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            <Button
+              variant="success"
+              className="flex-1"
+              title={market.tokenAddress2 ? (token1Name || "Token 1") : "Yes"}
             >
-              {market.question}
-            </h2>
+              <span className="truncate block">
+                {market.tokenAddress2
+                  ? truncateText(token1Name || "Token 1")
+                  : "Yes"}
+              </span>
+            </Button>
+            <Button
+              variant="destructive"
+              className="flex-1"
+              title={market.tokenAddress2 ? (token2Name || "Token 2") : "No"}
+            >
+              <span className="truncate block">
+                {market.tokenAddress2
+                  ? truncateText(token2Name || "Token 2")
+                  : "No"}
+              </span>
+            </Button>
           </div>
-
-          {/* Probability Gauge */}
-          <div className="shrink-0">
-            <ProbabilityGauge
-              value={displayProbability}
-              resolved={isResolved}
-              outcome={resolvedOutcome as "yes" | "no"}
-            />
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3 mb-4">
-          <Button
-            variant="success"
-            className="flex-1"
-            title={market.tokenAddress2 ? (token1Name || "Token 1") : "Yes"}
-          >
-            <span className="truncate block">
-              {market.tokenAddress2
-                ? truncateText(token1Name || "Token 1")
-                : "Yes"}
-            </span>
-          </Button>
-          <Button
-            variant="destructive"
-            className="flex-1"
-            title={market.tokenAddress2 ? (token2Name || "Token 2") : "No"}
-          >
-            <span className="truncate block">
-              {market.tokenAddress2
-                ? truncateText(token2Name || "Token 2")
-                : "No"}
-            </span>
-          </Button>
-        </div>
+        </CardContent>
 
         {/* Footer: Volume & Status */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground mt-auto pt-2 border-t border-border">
+        <CardFooter className="p-0 pt-4 mt-auto border-t border-border justify-between text-xs text-muted-foreground">
           <span className="font-medium">{volume.toFixed(2)} SOL</span>
           <div className="flex items-center gap-2">
             {!isResolved && market.expiresAt && (
@@ -213,8 +216,8 @@ export function MarketCard({ market }: MarketCardProps) {
               </Badge>
             )}
           </div>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
     </Link>
   );
 }
